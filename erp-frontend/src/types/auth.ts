@@ -1,7 +1,10 @@
 export enum UserRole {
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
   MANAGER = 'manager',
-  USER = 'user'
+  EMPLOYEE = 'employee',
+  CUSTOMER = 'customer',
+  VENDOR = 'vendor'
 }
 
 export enum UserStatus {
