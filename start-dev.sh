@@ -6,13 +6,17 @@ echo "🚀 Starting ERP System in Development Mode"
 echo "This will start all services with hot-reload enabled"
 echo ""
 
-# Start MongoDB and Auth Service first
-echo "📦 Starting MongoDB and Auth Service..."
+# Start MongoDB and core services first
+echo "📦 Starting MongoDB and Core Services..."
 docker-compose up -d mongodb auth-service
 
-# Wait for auth service to be ready
-echo "⏳ Waiting for Auth Service to be ready..."
-sleep 5
+# Wait for services to be ready
+echo "⏳ Waiting for services to be ready..."
+sleep 8
+
+# Start inventory service in development mode
+echo "📦 Starting Inventory Service..."
+docker-compose --profile development up -d inventory-service-dev
 
 # Start MongoDB Express for development
 echo "🗄️ Starting MongoDB Express..."
@@ -28,6 +32,10 @@ echo ""
 echo "🌐 Available URLs:"
 echo "   - Frontend (with hot-reload): http://localhost:5173"
 echo "   - Auth API: http://localhost:8001"
+echo "   - Auth API Docs: http://localhost:8001/docs"
+echo "   - Inventory API: http://localhost:8002"
+echo "   - Inventory API Docs: http://localhost:8002/docs"
+echo "   - Inventory GraphQL: http://localhost:8002/graphql"
 echo "   - MongoDB Express: http://localhost:8081"
 echo ""
 echo "🔑 MongoDB Express Login:"

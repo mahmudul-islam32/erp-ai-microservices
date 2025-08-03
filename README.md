@@ -59,8 +59,21 @@ cd tests && ./test-auth.sh
 - 📊 **Role Hierarchy** – Super Admin → Admin → Manager → Employee → Customer/Vendor
 - 🐳 **Docker Ready** – Fully containerized with MongoDB
 
+### ✅ Implemented: Inventory Service
+- � **Product Management** – Complete CRUD with SKU, pricing, categories
+- 🏭 **Supplier Management** – Supplier information and relationships
+- 🏢 **Warehouse Management** – Multi-location inventory tracking
+- � **Inventory Tracking** – Real-time stock levels and transactions
+- 🔄 **Stock Operations** – Add, subtract, adjust, transfer between locations
+- 🚨 **Low Stock Alerts** – Automatic reorder point monitoring
+- 📝 **Transaction History** – Complete audit trail of all movements
+- 🏷️ **Batch/Serial Tracking** – Product traceability features
+- 🌐 **GraphQL + REST APIs** – Dual API approach for maximum flexibility
+- 🔐 **Role-Based Security** – Integrated with auth service
+- 📚 **Swagger Documentation** – Auto-generated API documentation
+- 🐳 **Docker Ready** – NestJS microservice with MongoDB
+
 ### 🚧 Planned Modules
-- 📦 **Inventory Management** – Products, stock, AI-powered demand prediction
 - 🧾 **Sales & Orders** – Customer orders, status tracking (Express)
 - 💰 **Finance** – Invoicing, payments, fraud detection
 - 🧑‍💼 **HR** – Employee records, attendance, attrition prediction
@@ -76,6 +89,7 @@ cd tests && ./test-auth.sh
 - **Frontend**: React, Tailwind, Apollo Client
 - **Backend**:
   - ✅ FastAPI (Python) - Auth Service
+  - ✅ NestJS (Node.js) - Inventory Service 
   - 🚧 Express.js (Node.js) - Other services
   - 🚧 Apollo GraphQL Federation Gateway
 - **Database**: MongoDB
@@ -97,7 +111,21 @@ erp-ai-microservices/
 │   ├── requirements.txt
 │   └── README.md
 │
-├── 📦 inventory-service/             # 🚧 Product & Stock Management (Node.js/Express)
+├── 📦 inventory-service/             # ✅ Inventory Management (NestJS/GraphQL)
+│   ├── src/
+│   │   ├── products/                # Product management
+│   │   ├── categories/              # Product categories
+│   │   ├── suppliers/               # Supplier management
+│   │   ├── warehouses/              # Warehouse management
+│   │   ├── inventory/               # Stock tracking & transactions
+│   │   ├── auth/                    # Authentication integration
+│   │   └── database/                # MongoDB schemas & seed data
+│   ├── Dockerfile
+│   ├── Dockerfile.dev
+│   ├── package.json
+│   ├── README.md
+│   ├── QUICKSTART.md
+│   └── start-inventory.sh
 │   ├── src/
 │   │   ├── controllers/             # Request handlers
 │   │   ├── models/                  # Database models
