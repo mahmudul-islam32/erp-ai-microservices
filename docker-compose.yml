@@ -46,6 +46,55 @@ services:
     networks:
       - erp-network
 
+  # Inventory Service
+  inventory-service:
+    build: 
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    container_name: erp-inventory-service
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/erp_inventory?authSource=admin
+      AUTH_SERVICE_URL: http://auth-service:8001
+      JWT_SECRET: your-super-secret-key-change-in-production
+      NODE_ENV: production
+      PORT: 8002
+    depends_on:
+      - mongodb
+    volumes:
+      - ./inventory-service:/app
+    networks:
+      - erp-network
+
+  # Inventory Service (Development with hot-reload)
+  inventory-service-dev:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile.dev
+    container_name: erp-inventory-service-dev
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/erp_inventory?authSource=admin
+      AUTH_SERVICE_URL: http://auth-service:8001
+      JWT_SECRET: your-super-secret-key-change-in-production
+      NODE_ENV: development
+      PORT: 8002
+      GRAPHQL_PLAYGROUND: true
+      GRAPHQL_INTROSPECTION: true
+    depends_on:
+      - mongodb
+    volumes:
+      - ./inventory-service:/app
+      - /app/node_modules
+    networks:
+      - erp-network
+    profiles:
+      - development
+
   # MongoDB Express (Development only)
   mongo-express:
     image: mongo-express:1.0.0
