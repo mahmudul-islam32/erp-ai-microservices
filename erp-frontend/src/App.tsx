@@ -10,6 +10,12 @@ import { DashboardLayout } from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
+import { CreateUserPage } from './pages/CreateUserPage';
+import { RoleManagementPage } from './pages/RoleManagementPage';
+import SecuritySettingsPage from './pages/SecuritySettingsPage';
+import AccessControlPage from './pages/AccessControlPage';
+import SessionManagementPage from './pages/SessionManagementPage';
+import AuditLogsPage from './pages/AuditLogsPage';
 
 function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
@@ -35,12 +41,23 @@ function App() {
                 }
               >
                 <Route index element={<DashboardPage />} />
+                
+                {/* Authentication & User Management Routes */}
                 <Route path="users" element={<UsersPage />} />
-                {/* Add more dashboard routes here */}
+                <Route path="users/create" element={<CreateUserPage />} />
+                <Route path="roles" element={<RoleManagementPage />} />
+                <Route path="security" element={<SecuritySettingsPage />} />
+                <Route path="access-control" element={<AccessControlPage />} />
+                <Route path="sessions" element={<SessionManagementPage />} />
+                <Route path="audit" element={<AuditLogsPage />} />
+                
+                {/* Business Operations Routes */}
                 <Route path="departments" element={<div>Departments Page (Not implemented)</div>} />
                 <Route path="calendar" element={<div>Calendar Page (Not implemented)</div>} />
                 <Route path="reports" element={<div>Reports Page (Not implemented)</div>} />
-                <Route path="settings" element={<div>Settings Page (Not implemented)</div>} />
+                
+                {/* System Configuration Routes */}
+                <Route path="settings" element={<div>System Settings Page (Not implemented)</div>} />
               </Route>
 
               {/* Default redirect to dashboard */}

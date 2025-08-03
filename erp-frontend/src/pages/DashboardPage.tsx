@@ -1,9 +1,22 @@
-import { Card, SimpleGrid, Group, Text, RingProgress, useMantineTheme, Title } from '@mantine/core';
+import { 
+  Card, 
+  SimpleGrid, 
+  Group, 
+  Text, 
+  RingProgress, 
+  useMantineTheme, 
+  Title,
+  Container,
+  Stack,
+  Divider,
+  Paper,
+} from '@mantine/core';
 import { IconUsers, IconUserCheck, IconUserPlus, IconUserX } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserService } from '../services/user';
 import { UserRole, UserStatus } from '../types/auth';
+import { AuthQuickActions } from '../components/AuthQuickActions';
 
 const Dashboard = () => {
   const theme = useMantineTheme();
@@ -80,7 +93,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div>
+    <Container size="xl" py="xl">
       <Title order={2} mb={30}>Dashboard</Title>
       
       {loading ? (
@@ -148,9 +161,25 @@ const Dashboard = () => {
               )}
             </Card>
           </SimpleGrid>
+          
+          {/* Authentication Quick Actions Section */}
+          <Paper mt="xl" p="lg" shadow="sm" radius="md">
+            <Stack spacing="lg">
+              <div>
+                <Title order={3} size="h4">
+                  Authentication & User Management
+                </Title>
+                <Text size="sm" color="dimmed" mt="xs">
+                  Quick access to user and security management features
+                </Text>
+              </div>
+              <Divider />
+              <AuthQuickActions />
+            </Stack>
+          </Paper>
         </>
       )}
-    </div>
+    </Container>
   );
 };
 
