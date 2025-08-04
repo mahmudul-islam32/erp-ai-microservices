@@ -16,6 +16,14 @@ import SecuritySettingsPage from './pages/SecuritySettingsPage';
 import AccessControlPage from './pages/AccessControlPage';
 import SessionManagementPage from './pages/SessionManagementPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import SystemSettingsPage from './pages/SystemSettingsPage';
+
+// Inventory Pages
+import InventoryDashboardPage from './pages/InventoryDashboardPage';
+import ProductsPage from './pages/ProductsPage';
+import CategoriesPage from './pages/CategoriesPage';
+import WarehousesPage from './pages/WarehousesPage';
+import StockManagementPage from './pages/StockManagementPage';
 
 function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
@@ -51,13 +59,20 @@ function App() {
                 <Route path="sessions" element={<SessionManagementPage />} />
                 <Route path="audit" element={<AuditLogsPage />} />
                 
+                {/* Inventory Management Routes */}
+                <Route path="inventory" element={<InventoryDashboardPage />} />
+                <Route path="inventory/products" element={<ProductsPage />} />
+                <Route path="inventory/categories" element={<CategoriesPage />} />
+                <Route path="inventory/warehouses" element={<WarehousesPage />} />
+                <Route path="inventory/stock" element={<StockManagementPage />} />
+                
                 {/* Business Operations Routes */}
                 <Route path="departments" element={<div>Departments Page (Not implemented)</div>} />
                 <Route path="calendar" element={<div>Calendar Page (Not implemented)</div>} />
                 <Route path="reports" element={<div>Reports Page (Not implemented)</div>} />
                 
                 {/* System Configuration Routes */}
-                <Route path="settings" element={<div>System Settings Page (Not implemented)</div>} />
+                <Route path="settings" element={<SystemSettingsPage />} />
               </Route>
 
               {/* Default redirect to dashboard */}

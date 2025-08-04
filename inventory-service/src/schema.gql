@@ -1,0 +1,405 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Category {
+  _id: ID!
+  code: String
+  createdAt: DateTime!
+  description: String
+  image: String
+  isActive: Boolean!
+  name: String!
+  parentId: ID
+  sortOrder: Float!
+  tags: [String!]
+  updatedAt: DateTime!
+}
+
+input CategoryFilterInput {
+  isActive: Boolean
+  parentId: String
+  search: String
+}
+
+type CategoryResponse {
+  code: String
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  image: String
+  isActive: Boolean!
+  name: String!
+  parentId: ID
+  sortOrder: Float!
+  tags: [String!]
+  updatedAt: DateTime!
+}
+
+input CreateCategoryInput {
+  code: String
+  description: String
+  image: String
+  isActive: Boolean! = true
+  name: String!
+  parentId: ID
+  sortOrder: Float! = 0
+  tags: [String!]
+}
+
+input CreateInventoryInput {
+  availableStock: Float
+  currentStock: Float!
+  lastUpdatedBy: String
+  productId: String!
+  reservedStock: Float
+  warehouseId: String!
+}
+
+input CreateInventoryTransactionInput {
+  notes: String
+  performedBy: String
+  productId: String!
+  quantity: Float!
+  reason: String!
+  reference: String
+  type: String!
+  unitCost: Float
+  warehouseId: String!
+}
+
+input CreateProductInput {
+  barcode: String
+  categoryId: ID!
+  cost: Float!
+  currentStock: Int!
+  description: String
+  dimensions: String
+  images: [String!]
+  isActive: Boolean! = true
+  isTrackable: Boolean! = false
+  maxStockLevel: Int!
+  minStockLevel: Int!
+  name: String!
+  price: Float!
+  reorderPoint: Int!
+  reorderQuantity: Int!
+  sku: String!
+  supplierIds: [ID!]
+  tags: String
+  unit: String!
+  weight: Float
+}
+
+input CreateSupplierInput {
+  address: String
+  city: String
+  code: String
+  contactPerson: String
+  country: String
+  creditLimit: Float
+  description: String
+  email: String
+  isActive: Boolean! = true
+  leadTime: Float
+  name: String!
+  paymentTerms: String
+  phone: String
+  postalCode: String
+  state: String
+  taxId: String
+  website: String
+}
+
+input CreateWarehouseInput {
+  address: String
+  capacity: Float
+  city: String
+  code: String
+  contactPerson: String
+  country: String
+  description: String
+  email: String
+  isActive: Boolean! = true
+  isMainWarehouse: Boolean! = false
+  name: String!
+  phone: String
+  postalCode: String
+  state: String
+  type: String
+  utilization: Float
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Inventory {
+  _id: ID!
+  availableQuantity: Int!
+  averageCost: Float!
+  batchNumber: String
+  createdAt: DateTime!
+  expiryDate: DateTime
+  location: String
+  productId: ID!
+  quantity: Int!
+  reservedQuantity: Int!
+  serialNumber: String
+  updatedAt: DateTime!
+  warehouseId: ID!
+}
+
+input InventoryFilterInput {
+  lowStock: Boolean
+  maxStock: Float
+  minStock: Float
+  outOfStock: Boolean
+  productId: String
+  search: String
+  warehouseId: String
+}
+
+type InventoryTransaction {
+  _id: ID!
+  balanceAfter: Int!
+  batchNumber: String
+  createdAt: DateTime!
+  notes: String
+  performedBy: String!
+  productId: ID!
+  quantity: Int!
+  reason: String!
+  reference: String
+  serialNumber: String
+  totalCost: Float!
+  type: String!
+  unitCost: Float!
+  updatedAt: DateTime!
+  warehouseId: ID!
+}
+
+type Mutation {
+  createCategory(createCategoryInput: CreateCategoryInput!): Category!
+  createInventory(createInventoryInput: CreateInventoryInput!): Inventory!
+  createInventoryTransaction(createTransactionInput: CreateInventoryTransactionInput!): InventoryTransaction!
+  createProduct(createProductInput: CreateProductInput!): Product!
+  createSupplier(createSupplierInput: CreateSupplierInput!): Supplier!
+  createWarehouse(createWarehouseInput: CreateWarehouseInput!): Warehouse!
+  deleteCategory(id: ID!): Boolean!
+  deleteInventory(id: ID!): Boolean!
+  deleteProduct(id: ID!): Boolean!
+  deleteSupplier(id: ID!): Boolean!
+  deleteWarehouse(id: ID!): Boolean!
+  updateCategory(id: ID!, updateCategoryInput: UpdateCategoryInput!): Category!
+  updateInventory(id: ID!, updateInventoryInput: UpdateInventoryInput!): Inventory!
+  updateProduct(id: ID!, updateProductInput: UpdateProductInput!): Product!
+  updateStock(id: ID!, operation: String!, quantity: Int!): Product!
+  updateSupplier(id: ID!, updateSupplierInput: UpdateSupplierInput!): Supplier!
+  updateWarehouse(id: ID!, updateWarehouseInput: UpdateWarehouseInput!): Warehouse!
+}
+
+type Product {
+  _id: ID!
+  barcode: String
+  categoryId: ID!
+  cost: Float!
+  createdAt: DateTime!
+  description: String
+  dimensions: String
+  images: [String!]
+  isActive: Boolean!
+  isTrackable: Boolean!
+  maxStockLevel: Int!
+  minStockLevel: Int!
+  name: String!
+  price: Float!
+  reorderPoint: Int!
+  reorderQuantity: Int!
+  sku: String!
+  supplierIds: [ID!]
+  tags: String
+  unit: String!
+  updatedAt: DateTime!
+  weight: Float
+}
+
+input ProductFilterInput {
+  categoryId: String
+  isActive: Boolean
+  lowStock: Boolean
+  maxPrice: Float
+  minPrice: Float
+  search: String
+}
+
+type Query {
+  activeWarehouses: [Warehouse!]!
+  categories(filter: CategoryFilterInput, limit: Float! = 10, page: Float! = 1, sortBy: String! = "sortOrder", sortOrder: String! = "asc"): [Category!]!
+  category(id: ID!): Category!
+  categoryByCode(code: String!): Category!
+  childCategories(parentId: ID!): [Category!]!
+  inventory(filter: InventoryFilterInput, limit: Float! = 10, page: Float! = 1, sortBy: String! = "updatedAt", sortOrder: String! = "desc"): [Inventory!]!
+  inventoryByProduct(productId: ID!): [Inventory!]!
+  inventoryByWarehouse(warehouseId: ID!): [Inventory!]!
+  inventoryItem(id: ID!): Inventory!
+  lowStockItems: [Inventory!]!
+  lowStockProducts(threshold: Int): [Product!]!
+  outOfStockItems: [Inventory!]!
+  product(id: ID!): Product!
+  productBySku(sku: String!): Product!
+  products(filter: ProductFilterInput, limit: Int! = 10, page: Int! = 1, sortBy: String! = "createdAt", sortOrder: String! = "desc"): [Product!]!
+  rootCategories: [Category!]!
+  searchSuppliers(searchTerm: String!): [Supplier!]!
+  searchWarehouses(searchTerm: String!): [Warehouse!]!
+  supplier(id: ID!): Supplier!
+  supplierByCode(code: String!): Supplier!
+  suppliers(filter: SupplierFilterInput, limit: Float! = 10, page: Float! = 1, sortBy: String! = "name", sortOrder: String! = "asc"): [Supplier!]!
+  suppliersByLocation(city: String, country: String): [Supplier!]!
+  transactionHistory(limit: Float! = 10, page: Float! = 1, productId: ID, warehouseId: ID): [InventoryTransaction!]!
+  warehouse(id: ID!): Warehouse!
+  warehouseByCode(code: String!): Warehouse!
+  warehouses(filter: WarehouseFilterInput, limit: Float! = 10, page: Float! = 1, sortBy: String! = "name", sortOrder: String! = "asc"): [Warehouse!]!
+  warehousesByLocation(city: String, country: String): [Warehouse!]!
+  warehousesByType(type: String!): [Warehouse!]!
+}
+
+type Supplier {
+  _id: ID!
+  address: String
+  city: String
+  code: String
+  contactPerson: String!
+  country: String
+  createdAt: DateTime!
+  description: String
+  email: String!
+  isActive: Boolean!
+  name: String!
+  notes: String
+  phone: String
+  postalCode: String
+  state: String
+  tags: [String!]
+  taxId: String
+  updatedAt: DateTime!
+  website: String
+}
+
+input SupplierFilterInput {
+  city: String
+  country: String
+  isActive: Boolean
+  search: String
+}
+
+input UpdateCategoryInput {
+  code: String
+  description: String
+  image: String
+  isActive: Boolean
+  name: String
+  parentId: ID
+  sortOrder: Float
+  tags: [String!]
+}
+
+input UpdateInventoryInput {
+  availableStock: Float
+  currentStock: Float
+  lastUpdatedBy: String
+  productId: String
+  reservedStock: Float
+  warehouseId: String
+}
+
+input UpdateProductInput {
+  barcode: String
+  categoryId: ID
+  cost: Float
+  currentStock: Int
+  description: String
+  dimensions: String
+  images: [String!]
+  isActive: Boolean
+  isTrackable: Boolean
+  maxStockLevel: Int
+  minStockLevel: Int
+  name: String
+  price: Float
+  reorderPoint: Int
+  reorderQuantity: Int
+  sku: String
+  supplierIds: [ID!]
+  tags: String
+  unit: String
+  weight: Float
+}
+
+input UpdateSupplierInput {
+  address: String
+  city: String
+  code: String
+  contactPerson: String
+  country: String
+  creditLimit: Float
+  description: String
+  email: String
+  isActive: Boolean
+  leadTime: Float
+  name: String
+  paymentTerms: String
+  phone: String
+  postalCode: String
+  state: String
+  taxId: String
+  website: String
+}
+
+input UpdateWarehouseInput {
+  address: String
+  capacity: Float
+  city: String
+  code: String
+  contactPerson: String
+  country: String
+  description: String
+  email: String
+  isActive: Boolean
+  isMainWarehouse: Boolean
+  name: String
+  phone: String
+  postalCode: String
+  state: String
+  type: String
+  utilization: Float
+}
+
+type Warehouse {
+  _id: ID!
+  address: String!
+  city: String
+  code: String
+  contactPerson: String
+  country: String
+  createdAt: DateTime!
+  description: String
+  email: String
+  isActive: Boolean!
+  isMainWarehouse: Boolean!
+  name: String!
+  notes: String
+  phone: String
+  postalCode: String
+  state: String
+  updatedAt: DateTime!
+}
+
+input WarehouseFilterInput {
+  city: String
+  country: String
+  isActive: Boolean
+  search: String
+  type: String
+}
