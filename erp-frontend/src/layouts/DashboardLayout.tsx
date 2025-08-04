@@ -89,6 +89,13 @@ export function DashboardLayout() {
   // Inventory Management Section
   const inventoryNavItems = [
     { 
+      label: 'Inventory Dashboard', 
+      icon: <IconReportAnalytics size={20} />, 
+      path: '/dashboard/inventory', 
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+      description: 'Inventory overview & statistics'
+    },
+    { 
       label: 'Products', 
       icon: <IconPackage size={20} />, 
       path: '/dashboard/inventory/products', 

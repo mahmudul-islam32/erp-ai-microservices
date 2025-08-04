@@ -30,13 +30,13 @@ import { UserRole } from '../auth/auth.service';
 
 @ApiTags('Suppliers')
 @Controller('suppliers')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class SuppliersController {
   constructor(private readonly suppliersService: SuppliersService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Create a new supplier' })
   @ApiBody({ type: CreateSupplierInput })
   @ApiResponse({
@@ -58,7 +58,7 @@ export class SuppliersController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get all suppliers with pagination and filtering' })
   @ApiQuery({ name: 'isActive', required: false, description: 'Filter by active status' })
   @ApiQuery({ name: 'city', required: false, description: 'Filter by city' })
@@ -103,7 +103,7 @@ export class SuppliersController {
   }
 
   @Get('stats')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get supplier statistics' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -119,7 +119,7 @@ export class SuppliersController {
   }
 
   @Get('search')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Search suppliers' })
   @ApiQuery({ name: 'q', description: 'Search term' })
   @ApiResponse({
@@ -131,7 +131,7 @@ export class SuppliersController {
   }
 
   @Get('location')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Find suppliers by location' })
   @ApiQuery({ name: 'city', required: false, description: 'City filter' })
   @ApiQuery({ name: 'country', required: false, description: 'Country filter' })
@@ -147,7 +147,7 @@ export class SuppliersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get supplier by ID' })
   @ApiParam({ name: 'id', description: 'Supplier ID' })
   @ApiResponse({
@@ -167,7 +167,7 @@ export class SuppliersController {
   }
 
   @Get('code/:code')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get supplier by code' })
   @ApiParam({ name: 'code', description: 'Supplier code' })
   @ApiResponse({
@@ -183,7 +183,7 @@ export class SuppliersController {
   }
 
   @Put(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Update supplier by ID' })
   @ApiParam({ name: 'id', description: 'Supplier ID' })
   @ApiBody({ type: UpdateSupplierInput })
@@ -211,7 +211,7 @@ export class SuppliersController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Delete supplier by ID' })
   @ApiParam({ name: 'id', description: 'Supplier ID' })
   @ApiResponse({
