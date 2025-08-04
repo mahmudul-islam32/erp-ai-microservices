@@ -30,13 +30,13 @@ import { UserRole } from '../auth/auth.service';
 
 @ApiTags('Warehouses')
 @Controller('warehouses')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class WarehousesController {
   constructor(private readonly warehousesService: WarehousesService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Create a new warehouse' })
   @ApiBody({ type: CreateWarehouseInput })
   @ApiResponse({
@@ -58,7 +58,7 @@ export class WarehousesController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get all warehouses with pagination and filtering' })
   @ApiQuery({ name: 'isActive', required: false, description: 'Filter by active status' })
   @ApiQuery({ name: 'type', required: false, description: 'Filter by warehouse type' })
@@ -106,7 +106,7 @@ export class WarehousesController {
   }
 
   @Get('active')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get all active warehouses' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -117,7 +117,7 @@ export class WarehousesController {
   }
 
   @Get('stats')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get warehouse statistics' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -134,7 +134,7 @@ export class WarehousesController {
   }
 
   @Get('search')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Search warehouses' })
   @ApiQuery({ name: 'q', description: 'Search term' })
   @ApiResponse({
@@ -146,7 +146,7 @@ export class WarehousesController {
   }
 
   @Get('location')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Find warehouses by location' })
   @ApiQuery({ name: 'city', required: false, description: 'City filter' })
   @ApiQuery({ name: 'country', required: false, description: 'Country filter' })
@@ -162,7 +162,7 @@ export class WarehousesController {
   }
 
   @Get('type/:type')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Find warehouses by type' })
   @ApiParam({ name: 'type', description: 'Warehouse type' })
   @ApiResponse({
@@ -174,7 +174,7 @@ export class WarehousesController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get warehouse by ID' })
   @ApiParam({ name: 'id', description: 'Warehouse ID' })
   @ApiResponse({
@@ -194,7 +194,7 @@ export class WarehousesController {
   }
 
   @Get('code/:code')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get warehouse by code' })
   @ApiParam({ name: 'code', description: 'Warehouse code' })
   @ApiResponse({
@@ -210,7 +210,7 @@ export class WarehousesController {
   }
 
   @Put(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Update warehouse by ID' })
   @ApiParam({ name: 'id', description: 'Warehouse ID' })
   @ApiBody({ type: UpdateWarehouseInput })
@@ -238,7 +238,7 @@ export class WarehousesController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Delete warehouse by ID' })
   @ApiParam({ name: 'id', description: 'Warehouse ID' })
   @ApiResponse({

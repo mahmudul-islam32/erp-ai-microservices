@@ -30,13 +30,13 @@ import { UserRole } from '../auth/auth.service';
 
 @ApiTags('Categories')
 @Controller('categories')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiBody({ type: CreateCategoryInput })
   @ApiResponse({
@@ -59,7 +59,7 @@ export class CategoriesController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get all categories with pagination and filtering' })
   @ApiQuery({ name: 'parentId', required: false, description: 'Filter by parent category ID' })
   @ApiQuery({ name: 'isActive', required: false, description: 'Filter by active status' })
@@ -101,7 +101,7 @@ export class CategoriesController {
   }
 
   @Get('tree')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get category tree structure' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -112,7 +112,7 @@ export class CategoriesController {
   }
 
   @Get('stats')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get category statistics' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -128,7 +128,7 @@ export class CategoriesController {
   }
 
   @Get('root')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get root categories (categories without parent)' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -140,7 +140,7 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get category by ID' })
   @ApiParam({ name: 'id', description: 'Category ID' })
   @ApiResponse({
@@ -161,7 +161,7 @@ export class CategoriesController {
   }
 
   @Get('code/:code')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get category by code' })
   @ApiParam({ name: 'code', description: 'Category code' })
   @ApiResponse({
@@ -178,7 +178,7 @@ export class CategoriesController {
   }
 
   @Get(':id/children')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
   @ApiOperation({ summary: 'Get child categories by parent ID' })
   @ApiParam({ name: 'id', description: 'Parent category ID' })
   @ApiResponse({
@@ -195,7 +195,7 @@ export class CategoriesController {
   }
 
   @Put(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Update category by ID' })
   @ApiParam({ name: 'id', description: 'Category ID' })
   @ApiBody({ type: UpdateCategoryInput })
@@ -224,7 +224,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiOperation({ summary: 'Delete category by ID' })
   @ApiParam({ name: 'id', description: 'Category ID' })
   @ApiResponse({
