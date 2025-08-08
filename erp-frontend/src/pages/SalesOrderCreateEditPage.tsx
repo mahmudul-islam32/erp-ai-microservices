@@ -36,10 +36,23 @@ import {
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { salesOrdersApi, customerApi } from '../services/salesApi';
 import { ProductService, Product as InventoryProduct } from '../services/inventory';
+import { paymentsApi } from '../services/paymentApi';
 import { SalesOrderCreate, OrderItem, OrderItemCreate, Customer, OrderStatus, PaymentStatus } from '../types/sales';
+import { PaymentMethod, PaymentCreate, CashPaymentDetails, CardPaymentDetails } from '../types/payment';
 
 interface OrderFormData extends Omit<SalesOrderCreate, 'line_items'> {
   line_items: (OrderItem & { id: string; notes?: string })[];
+}
+
+interface PaymentFormData {
+  processPayment: boolean;
+  paymentMethod: PaymentMethod | '';
+  cashAmount: number;
+  cardNumber: string;
+  expiryMonth: string;
+  expiryYear: string;
+  cvv: string;
+  cardholderName: string;
 }
 
 const SalesOrderCreateEditPage: React.FC = () => {
@@ -66,6 +79,17 @@ const SalesOrderCreateEditPage: React.FC = () => {
     subtotal_discount_amount: 0,
     shipping_cost: 0,
     notes: ''
+  });
+
+  const [paymentData, setPaymentData] = useState<PaymentFormData>({
+    processPayment: false,
+    paymentMethod: '',
+    cashAmount: 0,
+    cardNumber: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: '',
+    cardholderName: ''
   });
 
   const loadCustomers = useCallback(async () => {
@@ -149,8 +173,8 @@ const SalesOrderCreateEditPage: React.FC = () => {
           ...item,
           id: `item-${index}`
         })),
-        tax_rate: order.tax_rate || 0.0875,
-        discount_amount: order.discount_amount || 0,
+        subtotal_discount_amount: order.subtotal_discount_amount || 0,
+        shipping_cost: order.shipping_cost || 0,
         notes: order.notes || ''
       });
 
@@ -238,9 +262,17 @@ const SalesOrderCreateEditPage: React.FC = () => {
   // Calculate totals
   const subtotal = formData.line_items.reduce((sum, item) => sum + item.total_price, 0);
   const discountAmount = formData.subtotal_discount_amount || 0;
+  const shippingCost = formData.shipping_cost || 0;
   const taxableAmount = subtotal - discountAmount;
   const taxAmount = 0; // Tax will be calculated on the backend
-  const totalAmount = taxableAmount + taxAmount;
+  const totalAmount = taxableAmount + taxAmount + shippingCost;
+
+  // Update cash amount when total changes
+  React.useEffect(() => {
+    if (paymentData.paymentMethod === PaymentMethod.CASH) {
+      setPaymentData(prev => ({ ...prev, cashAmount: totalAmount }));
+    }
+  }, [totalAmount, paymentData.paymentMethod]);
 
   const handleSubmit = async () => {
     try {
@@ -255,7 +287,26 @@ const SalesOrderCreateEditPage: React.FC = () => {
         throw new Error('Please add at least one line item');
       }
 
-      // Prepare data
+      // Payment validation
+      if (paymentData.processPayment) {
+        if (!paymentData.paymentMethod) {
+          throw new Error('Please select a payment method');
+        }
+        
+        if (paymentData.paymentMethod === PaymentMethod.CASH) {
+          if (paymentData.cashAmount < totalAmount) {
+            throw new Error('Cash amount must be at least the total amount');
+          }
+        } else if (paymentData.paymentMethod === PaymentMethod.CREDIT_CARD || 
+                   paymentData.paymentMethod === PaymentMethod.DEBIT_CARD) {
+          if (!paymentData.cardNumber || !paymentData.expiryMonth || 
+              !paymentData.expiryYear || !paymentData.cvv || !paymentData.cardholderName) {
+            throw new Error('Please fill in all card details');
+          }
+        }
+      }
+
+      // Prepare order data
       const orderData: SalesOrderCreate = {
         customer_id: formData.customer_id,
         line_items: formData.line_items.map(item => ({
@@ -272,10 +323,60 @@ const SalesOrderCreateEditPage: React.FC = () => {
         notes: formData.notes || ""
       };
 
+      let order;
       if (isEdit) {
-        await salesOrdersApi.updateOrder(orderId!, orderData);
+        order = await salesOrdersApi.updateOrder(orderId!, orderData);
       } else {
-        await salesOrdersApi.createOrder(orderData);
+        order = await salesOrdersApi.createOrder(orderData);
+      }
+
+      // Process payment if requested
+      if (paymentData.processPayment && !isEdit) {
+        try {
+          const orderId = order.id || order._id;
+          
+          if (paymentData.paymentMethod === PaymentMethod.CASH) {
+            const cashPayment: PaymentCreate = {
+              order_id: orderId,
+              customer_id: formData.customer_id,
+              payment_method: PaymentMethod.CASH,
+              amount: totalAmount,
+              cash_details: {
+                amount_tendered: paymentData.cashAmount,
+                change_given: paymentData.cashAmount - totalAmount,
+                currency: "USD"
+              },
+              currency: "USD",
+              notes: "Cash payment for order"
+            };
+
+            await paymentsApi.createCashPayment(cashPayment);
+          } else if (paymentData.paymentMethod === PaymentMethod.CREDIT_CARD || 
+                     paymentData.paymentMethod === PaymentMethod.DEBIT_CARD) {
+            const cardPayment: PaymentCreate = {
+              order_id: orderId,
+              customer_id: formData.customer_id,
+              payment_method: paymentData.paymentMethod,
+              amount: totalAmount,
+              card_details: {
+                last_four_digits: paymentData.cardNumber.slice(-4),
+                expiry_month: parseInt(paymentData.expiryMonth),
+                expiry_year: parseInt(paymentData.expiryYear),
+                cardholder_name: paymentData.cardholderName
+              },
+              currency: "USD",
+              notes: "Card payment for order"
+            };
+
+            await paymentsApi.createCardPayment(cardPayment);
+          }
+        } catch (paymentError) {
+          console.error('Payment processing failed:', paymentError);
+          // Order was created but payment failed
+          setError(`Order created successfully but payment failed: ${paymentError instanceof Error ? paymentError.message : 'Unknown error'}. You can process payment later from the order details.`);
+          navigate(`/dashboard/sales/orders/${order.id || order._id}`);
+          return;
+        }
       }
 
       navigate('/dashboard/sales/orders');
@@ -346,7 +447,12 @@ const SalesOrderCreateEditPage: React.FC = () => {
               loading={saving}
               disabled={formData.line_items.length === 0}
             >
-              {isEdit ? 'Update Order' : 'Create Order'}
+              {isEdit 
+                ? 'Update Order' 
+                : paymentData.processPayment 
+                  ? `Create Order & Process Payment ($${totalAmount.toFixed(2)})` 
+                  : 'Create Order'
+              }
             </Button>
           </Group>
         </Group>
@@ -566,11 +672,36 @@ const SalesOrderCreateEditPage: React.FC = () => {
                   }
                 />
                 
+                <NumberInput
+                  label="Shipping Cost"
+                  placeholder="0.00"
+                  precision={2}
+                  min={0}
+                  value={formData.shipping_cost}
+                  onChange={(value) => setFormData(prev => ({ ...prev, shipping_cost: value || 0 }))}
+                  parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
+                  formatter={(value) =>
+                    !Number.isNaN(parseFloat(value!))
+                      ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      : '$ '
+                  }
+                />
+                
                 <Text size="sm" color="dimmed" mt="md">
                   Tax will be calculated automatically based on product settings
                 </Text>
                 
                 <Divider />
+                
+                <Group position="apart">
+                  <Text>Discount</Text>
+                  <Text>-${discountAmount.toFixed(2)}</Text>
+                </Group>
+                
+                <Group position="apart">
+                  <Text>Shipping</Text>
+                  <Text>${shippingCost.toFixed(2)}</Text>
+                </Group>
                 
                 <Group position="apart">
                   <Text>Tax Amount</Text>
@@ -594,6 +725,156 @@ const SalesOrderCreateEditPage: React.FC = () => {
                 minRows={4}
               />
             </Card>
+
+            {/* Payment Section - Only for new orders */}
+            {!isEdit && (
+              <Card shadow="sm" p="lg" radius="md" withBorder mt="lg">
+                <Title order={5} mb="md">Payment Options</Title>
+                
+                <Stack spacing="md">
+                  <div>
+                    <input
+                      type="checkbox"
+                      id="processPayment"
+                      checked={paymentData.processPayment}
+                      onChange={(e) => setPaymentData(prev => ({ 
+                        ...prev, 
+                        processPayment: e.target.checked,
+                        paymentMethod: e.target.checked ? prev.paymentMethod : ''
+                      }))}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <label htmlFor="processPayment" style={{ fontWeight: 500 }}>
+                      Process payment immediately
+                    </label>
+                  </div>
+                  
+                  {paymentData.processPayment && (
+                    <>
+                      <Select
+                        label="Payment Method"
+                        placeholder="Select payment method"
+                        required
+                        data={[
+                          { value: PaymentMethod.CASH, label: 'Cash' },
+                          { value: PaymentMethod.CREDIT_CARD, label: 'Credit Card' },
+                          { value: PaymentMethod.DEBIT_CARD, label: 'Debit Card' }
+                        ]}
+                        value={paymentData.paymentMethod}
+                        onChange={(value) => setPaymentData(prev => ({ 
+                          ...prev, 
+                          paymentMethod: value as PaymentMethod || '',
+                          cashAmount: value === PaymentMethod.CASH ? totalAmount : 0
+                        }))}
+                      />
+                      
+                      {paymentData.paymentMethod === PaymentMethod.CASH && (
+                        <div>
+                          <NumberInput
+                            label="Cash Amount Tendered"
+                            placeholder="0.00"
+                            precision={2}
+                            min={totalAmount}
+                            value={paymentData.cashAmount}
+                            onChange={(value) => setPaymentData(prev => ({ ...prev, cashAmount: value || 0 }))}
+                            parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
+                            formatter={(value) =>
+                              !Number.isNaN(parseFloat(value!))
+                                ? `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                                : '$ '
+                            }
+                            required
+                          />
+                          {paymentData.cashAmount > totalAmount && (
+                            <Text size="sm" color="blue" mt="xs">
+                              Change: ${(paymentData.cashAmount - totalAmount).toFixed(2)}
+                            </Text>
+                          )}
+                        </div>
+                      )}
+                      
+                      {(paymentData.paymentMethod === PaymentMethod.CREDIT_CARD || 
+                        paymentData.paymentMethod === PaymentMethod.DEBIT_CARD) && (
+                        <Grid>
+                          <Grid.Col span={12}>
+                            <TextInput
+                              label="Cardholder Name"
+                              placeholder="John Doe"
+                              value={paymentData.cardholderName}
+                              onChange={(e) => setPaymentData(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              required
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={12}>
+                            <TextInput
+                              label="Card Number"
+                              placeholder="1234 5678 9012 3456"
+                              value={paymentData.cardNumber}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\s/g, '');
+                                if (value.length <= 16 && /^\d*$/.test(value)) {
+                                  setPaymentData(prev => ({ ...prev, cardNumber: value }));
+                                }
+                              }}
+                              required
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={4}>
+                            <Select
+                              label="Month"
+                              placeholder="MM"
+                              data={Array.from({ length: 12 }, (_, i) => ({
+                                value: String(i + 1).padStart(2, '0'),
+                                label: String(i + 1).padStart(2, '0')
+                              }))}
+                              value={paymentData.expiryMonth}
+                              onChange={(value) => setPaymentData(prev => ({ ...prev, expiryMonth: value || '' }))}
+                              required
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={4}>
+                            <Select
+                              label="Year"
+                              placeholder="YYYY"
+                              data={Array.from({ length: 10 }, (_, i) => {
+                                const year = new Date().getFullYear() + i;
+                                return { value: String(year), label: String(year) };
+                              })}
+                              value={paymentData.expiryYear}
+                              onChange={(value) => setPaymentData(prev => ({ ...prev, expiryYear: value || '' }))}
+                              required
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={4}>
+                            <TextInput
+                              label="CVV"
+                              placeholder="123"
+                              value={paymentData.cvv}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value.length <= 4 && /^\d*$/.test(value)) {
+                                  setPaymentData(prev => ({ ...prev, cvv: value }));
+                                }
+                              }}
+                              required
+                            />
+                          </Grid.Col>
+                        </Grid>
+                      )}
+                      
+                      <Alert color="blue" variant="light">
+                        <Text size="sm">
+                          Payment will be processed immediately after the order is created.
+                          {paymentData.paymentMethod === PaymentMethod.CASH && paymentData.cashAmount > totalAmount && 
+                            ` Change of $${(paymentData.cashAmount - totalAmount).toFixed(2)} will be recorded.`
+                          }
+                        </Text>
+                      </Alert>
+                    </>
+                  )}
+                </Stack>
+              </Card>
+            )}
           </Grid.Col>
         </Grid>
       </Stack>
