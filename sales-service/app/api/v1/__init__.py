@@ -6,6 +6,7 @@ from .invoices import router as invoices_router
 from .payments import router as payments_router
 from .analytics import router as analytics_router
 from .reports import router as reports_router
+from .pos import router as pos_router
 
 __all__ = [
     "customers_router",
@@ -15,5 +16,6 @@ __all__ = [
     "invoices_router",
     "payments_router",
     "analytics_router",
-    "reports_router"
+    "reports_router",
+    "pos_router"
 ]

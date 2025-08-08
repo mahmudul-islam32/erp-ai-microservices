@@ -16,7 +16,8 @@ from app.api.v1 import (
     invoices_router,
     payments_router,
     analytics_router,
-    reports_router
+    reports_router,
+    pos_router
 )# Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
@@ -141,6 +142,7 @@ app.include_router(invoices_router, prefix="/api/v1")
 app.include_router(payments_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
+app.include_router(pos_router, prefix="/api/v1")
 
 
 if __name__ == "__main__":

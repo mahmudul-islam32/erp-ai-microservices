@@ -24,4 +24,12 @@ from .payment import (
     PaymentGatewayDetails, POSTransactionCreate, POSTransactionResponse,
     CardType, TransactionType
 )
+from .pos import (
+    POSTransactionCreate as POSTransactionCreateModel, 
+    POSTransactionResponse as POSTransactionResponseModel,
+    POSSessionCreate, POSSessionResponse, POSSessionSummary,
+    QuickSaleCreate, QuickSaleResponse, POSReceiptResponse,
+    POSLineItem, POSPayment, POSCustomer, POSSessionStatus,
+    TransactionType as POSTransactionType
+)
 from .pagination import PaginationResponse
