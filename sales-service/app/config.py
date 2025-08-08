@@ -12,12 +12,12 @@ class Settings(BaseSettings):
     
     # Service
     service_name: str = "sales-service"
-    service_port: int = 8002
+    service_port: int = 8003
     service_host: str = "0.0.0.0"
     
     # External Services
     auth_service_url: str = "http://localhost:8001"
-    inventory_service_url: str = "http://localhost:8003"
+    inventory_service_url: str = "http://localhost:8002"
     
     # JWT Settings (for auth verification)
     secret_key: str = "your-super-secret-key-change-this-in-production"

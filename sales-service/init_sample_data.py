@@ -15,6 +15,7 @@ from app.config import settings
 # Sample data
 SAMPLE_CUSTOMERS = [
     {
+        "customer_code": "CUST-001",
         "first_name": "John",
         "last_name": "Smith",
         "email": "john.smith@acmecorp.com",
@@ -35,12 +36,16 @@ SAMPLE_CUSTOMERS = [
             "country": "USA",
             "zip_code": "10001"
         },
-        "credit_limit": 50000.00,
         "payment_terms": "net_30",
+        "credit_limit": 50000.00,
+        "credit_used": 0.0,
         "tax_id": "12-3456789",
-        "is_active": True
+        "status": "active",
+        "total_orders": 0,
+        "total_spent": 0.0
     },
     {
+        "customer_code": "CUST-002",
         "first_name": "Sarah",
         "last_name": "Johnson",
         "email": "sarah.johnson@techstart.com",
@@ -54,11 +59,15 @@ SAMPLE_CUSTOMERS = [
             "country": "USA",
             "zip_code": "94105"
         },
-        "credit_limit": 25000.00,
         "payment_terms": "net_15",
-        "is_active": True
+        "credit_limit": 25000.00,
+        "credit_used": 0.0,
+        "status": "active",
+        "total_orders": 0,
+        "total_spent": 0.0
     },
     {
+        "customer_code": "CUST-003",
         "first_name": "Michael",
         "last_name": "Brown",
         "email": "michael.brown@email.com",
@@ -71,9 +80,12 @@ SAMPLE_CUSTOMERS = [
             "country": "USA",
             "zip_code": "60601"
         },
-        "credit_limit": 5000.00,
         "payment_terms": "immediate",
-        "is_active": True
+        "credit_limit": 5000.00,
+        "credit_used": 0.0,
+        "status": "active",
+        "total_orders": 0,
+        "total_spent": 0.0
     }
 ]
 
@@ -186,8 +198,8 @@ async def init_database():
     print("🚀 Initializing Sales Service database with sample data...")
     
     # Connect to MongoDB
-    client = AsyncIOMotorClient(settings.MONGODB_URL)
-    db = client[settings.DATABASE_NAME]
+    client = AsyncIOMotorClient(settings.mongodb_url)
+    db = client[settings.database_name]
     
     try:
         # Clear existing data (optional - remove if you want to keep existing data)

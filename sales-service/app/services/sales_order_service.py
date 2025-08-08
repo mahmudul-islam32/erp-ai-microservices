@@ -4,7 +4,6 @@ from app.models import (
     OrderLineItem, OrderLineItemCreate, OrderStatus, PaymentStatus
 )
 from app.services.customer_service import customer_service
-from app.services.product_service import product_service
 from app.services.external_services import inventory_service, auth_service
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List, Dict, Any
@@ -45,13 +44,13 @@ class SalesOrderService:
             total_tax = 0.0
 
             for item in order_data.line_items:
-                # Get product details
-                product = await product_service.get_product_by_id(item.product_id)
+                # Get product details from inventory service
+                product = await inventory_service.get_product_by_id(item.product_id, token)
                 if not product:
                     raise ValueError(f"Product not found: {item.product_id}")
 
                 # Use provided price or product's default price
-                unit_price = item.unit_price if item.unit_price is not None else product.unit_price
+                unit_price = item.unit_price if item.unit_price is not None else product.get("unit_price", 0.0)
 
                 # Calculate line totals
                 line_subtotal = unit_price * item.quantity
@@ -62,15 +61,15 @@ class SalesOrderService:
                 line_total_before_tax = line_subtotal - discount_amount
                 
                 # Calculate tax
-                tax_rate = product.tax_rate or settings.default_tax_rate
+                tax_rate = product.get("tax_rate") or settings.default_tax_rate
                 tax_amount = line_total_before_tax * tax_rate
                 line_total = line_total_before_tax + tax_amount
 
                 # Create line item
                 line_item = OrderLineItem(
                     product_id=item.product_id,
-                    product_name=product.name,
-                    product_sku=product.sku,
+                    product_name=product.get("name", "Unknown Product"),
+                    product_sku=product.get("sku", ""),
                     quantity=item.quantity,
                     unit_price=unit_price,
                     discount_percent=item.discount_percent,
@@ -139,6 +138,9 @@ class SalesOrderService:
             # Fetch created order
             created_order = await orders_collection.find_one({"_id": result.inserted_id})
             if created_order:
+                # Convert ObjectId to string for response
+                if "_id" in created_order:
+                    created_order["_id"] = str(created_order["_id"])
                 return SalesOrderResponse(**created_order)
             
             return None
@@ -230,35 +232,74 @@ class SalesOrderService:
             orders_collection = db.sales_orders
 
             # Build filter
-            filter_query = {}
-            if status:
-                filter_query["status"] = status
-            if customer_id:
-                filter_query["customer_id"] = customer_id
-            if sales_rep_id:
-                filter_query["sales_rep_id"] = sales_rep_id
-            if start_date and end_date:
-                filter_query["order_date"] = {"$gte": start_date, "$lte": end_date}
-            elif start_date:
-                filter_query["order_date"] = {"$gte": start_date}
-            elif end_date:
-                filter_query["order_date"] = {"$lte": end_date}
-            if search:
-                filter_query["$or"] = [
-                    {"order_number": {"$regex": search, "$options": "i"}},
-                    {"customer_name": {"$regex": search, "$options": "i"}},
-                    {"customer_email": {"$regex": search, "$options": "i"}}
-                ]
+            filter_query = self._build_filter_query(status, customer_id, sales_rep_id, start_date, end_date, search)
 
             # Get orders
             cursor = orders_collection.find(filter_query).skip(skip).limit(limit).sort("order_date", -1)
             orders = await cursor.to_list(length=limit)
 
-            return [SalesOrderResponse(**order) for order in orders]
+            # Convert ObjectId to string for response
+            result = []
+            for order in orders:
+                if "_id" in order:
+                    order["_id"] = str(order["_id"])
+                result.append(SalesOrderResponse(**order))
+            
+            return result
 
         except Exception as e:
             logger.error(f"Error getting orders: {e}")
             return []
+
+    async def count_orders(self, status: Optional[OrderStatus] = None,
+                          customer_id: Optional[str] = None,
+                          sales_rep_id: Optional[str] = None,
+                          start_date: Optional[date] = None,
+                          end_date: Optional[date] = None,
+                          search: Optional[str] = None) -> int:
+        """Get total count of orders with filters"""
+        try:
+            db = get_database()
+            orders_collection = db.sales_orders
+
+            # Build filter
+            filter_query = self._build_filter_query(status, customer_id, sales_rep_id, start_date, end_date, search)
+
+            # Get count
+            count = await orders_collection.count_documents(filter_query)
+            return count
+
+        except Exception as e:
+            logger.error(f"Error counting orders: {e}")
+            return 0
+
+    def _build_filter_query(self, status: Optional[OrderStatus] = None,
+                           customer_id: Optional[str] = None,
+                           sales_rep_id: Optional[str] = None,
+                           start_date: Optional[date] = None,
+                           end_date: Optional[date] = None,
+                           search: Optional[str] = None) -> dict:
+        """Build filter query for orders"""
+        filter_query = {}
+        if status:
+            filter_query["status"] = status
+        if customer_id:
+            filter_query["customer_id"] = customer_id
+        if sales_rep_id:
+            filter_query["sales_rep_id"] = sales_rep_id
+        if start_date and end_date:
+            filter_query["order_date"] = {"$gte": start_date, "$lte": end_date}
+        elif start_date:
+            filter_query["order_date"] = {"$gte": start_date}
+        elif end_date:
+            filter_query["order_date"] = {"$lte": end_date}
+        if search:
+            filter_query["$or"] = [
+                {"order_number": {"$regex": search, "$options": "i"}},
+                {"customer_name": {"$regex": search, "$options": "i"}},
+                {"customer_email": {"$regex": search, "$options": "i"}}
+            ]
+        return filter_query
 
     async def confirm_order(self, order_id: str, user_id: str, token: str) -> bool:
         """Confirm order and reserve stock"""
@@ -342,6 +383,41 @@ class SalesOrderService:
 
         except Exception as e:
             logger.error(f"Error cancelling order: {e}")
+            return False
+
+    async def delete_order(self, order_id: str, user_id: str) -> bool:
+        """Delete sales order (soft delete by setting status to cancelled)"""
+        try:
+            db = get_database()
+            orders_collection = db.sales_orders
+
+            # Check if order exists and can be deleted
+            order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+            if not order:
+                return False
+
+            # Only allow deletion if order is in draft or pending status
+            if order.get("status") not in [OrderStatus.DRAFT, OrderStatus.PENDING]:
+                raise ValueError("Cannot delete order that has been confirmed or processed")
+
+            # Soft delete by setting status to cancelled
+            result = await orders_collection.update_one(
+                {"_id": ObjectId(order_id)},
+                {
+                    "$set": {
+                        "status": OrderStatus.CANCELLED,
+                        "updated_at": datetime.utcnow(),
+                        "updated_by": user_id,
+                        "deleted": True,
+                        "deleted_at": datetime.utcnow()
+                    }
+                }
+            )
+
+            return result.modified_count > 0
+
+        except Exception as e:
+            logger.error(f"Error deleting order: {e}")
             return False
 
     async def _generate_order_number(self) -> str:

@@ -2,10 +2,7 @@ from .customer import (
     CustomerCreate, CustomerUpdate, CustomerResponse, CustomerInDB,
     CustomerStatus, CustomerType, PaymentTerms, Address
 )
-from .product import (
-    ProductCreate, ProductUpdate, ProductResponse, ProductInDB,
-    ProductStatus, ProductType, UnitOfMeasure
-)
+# Product models removed - now handled by inventory service
 from .sales_order import (
     SalesOrderCreate, SalesOrderUpdate, SalesOrderResponse, SalesOrderInDB,
     OrderLineItem, OrderLineItemCreate, OrderStatus, PaymentStatus,
@@ -19,3 +16,4 @@ from .invoice import (
     PaymentCreate, PaymentUpdate, PaymentResponse, PaymentInDB,
     InvoiceStatus, PaymentMethod, PaymentStatus as PaymentStatusInvoice
 )
+from .pagination import PaginationResponse

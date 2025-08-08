@@ -52,13 +52,7 @@ async def create_indexes():
         await customers_collection.create_index("status")
         await customers_collection.create_index("created_at")
         
-        # Products collection indexes
-        products_collection = db.products
-        await products_collection.create_index("sku", unique=True)
-        await products_collection.create_index("name")
-        await products_collection.create_index("category")
-        await products_collection.create_index("status")
-        await products_collection.create_index("price")
+        # Products are now managed by inventory service - no local product collection
         
         # Sales Orders collection indexes
         orders_collection = db.sales_orders
