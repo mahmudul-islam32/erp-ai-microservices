@@ -14,6 +14,7 @@ from app.api.v1 import (
     sales_orders_router,
     quotes_router,
     invoices_router,
+    payments_router,
     analytics_router,
     reports_router
 )# Configure logging
@@ -137,6 +138,7 @@ app.include_router(inventory_products_router, prefix="/api/v1")
 app.include_router(sales_orders_router, prefix="/api/v1")
 app.include_router(quotes_router, prefix="/api/v1")
 app.include_router(invoices_router, prefix="/api/v1")
+app.include_router(payments_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 
