@@ -170,11 +170,49 @@ class CustomerService:
             cursor = customers_collection.find(filter_query).skip(skip).limit(limit).sort("created_at", -1)
             customers = await cursor.to_list(length=limit)
 
-            return [CustomerResponse(**customer) for customer in customers]
+            # Convert ObjectId to string for response
+            result = []
+            for customer in customers:
+                if "_id" in customer:
+                    customer["_id"] = str(customer["_id"])
+                result.append(CustomerResponse(**customer))
+            
+            return result
 
         except Exception as e:
             logger.error(f"Error getting customers: {e}")
             return []
+
+    async def get_customers_count(self, status: Optional[CustomerStatus] = None,
+                                customer_type: Optional[CustomerType] = None,
+                                search: Optional[str] = None) -> int:
+        """Get total count of customers with filters"""
+        try:
+            db = get_database()
+            customers_collection = db.customers
+
+            # Build filter (same as get_customers)
+            filter_query = {}
+            if status:
+                filter_query["status"] = status
+            if customer_type:
+                filter_query["customer_type"] = customer_type
+            if search:
+                filter_query["$or"] = [
+                    {"first_name": {"$regex": search, "$options": "i"}},
+                    {"last_name": {"$regex": search, "$options": "i"}},
+                    {"company_name": {"$regex": search, "$options": "i"}},
+                    {"email": {"$regex": search, "$options": "i"}},
+                    {"customer_code": {"$regex": search, "$options": "i"}}
+                ]
+
+            # Get count
+            count = await customers_collection.count_documents(filter_query)
+            return count
+
+        except Exception as e:
+            logger.error(f"Error getting customers count: {e}")
+            return 0
 
     async def update_customer_stats(self, customer_id: str, order_total: float) -> bool:
         """Update customer statistics after an order"""

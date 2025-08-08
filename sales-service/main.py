@@ -9,16 +9,14 @@ import uvicorn
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
 from app.api.v1 import (
-    customers_router, 
-    products_router, 
-    sales_orders_router, 
-    quotes_router, 
+    customers_router,
+    inventory_products_router,
+    sales_orders_router,
+    quotes_router,
     invoices_router,
     analytics_router,
     reports_router
-)
-
-# Configure logging
+)# Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -103,9 +101,39 @@ async def root():
     }
 
 
+# Debug auth endpoint
+@app.get("/debug/auth")
+async def debug_auth(request):
+    """Debug endpoint to check authentication"""
+    from app.api.dependencies import get_token_from_request
+    from app.services.external_services import auth_service
+    
+    try:
+        token = await get_token_from_request(request)
+        if not token:
+            return {"error": "No token provided", "headers": dict(request.headers)}
+        
+        user_data = await auth_service.verify_token(token)
+        if not user_data:
+            return {"error": "Token verification failed", "token_preview": token[:20] + "..."}
+            
+        return {
+            "success": True,
+            "user": {
+                "id": user_data.get("id"),
+                "email": user_data.get("email"),
+                "role": user_data.get("role"),
+                "permissions": user_data.get("permissions"),
+                "status": user_data.get("status")
+            }
+        }
+    except Exception as e:
+        return {"error": str(e), "type": type(e).__name__}
+
+
 # Include API routers
 app.include_router(customers_router, prefix="/api/v1")
-app.include_router(products_router, prefix="/api/v1")
+app.include_router(inventory_products_router, prefix="/api/v1")
 app.include_router(sales_orders_router, prefix="/api/v1")
 app.include_router(quotes_router, prefix="/api/v1")
 app.include_router(invoices_router, prefix="/api/v1")

@@ -1,6 +1,6 @@
 import httpx
 from app.config import settings
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,16 +16,22 @@ class AuthService:
         try:
             headers = {"Authorization": f"Bearer {token}"}
             
+            logger.info(f"Verifying token with auth service at {self.auth_service_url}")
+            
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(
                     f"{self.auth_service_url}/api/v1/auth/me",
                     headers=headers
                 )
                 
+                logger.info(f"Auth service response status: {response.status_code}")
+                
                 if response.status_code == 200:
-                    return response.json()
+                    user_data = response.json()
+                    logger.info(f"Token verification successful for user: {user_data.get('email')}")
+                    return user_data
                 else:
-                    logger.warning(f"Token verification failed: {response.status_code}")
+                    logger.warning(f"Token verification failed: {response.status_code} - {response.text}")
                     return None
                     
         except httpx.RequestError as e:
@@ -65,7 +71,67 @@ class InventoryService:
         self.inventory_service_url = settings.inventory_service_url
         self.timeout = 10.0
 
-    async def get_product_stock(self, product_id: str, token: str) -> Optional[int]:
+    async def get_products(self, skip: int = 0, limit: int = 100, 
+                          category: Optional[str] = None, search: Optional[str] = None,
+                          token: str = None) -> Optional[List[Dict[str, Any]]]:
+        """Get list of products from inventory service"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+            params = {"page": (skip // limit) + 1, "limit": limit}
+            if category:
+                params["categoryId"] = category
+            if search:
+                params["search"] = search
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.inventory_service_url}/products",
+                    headers=headers,
+                    params=params
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    # Handle paginated response from inventory service
+                    if isinstance(data, dict) and "products" in data:
+                        return data["products"]
+                    return data
+                else:
+                    logger.warning(f"Get products failed: {response.status_code}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Inventory service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Inventory service error: {e}")
+            return None
+
+    async def get_product_by_id(self, product_id: str, token: str) -> Optional[Dict[str, Any]]:
+        """Get product details by ID from inventory service"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.inventory_service_url}/products/{product_id}",
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    logger.warning(f"Get product by ID failed: {response.status_code}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Inventory service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Inventory service error: {e}")
+            return None
+
+    async def get_product_stock(self, product_id: str, token: str) -> Optional[Dict[str, Any]]:
         """Get current stock level for a product"""
         try:
             headers = {"Authorization": f"Bearer {token}"}
@@ -77,10 +143,59 @@ class InventoryService:
                 )
                 
                 if response.status_code == 200:
-                    data = response.json()
-                    return data.get("current_stock", 0)
+                    return response.json()
                 else:
                     logger.warning(f"Get product stock failed: {response.status_code}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Inventory service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Inventory service error: {e}")
+            return None
+
+    async def get_product_categories(self, token: str) -> Optional[List[str]]:
+        """Get list of product categories from inventory service"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.inventory_service_url}/api/v1/products/categories",
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    logger.warning(f"Get product categories failed: {response.status_code}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Inventory service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Inventory service error: {e}")
+            return None
+
+    async def search_products(self, query: str, limit: int = 50, token: str = None) -> Optional[List[Dict[str, Any]]]:
+        """Search products in inventory service"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+            params = {"q": query, "limit": limit}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.inventory_service_url}/api/v1/products/search",
+                    headers=headers,
+                    params=params
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    logger.warning(f"Search products failed: {response.status_code}")
                     return None
                     
         except httpx.RequestError as e:

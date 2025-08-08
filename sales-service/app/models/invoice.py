@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 from enum import Enum
+from bson import ObjectId
 
 
 class InvoiceStatus(str, Enum):
@@ -13,6 +14,7 @@ class InvoiceStatus(str, Enum):
     OVERDUE = "overdue"
     CANCELLED = "cancelled"
     REFUNDED = "refunded"
+    VOID = "void"
 
 
 class PaymentMethod(str, Enum):
@@ -56,12 +58,12 @@ class InvoiceUpdate(BaseModel):
 class InvoiceResponse(BaseModel):
     id: str = Field(alias="_id")
     invoice_number: str
-    order_id: str
-    order_number: str
+    order_id: Optional[str] = None  # Optional for standalone invoices
+    order_number: Optional[str] = None  # Optional for standalone invoices
     customer_id: str
     customer_name: str
     customer_email: str
-    billing_address: Dict[str, str]
+    billing_address: Optional[Dict[str, str]] = None  # Optional for standalone invoices
     invoice_date: date
     due_date: date
     payment_terms: Optional[str] = None
@@ -82,6 +84,14 @@ class InvoiceResponse(BaseModel):
     created_by: str
     updated_by: Optional[str] = None
 
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_objectid_to_str(cls, v):
+        """Convert ObjectId to string"""
+        if hasattr(v, '__str__'):
+            return str(v)
+        return v
+
     class Config:
         populate_by_name = True
 
@@ -89,12 +99,12 @@ class InvoiceResponse(BaseModel):
 class InvoiceInDB(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
     invoice_number: str
-    order_id: str
-    order_number: str
+    order_id: Optional[str] = None  # Optional for standalone invoices
+    order_number: Optional[str] = None  # Optional for standalone invoices
     customer_id: str
     customer_name: str
     customer_email: str
-    billing_address: Dict[str, str]
+    billing_address: Optional[Dict[str, str]] = None  # Optional for standalone invoices
     invoice_date: date
     due_date: date
     payment_terms: Optional[str] = None

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 from enum import Enum
@@ -21,9 +21,11 @@ class CustomerType(str, Enum):
 class PaymentTerms(str, Enum):
     NET_15 = "net_15"
     NET_30 = "net_30"
+    NET_45 = "net_45"
     NET_60 = "net_60"
     NET_90 = "net_90"
-    COD = "cod"  # Cash on Delivery
+    COD = "cod"
+    CASH_ON_DELIVERY = "cash_on_delivery"
     PREPAID = "prepaid"
 
 
@@ -90,6 +92,14 @@ class CustomerResponse(BaseModel):
     last_order_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
+
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_objectid_to_str(cls, v):
+        """Convert ObjectId to string"""
+        if hasattr(v, '__str__'):
+            return str(v)
+        return v
 
     class Config:
         populate_by_name = True

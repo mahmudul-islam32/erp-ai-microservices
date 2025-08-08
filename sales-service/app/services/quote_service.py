@@ -4,8 +4,7 @@ from app.models import (
     OrderLineItem, SalesOrderCreate
 )
 from app.services.customer_service import customer_service
-from app.services.product_service import product_service
-from app.services.external_services import auth_service
+from app.services.external_services import auth_service, inventory_service
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, timedelta
@@ -45,13 +44,13 @@ class QuoteService:
             total_tax = 0.0
 
             for item in quote_data.line_items:
-                # Get product details
-                product = await product_service.get_product_by_id(item.product_id)
+                # Get product details from inventory service
+                product = await inventory_service.get_product_by_id(item.product_id, token)
                 if not product:
                     raise ValueError(f"Product not found: {item.product_id}")
 
                 # Use provided price or product's default price
-                unit_price = item.unit_price if item.unit_price is not None else product.unit_price
+                unit_price = item.unit_price if item.unit_price is not None else product.get("unit_price", 0.0)
 
                 # Calculate line totals
                 line_subtotal = unit_price * item.quantity
@@ -62,15 +61,15 @@ class QuoteService:
                 line_total_before_tax = line_subtotal - discount_amount
                 
                 # Calculate tax
-                tax_rate = product.tax_rate or settings.default_tax_rate
+                tax_rate = product.get("tax_rate") or settings.default_tax_rate
                 tax_amount = line_total_before_tax * tax_rate
                 line_total = line_total_before_tax + tax_amount
 
                 # Create line item
                 line_item = OrderLineItem(
                     product_id=item.product_id,
-                    product_name=product.name,
-                    product_sku=product.sku,
+                    product_name=product.get("name", "Unknown Product"),
+                    product_sku=product.get("sku", ""),
                     quantity=item.quantity,
                     unit_price=unit_price,
                     discount_percent=item.discount_percent,

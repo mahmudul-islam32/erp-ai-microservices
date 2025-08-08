@@ -2,9 +2,11 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models import (
     SalesOrderCreate, SalesOrderUpdate, SalesOrderResponse, OrderStatus, PaymentStatus
 )
+from app.models.pagination import PaginationResponse
 from app.services import sales_order_service
 from app.api.dependencies import (
-    get_current_active_user, require_sales_access, require_sales_write, get_token_from_request
+    get_current_active_user, require_sales_access, require_sales_write, 
+    get_token_from_request, require_sales_access_flexible
 )
 from typing import List, Optional
 from datetime import date
@@ -38,7 +40,7 @@ async def create_sales_order(
         )
 
 
-@router.get("/", response_model=List[SalesOrderResponse])
+@router.get("/", response_model=PaginationResponse[SalesOrderResponse])
 async def get_sales_orders(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -48,10 +50,13 @@ async def get_sales_orders(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     search: Optional[str] = None,
-    current_user=Depends(require_sales_access())
+    current_user=Depends(require_sales_access_flexible())
 ):
     """Get list of sales orders with pagination and filters"""
     try:
+        logger.info(f"Getting sales orders for user: {current_user.get('email')}")
+        
+        # Get orders and total count
         orders = await sales_order_service.get_orders(
             skip=skip,
             limit=limit,
@@ -62,7 +67,30 @@ async def get_sales_orders(
             end_date=end_date,
             search=search
         )
-        return orders
+        
+        # Get total count for pagination
+        total_count = await sales_order_service.count_orders(
+            status=status,
+            customer_id=customer_id,
+            sales_rep_id=sales_rep_id,
+            start_date=start_date,
+            end_date=end_date,
+            search=search
+        )
+        
+        page = (skip // limit) + 1
+        total_pages = (total_count + limit - 1) // limit
+        
+        logger.info(f"Successfully retrieved {len(orders)} sales orders")
+        
+        return PaginationResponse(
+            items=orders,
+            total=total_count,
+            page=page,
+            limit=limit,
+            pages=total_pages
+        )
+        
     except Exception as e:
         logger.error(f"Get sales orders error: {e}")
         raise HTTPException(
@@ -174,6 +202,37 @@ async def cancel_sales_order(
         raise
     except Exception as e:
         logger.error(f"Cancel sales order error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+
+@router.delete("/{order_id}")
+async def delete_sales_order(
+    order_id: str,
+    current_user=Depends(require_sales_write())
+):
+    """Delete sales order (soft delete)"""
+    try:
+        success = await sales_order_service.delete_order(order_id, current_user["id"])
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sales order not found or cannot be deleted"
+            )
+
+        return {"message": "Sales order deleted successfully"}
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete sales order error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

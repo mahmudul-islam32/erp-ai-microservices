@@ -25,6 +25,17 @@ import CategoriesPage from './pages/CategoriesPage';
 import WarehousesPage from './pages/WarehousesPage';
 import StockManagementPage from './pages/StockManagementPage';
 
+// Sales Pages
+import SalesDashboardPage from './pages/SalesDashboardPage';
+import CustomersPage from './pages/CustomersPage';
+import CustomerCreateEditPage from './pages/CustomerCreateEditPage';
+import CustomerDetailPage from './pages/CustomerDetailPage';
+import SalesOrdersPage from './pages/SalesOrdersPage';
+import SalesOrderCreateEditPage from './pages/SalesOrderCreateEditPage';
+import SalesOrderDetailPage from './pages/SalesOrderDetailPage';
+import QuotesPage from './pages/QuotesPage';
+import InvoicesPage from './pages/InvoicesPage';
+
 function App() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
   const toggleColorScheme = (value?: ColorScheme) =>
@@ -65,6 +76,19 @@ function App() {
                 <Route path="inventory/categories" element={<CategoriesPage />} />
                 <Route path="inventory/warehouses" element={<WarehousesPage />} />
                 <Route path="inventory/stock" element={<StockManagementPage />} />
+                
+                {/* Sales Management Routes */}
+                <Route path="sales" element={<SalesDashboardPage />} />
+                <Route path="sales/customers" element={<CustomersPage />} />
+                <Route path="sales/customers/create" element={<CustomerCreateEditPage />} />
+                <Route path="sales/customers/:customerId" element={<CustomerDetailPage />} />
+                <Route path="sales/customers/:customerId/edit" element={<CustomerCreateEditPage />} />
+                <Route path="sales/orders" element={<SalesOrdersPage />} />
+                <Route path="sales/orders/create" element={<SalesOrderCreateEditPage />} />
+                <Route path="sales/orders/:orderId" element={<SalesOrderDetailPage />} />
+                <Route path="sales/orders/:orderId/edit" element={<SalesOrderCreateEditPage />} />
+                <Route path="sales/quotes" element={<QuotesPage />} />
+                <Route path="sales/invoices" element={<InvoicesPage />} />
                 
                 {/* Business Operations Routes */}
                 <Route path="departments" element={<div>Departments Page (Not implemented)</div>} />
