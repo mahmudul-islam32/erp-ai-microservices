@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models import (
     InvoiceCreate, InvoiceUpdate, InvoiceResponse, InvoiceStatus, PaymentStatus
 )
+from app.models.pagination import PaginationResponse
 from app.services import invoice_service
 from app.api.dependencies import (
     get_current_active_user, require_sales_access, require_sales_write, get_token_from_request
@@ -38,7 +39,7 @@ async def create_invoice(
         )
 
 
-@router.get("/", response_model=List[InvoiceResponse])
+@router.get("/", response_model=PaginationResponse[InvoiceResponse])
 async def get_invoices(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -53,6 +54,9 @@ async def get_invoices(
 ):
     """Get list of invoices with pagination and filters"""
     try:
+        logger.info(f"Getting invoices for user: {current_user.get('email')}")
+        
+        # Get invoices and total count
         invoices = await invoice_service.get_invoices(
             skip=skip,
             limit=limit,
@@ -64,7 +68,31 @@ async def get_invoices(
             overdue_only=overdue_only,
             search=search
         )
-        return invoices
+        
+        # Get total count for pagination
+        total_count = await invoice_service.count_invoices(
+            status=status,
+            payment_status=payment_status,
+            customer_id=customer_id,
+            start_date=start_date,
+            end_date=end_date,
+            overdue_only=overdue_only,
+            search=search
+        )
+        
+        page = (skip // limit) + 1
+        total_pages = (total_count + limit - 1) // limit
+        
+        logger.info(f"Successfully retrieved {len(invoices)} invoices")
+        
+        return PaginationResponse(
+            items=invoices,
+            total=total_count,
+            page=page,
+            limit=limit,
+            pages=total_pages
+        )
+        
     except Exception as e:
         logger.error(f"Get invoices error: {e}")
         raise HTTPException(

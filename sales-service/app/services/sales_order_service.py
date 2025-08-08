@@ -25,10 +25,26 @@ class SalesOrderService:
             db = get_database()
             orders_collection = db.sales_orders
 
-            # Validate customer
-            customer = await customer_service.get_customer_by_id(order_data.customer_id)
+            # Validate customer - try different lookup methods
+            customer = None
+            
+            # First try as ObjectId
+            try:
+                if len(order_data.customer_id) == 24:  # Looks like ObjectId
+                    customer = await customer_service.get_customer_by_id(order_data.customer_id)
+            except Exception:
+                pass
+            
+            # If not found, try by email
+            if not customer and "@" in order_data.customer_id:
+                customer = await customer_service.get_customer_by_email(order_data.customer_id)
+            
+            # If still not found, try by customer code
             if not customer:
-                raise ValueError("Customer not found")
+                customer = await customer_service.get_customer_by_code(order_data.customer_id)
+            
+            if not customer:
+                raise ValueError(f"Customer not found with identifier: {order_data.customer_id}")
 
             # Get user info for sales rep
             user_info = None
@@ -44,13 +60,25 @@ class SalesOrderService:
             total_tax = 0.0
 
             for item in order_data.line_items:
-                # Get product details from inventory service
-                product = await inventory_service.get_product_by_id(item.product_id, token)
+                # Get product details from inventory service - try by ID first, then by SKU
+                product = None
+                
+                # Try as ObjectId first
+                try:
+                    if len(item.product_id) == 24:  # Looks like ObjectId
+                        product = await inventory_service.get_product_by_id(item.product_id, token)
+                except Exception:
+                    pass
+                
+                # If not found, try by SKU
                 if not product:
-                    raise ValueError(f"Product not found: {item.product_id}")
+                    product = await inventory_service.get_product_by_sku(item.product_id, token)
+                
+                if not product:
+                    raise ValueError(f"Product not found with identifier: {item.product_id}")
 
                 # Use provided price or product's default price
-                unit_price = item.unit_price if item.unit_price is not None else product.get("unit_price", 0.0)
+                unit_price = item.unit_price if item.unit_price is not None else product.get("price", 0.0)
 
                 # Calculate line totals
                 line_subtotal = unit_price * item.quantity
@@ -106,11 +134,11 @@ class SalesOrderService:
             # Create order document
             order_doc = SalesOrderInDB(
                 order_number=order_number,
-                customer_id=order_data.customer_id,
+                customer_id=str(customer.id),  # Use string ID instead of the original input
                 customer_name=f"{customer.first_name} {customer.last_name}".strip(),
                 customer_email=customer.email,
-                order_date=order_data.order_date,
-                expected_delivery_date=order_data.expected_delivery_date,
+                order_date=order_data.order_date.isoformat() if isinstance(order_data.order_date, date) else order_data.order_date,
+                expected_delivery_date=order_data.expected_delivery_date.isoformat() if order_data.expected_delivery_date and isinstance(order_data.expected_delivery_date, date) else order_data.expected_delivery_date,
                 shipping_method=order_data.shipping_method,
                 shipping_address=shipping_address,
                 priority=order_data.priority,
@@ -133,7 +161,17 @@ class SalesOrderService:
             )
 
             # Insert order
-            result = await orders_collection.insert_one(order_doc.dict(by_alias=True, exclude={"id"}))
+            order_dict = order_doc.dict(by_alias=True, exclude={"id"})
+            
+            # Convert date objects to ISO format strings for MongoDB storage
+            if 'order_date' in order_dict and isinstance(order_dict['order_date'], date):
+                order_dict['order_date'] = order_dict['order_date'].isoformat()
+            if 'expected_delivery_date' in order_dict and isinstance(order_dict['expected_delivery_date'], date):
+                order_dict['expected_delivery_date'] = order_dict['expected_delivery_date'].isoformat()
+            if 'actual_delivery_date' in order_dict and isinstance(order_dict['actual_delivery_date'], date):
+                order_dict['actual_delivery_date'] = order_dict['actual_delivery_date'].isoformat()
+            
+            result = await orders_collection.insert_one(order_dict)
             
             # Fetch created order
             created_order = await orders_collection.find_one({"_id": result.inserted_id})
@@ -312,17 +350,20 @@ class SalesOrderService:
             if not order or order.status != OrderStatus.DRAFT:
                 return False
 
-            # Reserve stock for each line item
+            # Try to reserve stock for each line item (optional for now)
             for item in order.line_items:
-                stock_reserved = await inventory_service.reserve_stock(
-                    item.product_id, 
-                    item.quantity, 
-                    order_id, 
-                    token
-                )
-                if not stock_reserved:
-                    logger.warning(f"Failed to reserve stock for product {item.product_id}")
-                    # You might want to implement rollback logic here
+                try:
+                    stock_reserved = await inventory_service.reserve_stock(
+                        item.product_id, 
+                        item.quantity, 
+                        order_id, 
+                        token
+                    )
+                    if not stock_reserved:
+                        logger.warning(f"Failed to reserve stock for product {item.product_id} - continuing anyway")
+                        # Continue processing even if stock reservation fails
+                except Exception as e:
+                    logger.warning(f"Stock reservation error for product {item.product_id}: {e} - continuing anyway")
 
             # Update order status
             result = await orders_collection.update_one(
@@ -357,15 +398,18 @@ class SalesOrderService:
             if not order:
                 return False
 
-            # Release reserved stock if order was confirmed
+            # Try to release reserved stock if order was confirmed (optional for now)
             if order.status in [OrderStatus.CONFIRMED, OrderStatus.PROCESSING]:
                 for item in order.line_items:
-                    await inventory_service.release_stock(
-                        item.product_id, 
-                        item.quantity, 
-                        order_id, 
-                        token
-                    )
+                    try:
+                        await inventory_service.release_stock(
+                            item.product_id, 
+                            item.quantity, 
+                            order_id, 
+                            token
+                        )
+                    except Exception as e:
+                        logger.warning(f"Stock release error for product {item.product_id}: {e} - continuing anyway")
 
             # Update order status
             result = await orders_collection.update_one(
@@ -426,24 +470,17 @@ class SalesOrderService:
             db = get_database()
             orders_collection = db.sales_orders
 
-            # Get last order number
-            last_order = await orders_collection.find_one(
-                {}, 
-                sort=[("order_number", -1)]
-            )
-
-            if last_order and last_order.get("order_number"):
-                # Extract number from last code (e.g., "SO-00001" -> 1)
-                last_code = last_order["order_number"]
-                if "-" in last_code:
-                    last_number = int(last_code.split("-")[-1])
-                    new_number = last_number + 1
-                else:
-                    new_number = 1
-            else:
-                new_number = 1
-
-            return f"SO-{new_number:05d}"
+            # Get count of existing orders and increment
+            order_count = await orders_collection.count_documents({})
+            new_number = order_count + 1
+            
+            # Ensure uniqueness by checking if the generated number exists
+            while True:
+                order_number = f"SO-{new_number:05d}"
+                existing = await orders_collection.find_one({"order_number": order_number})
+                if not existing:
+                    return order_number
+                new_number += 1
 
         except Exception as e:
             logger.error(f"Error generating order number: {e}")

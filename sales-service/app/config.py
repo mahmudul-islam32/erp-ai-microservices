@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     service_host: str = "0.0.0.0"
     
     # External Services
-    auth_service_url: str = "http://localhost:8001"
-    inventory_service_url: str = "http://localhost:8002"
+    auth_service_url: str = "http://auth-service:8001"  # Use service name for Docker
+    inventory_service_url: str = "http://inventory-service:8002"  # Use service name for Docker
     
     # JWT Settings (for auth verification)
     secret_key: str = "your-super-secret-key-change-this-in-production"

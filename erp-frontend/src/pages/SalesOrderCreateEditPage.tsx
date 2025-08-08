@@ -34,11 +34,12 @@ import {
   IconCalculator
 } from '@tabler/icons-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { salesOrdersApi, customerApi, productsApi } from '../services/salesApi';
-import { SalesOrderCreate, OrderItem, Customer, Product, OrderStatus, PaymentStatus } from '../types/sales';
+import { salesOrdersApi, customerApi } from '../services/salesApi';
+import { ProductService, Product as InventoryProduct } from '../services/inventory';
+import { SalesOrderCreate, OrderItem, OrderItemCreate, Customer, OrderStatus, PaymentStatus } from '../types/sales';
 
 interface OrderFormData extends Omit<SalesOrderCreate, 'line_items'> {
-  line_items: (OrderItem & { id: string })[];
+  line_items: (OrderItem & { id: string; notes?: string })[];
 }
 
 const SalesOrderCreateEditPage: React.FC = () => {
@@ -53,7 +54,7 @@ const SalesOrderCreateEditPage: React.FC = () => {
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [productSearchModal, setProductSearchModal] = useState(false);
   const [productSearch, setProductSearch] = useState('');
@@ -62,8 +63,8 @@ const SalesOrderCreateEditPage: React.FC = () => {
   const [formData, setFormData] = useState<OrderFormData>({
     customer_id: preselectedCustomerId || '',
     line_items: [],
-    tax_rate: 0.0875, // 8.75% default tax rate
-    discount_amount: 0,
+    subtotal_discount_amount: 0,
+    shipping_cost: 0,
     notes: ''
   });
 
@@ -99,10 +100,31 @@ const SalesOrderCreateEditPage: React.FC = () => {
 
   const loadProducts = useCallback(async () => {
     try {
-      const response = await productsApi.getProducts({ limit: 100 });
-      setProducts(response.items || []);
+      console.log('Loading products from inventory service...');
+      setError(null); // Clear any existing errors
+      const response = await ProductService.getProducts({ limit: 100, isActive: true });
+      console.log('Products response:', response);
+      console.log('Response structure keys:', Object.keys(response));
+      
+      // Handle the inventory service response structure
+      const productsData = response.products || response.data || [];
+      console.log('Products data extracted:', productsData);
+      console.log('Number of products:', productsData.length);
+      
+      setProducts(productsData);
+      console.log('Products state updated successfully');
+      
+      if (productsData.length === 0) {
+        console.warn('No products found! This might be why the product modal is empty.');
+      }
     } catch (err) {
       console.error('Error loading products:', err);
+      console.error('Error details:', err instanceof Error ? err.message : 'Unknown error');
+      if (err instanceof Error && err.message.includes('401')) {
+        console.error('Authentication error - user may need to log in');
+      }
+      setProducts([]);
+      setError(`Failed to load products: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   }, []);
 
@@ -166,8 +188,8 @@ const SalesOrderCreateEditPage: React.FC = () => {
     console.log('Selected customer:', customer);
   };
 
-  const addLineItem = (product: Product) => {
-    const newItem: OrderItem & { id: string } = {
+  const addLineItem = (product: InventoryProduct) => {
+    const newItem: OrderItem & { id: string; notes?: string } = {
       id: `item-${Date.now()}`,
       product_id: product._id,
       product_name: product.name,
@@ -175,7 +197,8 @@ const SalesOrderCreateEditPage: React.FC = () => {
       quantity: 1,
       unit_price: product.price,
       discount_percentage: 0,
-      total_price: product.price
+      total_price: product.price,
+      notes: ""
     };
 
     setFormData(prev => ({
@@ -214,9 +237,9 @@ const SalesOrderCreateEditPage: React.FC = () => {
 
   // Calculate totals
   const subtotal = formData.line_items.reduce((sum, item) => sum + item.total_price, 0);
-  const discountAmount = formData.discount_amount || 0;
+  const discountAmount = formData.subtotal_discount_amount || 0;
   const taxableAmount = subtotal - discountAmount;
-  const taxAmount = taxableAmount * (formData.tax_rate || 0);
+  const taxAmount = 0; // Tax will be calculated on the backend
   const totalAmount = taxableAmount + taxAmount;
 
   const handleSubmit = async () => {
@@ -237,16 +260,16 @@ const SalesOrderCreateEditPage: React.FC = () => {
         customer_id: formData.customer_id,
         line_items: formData.line_items.map(item => ({
           product_id: item.product_id,
-          product_name: item.product_name,
-          product_sku: item.product_sku,
           quantity: item.quantity,
           unit_price: item.unit_price,
-          discount_percentage: item.discount_percentage,
-          total_price: item.total_price
+          discount_percent: item.discount_percentage, // Convert field name
+          discount_amount: 0, // Let backend calculate this
+          notes: item.notes || ""
         })),
-        tax_rate: formData.tax_rate,
-        discount_amount: formData.discount_amount,
-        notes: formData.notes
+        subtotal_discount_percent: 0,
+        subtotal_discount_amount: formData.subtotal_discount_amount || 0,
+        shipping_cost: formData.shipping_cost || 0,
+        notes: formData.notes || ""
       };
 
       if (isEdit) {
@@ -268,6 +291,11 @@ const SalesOrderCreateEditPage: React.FC = () => {
     product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
     product.sku.toLowerCase().includes(productSearch.toLowerCase())
   );
+
+  // Add debugging for filtered products
+  console.log('Products state length:', products.length);
+  console.log('Filtered products length:', filteredProducts.length);
+  console.log('Product search term:', productSearch);
 
   const breadcrumbItems = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -413,7 +441,12 @@ const SalesOrderCreateEditPage: React.FC = () => {
                 <Title order={4}>Order Items</Title>
                 <Button
                   leftIcon={<IconPlus size={16} />}
-                  onClick={() => setProductSearchModal(true)}
+                  onClick={() => {
+                    console.log('Add Product button clicked');
+                    console.log('Current products in state:', products.length);
+                    console.log('Sample products:', products.slice(0, 2));
+                    setProductSearchModal(true);
+                  }}
                   disabled={!formData.customer_id}
                 >
                   Add Product
@@ -523,8 +556,8 @@ const SalesOrderCreateEditPage: React.FC = () => {
                   precision={2}
                   min={0}
                   max={subtotal}
-                  value={formData.discount_amount}
-                  onChange={(value) => setFormData(prev => ({ ...prev, discount_amount: value || 0 }))}
+                  value={formData.subtotal_discount_amount}
+                  onChange={(value) => setFormData(prev => ({ ...prev, subtotal_discount_amount: value || 0 }))}
                   parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
                   formatter={(value) =>
                     !Number.isNaN(parseFloat(value!))
@@ -533,15 +566,9 @@ const SalesOrderCreateEditPage: React.FC = () => {
                   }
                 />
                 
-                <NumberInput
-                  label="Tax Rate (%)"
-                  placeholder="8.75"
-                  precision={4}
-                  min={0}
-                  max={100}
-                  value={(formData.tax_rate || 0) * 100}
-                  onChange={(value) => setFormData(prev => ({ ...prev, tax_rate: (value || 0) / 100 }))}
-                />
+                <Text size="sm" color="dimmed" mt="md">
+                  Tax will be calculated automatically based on product settings
+                </Text>
                 
                 <Divider />
                 
@@ -621,6 +648,15 @@ const SalesOrderCreateEditPage: React.FC = () => {
             <Center h={200}>
               <Stack align="center" spacing="sm">
                 <Text color="dimmed">No products found</Text>
+                <Text size="sm" color="dimmed">
+                  Total products in state: {products.length} | Search: "{productSearch}"
+                </Text>
+                <Button size="sm" onClick={() => {
+                  console.log('Retrying product load...');
+                  loadProducts();
+                }}>
+                  Reload Products
+                </Button>
                 <Button size="sm" onClick={() => navigate('/dashboard/inventory/products/create')}>
                   Create New Product
                 </Button>

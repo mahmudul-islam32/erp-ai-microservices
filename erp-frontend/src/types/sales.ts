@@ -105,6 +105,17 @@ export interface OrderItem {
   unit_price: number;
   discount_percentage: number;
   total_price: number;
+  notes?: string;
+}
+
+// Backend API line item structure for creating orders
+export interface OrderItemCreate {
+  product_id: string;
+  quantity: number;
+  unit_price?: number;
+  discount_percent: number;
+  discount_amount: number;
+  notes?: string;
 }
 
 export interface SalesOrder {
@@ -138,12 +149,18 @@ export interface SalesOrder {
 
 export interface SalesOrderCreate {
   customer_id: string;
-  line_items: OrderItem[];  // Changed from 'items' to 'line_items'
-  tax_rate?: number;
-  discount_amount?: number;
-  due_date?: string;
-  shipping_date?: string;
+  order_date?: string;
+  expected_delivery_date?: string;
+  shipping_method?: string;
+  shipping_address?: Record<string, string>;
+  priority?: string;
+  sales_rep_id?: string;
+  line_items: OrderItemCreate[];
+  subtotal_discount_percent?: number;
+  subtotal_discount_amount?: number;
+  shipping_cost?: number;
   notes?: string;
+  internal_notes?: string;
 }
 
 export enum QuoteStatus {

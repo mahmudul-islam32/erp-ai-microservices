@@ -27,6 +27,7 @@ class PaymentTerms(str, Enum):
     COD = "cod"
     CASH_ON_DELIVERY = "cash_on_delivery"
     PREPAID = "prepaid"
+    IMMEDIATE = "immediate"
 
 
 # Address Model
@@ -34,8 +35,25 @@ class Address(BaseModel):
     street: str
     city: str
     state: str
-    postal_code: str
+    postal_code: Optional[str] = None
+    zip_code: Optional[str] = None
     country: str = "USA"
+    
+    @field_validator('postal_code', mode='before')
+    @classmethod
+    def handle_zip_code(cls, v, info):
+        """Handle both zip_code and postal_code fields"""
+        # If postal_code is not provided but zip_code is available in the data
+        if v is None and info.data.get('zip_code'):
+            return info.data['zip_code']
+        return v
+    
+    def model_post_init(self, __context):
+        """Ensure either postal_code or zip_code is set"""
+        if not self.postal_code and self.zip_code:
+            self.postal_code = self.zip_code
+        elif not self.zip_code and self.postal_code:
+            self.zip_code = self.postal_code
 
 
 # Customer Models
@@ -127,6 +145,15 @@ class CustomerInDB(BaseModel):
     last_order_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_objectid_to_str(cls, v):
+        """Convert ObjectId to string"""
+        if v is None:
+            return v
+        # Convert ObjectId to string
+        return str(v)
 
     class Config:
         populate_by_name = True
