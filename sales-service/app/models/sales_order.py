@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 from enum import Enum
@@ -128,6 +128,24 @@ class SalesOrderResponse(BaseModel):
     created_by: str
     updated_by: Optional[str] = None
 
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_objectid_to_str(cls, v):
+        """Convert ObjectId to string"""
+        if hasattr(v, '__str__'):
+            return str(v)
+        return v
+
+    @field_validator('order_date', 'expected_delivery_date', 'actual_delivery_date', mode='before')
+    @classmethod
+    def convert_date_to_string(cls, v):
+        """Convert date objects to ISO format strings for MongoDB storage"""
+        if v is None:
+            return v
+        if isinstance(v, date):
+            return v.isoformat()
+        return v
+
     class Config:
         populate_by_name = True
 
@@ -163,6 +181,24 @@ class SalesOrderInDB(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     created_by: str
     updated_by: Optional[str] = None
+
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_objectid_to_str(cls, v):
+        """Convert ObjectId to string"""
+        if v is None:
+            return v
+        return str(v)
+
+    @field_validator('order_date', 'expected_delivery_date', 'actual_delivery_date', mode='before')
+    @classmethod
+    def convert_date_to_string(cls, v):
+        """Convert date objects to ISO format strings for MongoDB storage"""
+        if v is None:
+            return v
+        if isinstance(v, date):
+            return v.isoformat()
+        return v
 
     class Config:
         populate_by_name = True

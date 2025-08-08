@@ -75,6 +75,9 @@ class CustomerService:
             
             customer = await customers_collection.find_one({"_id": ObjectId(customer_id)})
             if customer:
+                # Convert ObjectId to string
+                if "_id" in customer:
+                    customer["_id"] = str(customer["_id"])
                 return CustomerInDB(**customer)
             return None
 
@@ -90,11 +93,32 @@ class CustomerService:
             
             customer = await customers_collection.find_one({"email": email})
             if customer:
+                # Convert ObjectId to string
+                if "_id" in customer:
+                    customer["_id"] = str(customer["_id"])
                 return CustomerInDB(**customer)
             return None
 
         except Exception as e:
             logger.error(f"Error getting customer by email: {e}")
+            return None
+
+    async def get_customer_by_code(self, customer_code: str) -> Optional[CustomerInDB]:
+        """Get customer by customer code"""
+        try:
+            db = get_database()
+            customers_collection = db.customers
+            
+            customer = await customers_collection.find_one({"customer_code": customer_code})
+            if customer:
+                # Convert ObjectId to string
+                if "_id" in customer:
+                    customer["_id"] = str(customer["_id"])
+                return CustomerInDB(**customer)
+            return None
+
+        except Exception as e:
+            logger.error(f"Error getting customer by code: {e}")
             return None
 
     async def update_customer(self, customer_id: str, customer_update: CustomerUpdate) -> Optional[CustomerResponse]:

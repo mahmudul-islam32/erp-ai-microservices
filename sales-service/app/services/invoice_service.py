@@ -191,6 +191,50 @@ class InvoiceService:
             logger.error(f"Error getting invoices: {e}")
             return []
 
+    async def count_invoices(self, status: Optional[InvoiceStatus] = None,
+                            payment_status: Optional[PaymentStatus] = None,
+                            customer_id: Optional[str] = None,
+                            start_date: Optional[date] = None,
+                            end_date: Optional[date] = None,
+                            overdue_only: bool = False,
+                            search: Optional[str] = None) -> int:
+        """Get total count of invoices with filters"""
+        try:
+            db = get_database()
+            invoices_collection = db.invoices
+
+            # Build filter (same as get_invoices)
+            filter_query = {}
+            if status:
+                filter_query["status"] = status
+            if payment_status:
+                filter_query["payment_status"] = payment_status
+            if customer_id:
+                filter_query["customer_id"] = customer_id
+            if start_date and end_date:
+                filter_query["invoice_date"] = {"$gte": start_date, "$lte": end_date}
+            elif start_date:
+                filter_query["invoice_date"] = {"$gte": start_date}
+            elif end_date:
+                filter_query["invoice_date"] = {"$lte": end_date}
+            if overdue_only:
+                filter_query["due_date"] = {"$lt": date.today()}
+                filter_query["payment_status"] = {"$ne": PaymentStatus.PAID}
+            if search:
+                filter_query["$or"] = [
+                    {"invoice_number": {"$regex": search, "$options": "i"}},
+                    {"customer_name": {"$regex": search, "$options": "i"}},
+                    {"customer_email": {"$regex": search, "$options": "i"}}
+                ]
+
+            # Get count
+            count = await invoices_collection.count_documents(filter_query)
+            return count
+
+        except Exception as e:
+            logger.error(f"Error counting invoices: {e}")
+            return 0
+
     async def send_invoice(self, invoice_id: str, user_id: str) -> bool:
         """Send invoice to customer via email"""
         try:

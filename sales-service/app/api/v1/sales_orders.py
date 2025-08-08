@@ -24,9 +24,51 @@ async def create_sales_order(
 ):
     """Create a new sales order"""
     try:
+        # Validate input data
+        if not order_data.customer_id or order_data.customer_id.strip() == "" or order_data.customer_id == "string":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Customer ID is required and cannot be 'string'. Use a valid customer email, customer code, or ObjectId."
+            )
+        
+        if not order_data.line_items or len(order_data.line_items) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one line item is required"
+            )
+        
+        # Validate line items
+        for i, item in enumerate(order_data.line_items):
+            if not item.product_id or item.product_id.strip() == "" or item.product_id == "string":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Product ID is required for line item {i + 1} and cannot be 'string'. Use a valid product SKU or ObjectId."
+                )
+            if item.quantity <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Quantity must be greater than 0 for line item {i + 1}. Received: {item.quantity}"
+                )
+            if item.unit_price is not None and item.unit_price < 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Unit price cannot be negative for line item {i + 1}. Received: {item.unit_price}"
+                )
+        
         token = await get_token_from_request(request)
-        order = await sales_order_service.create_order(order_data, current_user["id"], token)
+        # Get user ID, checking both possible keys
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            logger.error(f"No user ID found in current_user: {current_user}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User ID not available"
+            )
+        
+        order = await sales_order_service.create_order(order_data, user_id, token)
         return order
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -34,9 +76,11 @@ async def create_sales_order(
         )
     except Exception as e:
         logger.error(f"Sales order creation error: {e}")
+        logger.error(f"Current user data: {current_user}")
+        logger.error(f"Order data: {order_data}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
+            detail=f"Internal server error: {str(e)}"
         )
 
 
@@ -133,7 +177,13 @@ async def update_sales_order(
 ):
     """Update sales order"""
     try:
-        order = await sales_order_service.update_order(order_id, order_update, current_user["id"])
+        # Get user ID, checking both possible keys
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            logger.error(f"No user ID found in current_user: {current_user}")
+            raise ValueError("User ID not available")
+        
+        order = await sales_order_service.update_order(order_id, order_update, user_id)
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -161,7 +211,13 @@ async def confirm_sales_order(
     """Confirm sales order and reserve stock"""
     try:
         token = await get_token_from_request(request)
-        success = await sales_order_service.confirm_order(order_id, current_user["id"], token)
+        # Get user ID, checking both possible keys
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            logger.error(f"No user ID found in current_user: {current_user}")
+            raise ValueError("User ID not available")
+        
+        success = await sales_order_service.confirm_order(order_id, user_id, token)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -189,7 +245,13 @@ async def cancel_sales_order(
     """Cancel sales order and release reserved stock"""
     try:
         token = await get_token_from_request(request)
-        success = await sales_order_service.cancel_order(order_id, current_user["id"], token)
+        # Get user ID, checking both possible keys
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            logger.error(f"No user ID found in current_user: {current_user}")
+            raise ValueError("User ID not available")
+        
+        success = await sales_order_service.cancel_order(order_id, user_id, token)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -215,7 +277,13 @@ async def delete_sales_order(
 ):
     """Delete sales order (soft delete)"""
     try:
-        success = await sales_order_service.delete_order(order_id, current_user["id"])
+        # Get user ID, checking both possible keys
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            logger.error(f"No user ID found in current_user: {current_user}")
+            raise ValueError("User ID not available")
+        
+        success = await sales_order_service.delete_order(order_id, user_id)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -297,7 +365,13 @@ async def duplicate_order(
     """Duplicate an existing sales order"""
     try:
         token = await get_token_from_request(request)
-        order = await sales_order_service.duplicate_order(order_id, current_user["id"], token)
+        # Get user ID, checking both possible keys
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            logger.error(f"No user ID found in current_user: {current_user}")
+            raise ValueError("User ID not available")
+        
+        order = await sales_order_service.duplicate_order(order_id, user_id, token)
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

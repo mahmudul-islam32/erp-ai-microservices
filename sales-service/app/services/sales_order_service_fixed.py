@@ -134,11 +134,11 @@ class SalesOrderService:
             # Create order document
             order_doc = SalesOrderInDB(
                 order_number=order_number,
-                customer_id=str(customer.id),  # Use string ID instead of the original input
+                customer_id=order_data.customer_id,
                 customer_name=f"{customer.first_name} {customer.last_name}".strip(),
                 customer_email=customer.email,
-                order_date=order_data.order_date.isoformat() if isinstance(order_data.order_date, date) else order_data.order_date,
-                expected_delivery_date=order_data.expected_delivery_date.isoformat() if order_data.expected_delivery_date and isinstance(order_data.expected_delivery_date, date) else order_data.expected_delivery_date,
+                order_date=order_data.order_date,
+                expected_delivery_date=order_data.expected_delivery_date,
                 shipping_method=order_data.shipping_method,
                 shipping_address=shipping_address,
                 priority=order_data.priority,
@@ -161,17 +161,7 @@ class SalesOrderService:
             )
 
             # Insert order
-            order_dict = order_doc.dict(by_alias=True, exclude={"id"})
-            
-            # Convert date objects to ISO format strings for MongoDB storage
-            if 'order_date' in order_dict and isinstance(order_dict['order_date'], date):
-                order_dict['order_date'] = order_dict['order_date'].isoformat()
-            if 'expected_delivery_date' in order_dict and isinstance(order_dict['expected_delivery_date'], date):
-                order_dict['expected_delivery_date'] = order_dict['expected_delivery_date'].isoformat()
-            if 'actual_delivery_date' in order_dict and isinstance(order_dict['actual_delivery_date'], date):
-                order_dict['actual_delivery_date'] = order_dict['actual_delivery_date'].isoformat()
-            
-            result = await orders_collection.insert_one(order_dict)
+            result = await orders_collection.insert_one(order_doc.dict(by_alias=True, exclude={"id"}))
             
             # Fetch created order
             created_order = await orders_collection.find_one({"_id": result.inserted_id})
@@ -470,17 +460,24 @@ class SalesOrderService:
             db = get_database()
             orders_collection = db.sales_orders
 
-            # Get count of existing orders and increment
-            order_count = await orders_collection.count_documents({})
-            new_number = order_count + 1
-            
-            # Ensure uniqueness by checking if the generated number exists
-            while True:
-                order_number = f"SO-{new_number:05d}"
-                existing = await orders_collection.find_one({"order_number": order_number})
-                if not existing:
-                    return order_number
-                new_number += 1
+            # Get last order number
+            last_order = await orders_collection.find_one(
+                {}, 
+                sort=[("order_number", -1)]
+            )
+
+            if last_order and last_order.get("order_number"):
+                # Extract number from last code (e.g., "SO-00001" -> 1)
+                last_code = last_order["order_number"]
+                if "-" in last_code:
+                    last_number = int(last_code.split("-")[-1])
+                    new_number = last_number + 1
+                else:
+                    new_number = 1
+            else:
+                new_number = 1
+
+            return f"SO-{new_number:05d}"
 
         except Exception as e:
             logger.error(f"Error generating order number: {e}")
