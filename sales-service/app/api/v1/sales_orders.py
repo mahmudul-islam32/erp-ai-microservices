@@ -388,3 +388,45 @@ async def duplicate_order(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
+
+
+@router.post("/{order_id}/payment-status")
+async def update_order_payment_status(
+    order_id: str,
+    payment_status: str,
+    paid_amount: float = 0,
+    current_user=Depends(require_sales_write())
+):
+    """Update payment status for an order"""
+    try:
+        # Validate payment status
+        valid_statuses = ["pending", "partial", "paid", "overdue", "refunded"]
+        if payment_status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid payment status. Must be one of: {valid_statuses}"
+            )
+        
+        if paid_amount < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Paid amount cannot be negative"
+            )
+        
+        success = await sales_order_service.update_payment_status(order_id, payment_status, paid_amount)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sales order not found or could not be updated"
+            )
+
+        return {"message": "Payment status updated successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update payment status error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )

@@ -257,6 +257,37 @@ class SalesOrderService:
             logger.error(f"Error updating order: {e}")
             return None
 
+    async def update_payment_status(self, order_id: str, payment_status: str, paid_amount: float = 0) -> bool:
+        """Update payment status and paid amount for an order"""
+        try:
+            db = get_database()
+            orders_collection = db.sales_orders
+
+            # Get existing order to calculate balance
+            existing_order = await self.get_order_by_id(order_id)
+            if not existing_order:
+                return False
+
+            # Update payment fields
+            update_data = {
+                "payment_status": payment_status,
+                "paid_amount": paid_amount,
+                "balance_due": existing_order.total_amount - paid_amount,
+                "updated_at": datetime.utcnow()
+            }
+
+            # Update order
+            result = await orders_collection.update_one(
+                {"_id": ObjectId(order_id)},
+                {"$set": update_data}
+            )
+
+            return result.modified_count > 0
+
+        except Exception as e:
+            logger.error(f"Error updating payment status: {e}")
+            return False
+
     async def get_orders(self, skip: int = 0, limit: int = 100,
                         status: Optional[OrderStatus] = None,
                         customer_id: Optional[str] = None,
