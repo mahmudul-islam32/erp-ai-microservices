@@ -110,15 +110,27 @@ const ProductsPage = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const getTotalAvailableForProduct = useCallback((productId: string) => {
+  const getAvailableForProduct = useCallback((product: Product) => {
+    const productId = product._id;
     const items = inventory.filter(inv => inv.productId === productId);
-    if (items.length === 0) return 0;
-    return items.reduce((sum, inv) => {
+    const sumFromInventory = items.reduce((sum, inv) => {
       const available = typeof inv.availableQuantity === 'number'
         ? inv.availableQuantity
         : Math.max(0, (inv.quantity || 0) - (inv.reservedQuantity || 0));
       return sum + available;
     }, 0);
+
+    if (items.length > 0) return sumFromInventory;
+
+    // Fallback to product-level snapshot if present
+    const pAny: any = product as any;
+    if (typeof pAny.availableQuantity === 'number') return pAny.availableQuantity;
+    if (typeof pAny.availableStock === 'number') return pAny.availableStock;
+    if (typeof pAny.stock === 'number') {
+      const reserved = typeof pAny.reservedStock === 'number' ? pAny.reservedStock : 0;
+      return Math.max(0, pAny.stock - reserved);
+    }
+    return 0;
   }, [inventory]);
 
   const getStatusBadge = (isActive: boolean) => {
@@ -214,8 +226,8 @@ const ProductsPage = () => {
       key: 'available',
       title: 'AVAILABLE',
       dataIndex: '_id',
-      render: (value: string) => {
-        const total = getTotalAvailableForProduct(value);
+      render: (_value: string, record: Product) => {
+        const total = getAvailableForProduct(record);
         return (
           <span style={{ fontWeight: '600', color: total > 0 ? 'var(--sap-text-primary)' : '#EF4444' }}>
             {total}

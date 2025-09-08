@@ -9,6 +9,7 @@ import {
   CategoryService, 
   SupplierService, 
   WarehouseService,
+  InventoryService,
   Product, 
   Category, 
   Supplier, 
@@ -79,6 +80,7 @@ const CreateProductPage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, UploadProgress>>({});
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [initialStocks, setInitialStocks] = useState<Array<{ warehouseId: string; quantity: number; notes?: string }>>([]);
 
   // Fetch reference data
   const fetchReferenceData = useCallback(async () => {
@@ -242,14 +244,46 @@ const CreateProductPage = () => {
         supplierIds: formData.supplierIds.length > 0 ? formData.supplierIds : undefined,
       };
 
-      await ProductService.createProduct(productData);
+      const created = await ProductService.createProduct(productData);
+
+      // Create initial stock for selected warehouse if provided
+      if (formData.warehouseId && formData.currentStock > 0) {
+        try {
+          await InventoryService.adjustStock({
+            productId: (created as any)._id || (created as any).id,
+            warehouseId: formData.warehouseId,
+            quantity: formData.currentStock,
+            reason: 'initial_stock',
+            performedBy: 'system',
+          });
+        } catch (err) {
+          console.error('Failed to set initial stock for selected warehouse', formData.warehouseId, err);
+        }
+      }
+
+      // Optionally create initial stock per warehouse
+      for (const entry of initialStocks) {
+        if (!entry.warehouseId || !entry.quantity || entry.quantity <= 0) continue;
+        try {
+          await InventoryService.adjustStock({
+            productId: (created as any)._id || (created as any).id,
+            warehouseId: entry.warehouseId,
+            quantity: entry.quantity,
+            reason: 'initial_stock',
+            notes: entry.notes,
+            performedBy: 'system',
+          });
+        } catch (err) {
+          console.error('Failed to set initial stock for warehouse', entry.warehouseId, err);
+        }
+      }
       
       // Note: Stock management is handled separately through the inventory system
       // Products are created without stock quantities - stock is managed per warehouse
 
       setSuccess(true);
       setTimeout(() => {
-        navigate('/products');
+        navigate('/dashboard/inventory/products');
       }, 2000);
 
     } catch (err: any) {
