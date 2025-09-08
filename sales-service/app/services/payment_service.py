@@ -10,7 +10,7 @@ from app.database.connection import get_database
 from app.models.payment import (
     PaymentCreate, PaymentUpdate, PaymentResponse, PaymentInDB,
     RefundCreate, RefundResponse, PaymentStatus, PaymentMethod,
-    TransactionType, POSTransactionCreate, POSTransactionResponse,
+    TransactionType,
     CardPaymentDetails, CashPaymentDetails
 )
 from app.models.sales_order import SalesOrderCreate, OrderLineItemCreate
@@ -47,11 +47,7 @@ class PaymentService:
         random_suffix = str(uuid.uuid4())[:8].upper()
         return f"REF-{timestamp}-{random_suffix}"
 
-    def _generate_pos_transaction_number(self) -> str:
-        """Generate unique POS transaction number"""
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        random_suffix = str(uuid.uuid4())[:8].upper()
-        return f"POS-{timestamp}-{random_suffix}"
+    # POS transaction numbering removed
 
     async def process_cash_payment(self, payment_data: PaymentCreate, user_id: str) -> PaymentResponse:
         """Process a cash payment"""
@@ -87,9 +83,6 @@ class PaymentService:
                 reference_number=payment_data.reference_number,
                 notes=payment_data.notes,
                 receipt_email=payment_data.receipt_email,
-                terminal_id=payment_data.terminal_id,
-                cashier_id=payment_data.cashier_id,
-                shift_id=payment_data.shift_id,
                 created_by=user_id
             )
             
@@ -167,9 +160,6 @@ class PaymentService:
                 reference_number=payment_data.reference_number,
                 notes=payment_data.notes,
                 receipt_email=payment_data.receipt_email,
-                terminal_id=payment_data.terminal_id,
-                cashier_id=payment_data.cashier_id,
-                shift_id=payment_data.shift_id,
                 created_by=user_id
             )
             
@@ -268,9 +258,6 @@ class PaymentService:
                 reference_number=payment_data.reference_number,
                 notes=payment_data.notes,
                 receipt_email=payment_data.receipt_email,
-                terminal_id=payment_data.terminal_id,
-                cashier_id=payment_data.cashier_id,
-                shift_id=payment_data.shift_id,
                 created_by=user_id
             )
             
@@ -359,80 +346,7 @@ class PaymentService:
             logger.error(f"Error getting payments: {e}")
             return []
 
-    async def process_pos_transaction(self, transaction_data: POSTransactionCreate, user_id: str, token: str) -> POSTransactionResponse:
-        """Process a complete POS transaction with order creation and payments"""
-        try:
-            await self._get_db()
-            
-            # First, create a sales order from the line items
-            order_create = SalesOrderCreate(
-                customer_id=transaction_data.customer_id or "walk-in",
-                line_items=[
-                    OrderLineItemCreate(
-                        product_id=item["product_id"],
-                        quantity=item["quantity"],
-                        unit_price=item.get("unit_price"),
-                        notes=item.get("notes")
-                    ) for item in transaction_data.line_items
-                ],
-                notes=transaction_data.notes
-            )
-            
-            # Create the order
-            order = await self.sales_order_service.create_order(order_create, user_id, token)
-            
-            # Process each payment
-            payment_responses = []
-            total_paid = 0
-            
-            for payment_data in transaction_data.payments:
-                payment_data.order_id = order.id
-                payment_data.customer_id = transaction_data.customer_id
-                payment_data.terminal_id = transaction_data.terminal_id
-                payment_data.cashier_id = transaction_data.cashier_id
-                payment_data.shift_id = transaction_data.shift_id
-                
-                payment_response = await self.create_payment(payment_data, user_id)
-                payment_responses.append(payment_response)
-                
-                if payment_response.status == PaymentStatus.COMPLETED:
-                    total_paid += payment_response.amount
-            
-            # Calculate change due (if overpaid with cash)
-            change_due = max(0, total_paid - transaction_data.total_amount)
-            
-            # Generate transaction number
-            transaction_number = self._generate_pos_transaction_number()
-            
-            # Create POS transaction response
-            pos_transaction = POSTransactionResponse(
-                id=order.id,  # Use order ID as transaction ID
-                transaction_number=transaction_number,
-                order_id=order.id,
-                customer_id=transaction_data.customer_id,
-                payments=payment_responses,
-                subtotal=transaction_data.subtotal,
-                tax_amount=transaction_data.tax_amount,
-                discount_amount=transaction_data.discount_amount,
-                total_amount=transaction_data.total_amount,
-                change_due=change_due,
-                terminal_id=transaction_data.terminal_id,
-                cashier_id=transaction_data.cashier_id,
-                shift_id=transaction_data.shift_id,
-                transaction_date=datetime.utcnow(),
-                created_at=datetime.utcnow()
-            )
-            
-            # Update order with payment status if fully paid
-            if total_paid >= transaction_data.total_amount:
-                await self.sales_order_service.update_payment_status(order.id, "paid", total_paid)
-            
-            logger.info(f"POS transaction processed successfully: {transaction_number}")
-            return pos_transaction
-            
-        except Exception as e:
-            logger.error(f"Error processing POS transaction: {e}")
-            raise
+    # POS transaction processing removed
 
     async def create_refund(self, refund_data: RefundCreate, user_id: str) -> RefundResponse:
         """Create a refund for a payment"""

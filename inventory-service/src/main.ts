@@ -3,9 +3,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Get config service
   const configService = app.get(ConfigService);
@@ -24,6 +26,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
+      'http://localhost:5174',
       'http://localhost:80',
       'http://localhost',
     ],
@@ -52,8 +55,13 @@ async function bootstrap() {
     },
   });
 
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
   // Health check endpoint
-  app.getHttpAdapter().get('/health', (req, res) => {
+  app.getHttpAdapter().get('/health', (req: any, res: any) => {
     res.json({
       status: 'healthy',
       service: 'inventory-service',

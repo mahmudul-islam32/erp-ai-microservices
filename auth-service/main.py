@@ -50,6 +50,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",   # Create React App default
         "http://localhost:5173",   # Vite default
+        "http://localhost:5174",   # Vite alternative port
         "http://localhost:80",     # Production frontend
         "http://localhost",        # Production frontend without port
     ] if settings.environment == "development" else [

@@ -7,4 +7,4 @@ from .invoice_service import invoice_service, InvoiceService
 from .payment_service import payment_service, PaymentService
 from .analytics_service import analytics_service, AnalyticsService
 from .reports_service import reports_service, ReportsService
-from .pos_service import pos_service, POSService
+"""POS services removed"""

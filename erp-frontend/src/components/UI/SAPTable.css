@@ -1,0 +1,117 @@
+/* SAP Table Styles */
+.sap-table-container {
+  background-color: var(--sap-bg-primary);
+  border-radius: var(--sap-radius-md);
+  box-shadow: var(--sap-shadow-sm);
+  border: 1px solid var(--sap-neutral-200);
+  overflow: hidden;
+}
+
+.sap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sap-font-family);
+}
+
+.sap-table-header {
+  background-color: var(--sap-bg-secondary);
+  border-bottom: 1px solid var(--sap-neutral-200);
+}
+
+.sap-table-header-cell {
+  padding: var(--sap-spacing-md) var(--sap-spacing-lg);
+  font-size: var(--sap-font-size-sm);
+  font-weight: 600;
+  color: var(--sap-text-primary);
+  text-align: left;
+  border-bottom: 1px solid var(--sap-neutral-200);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.sap-table-body {
+  background-color: var(--sap-bg-primary);
+}
+
+.sap-table-row {
+  border-bottom: 1px solid var(--sap-neutral-100);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.sap-table-row:hover {
+  background-color: var(--sap-neutral-50);
+}
+
+.sap-table-row-clickable {
+  cursor: pointer;
+}
+
+.sap-table-row-clickable:hover {
+  background-color: var(--sap-primary-50);
+}
+
+.sap-table-cell {
+  padding: var(--sap-spacing-md) var(--sap-spacing-lg);
+  font-size: var(--sap-font-size-sm);
+  color: var(--sap-text-primary);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--sap-neutral-100);
+}
+
+.sap-table-row:last-child .sap-table-cell {
+  border-bottom: none;
+}
+
+/* Loading State */
+.sap-table-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sap-spacing-3xl);
+  color: var(--sap-text-secondary);
+  font-size: var(--sap-font-size-sm);
+  gap: var(--sap-spacing-md);
+}
+
+.sap-table-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--sap-neutral-200);
+  border-top: 2px solid var(--sap-primary-500);
+  border-radius: 50%;
+  animation: sap-table-spin 1s linear infinite;
+}
+
+@keyframes sap-table-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.sap-table-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sap-spacing-3xl);
+  color: var(--sap-text-secondary);
+  font-size: var(--sap-font-size-sm);
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sap-table-container {
+    overflow-x: auto;
+  }
+  
+  .sap-table {
+    min-width: 600px;
+  }
+  
+  .sap-table-header-cell,
+  .sap-table-cell {
+    padding: var(--sap-spacing-sm) var(--sap-spacing-md);
+    font-size: var(--sap-font-size-xs);
+  }
+}

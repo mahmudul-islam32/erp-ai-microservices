@@ -21,15 +21,7 @@ from .payment import (
     PaymentCreate, PaymentUpdate, PaymentResponse, PaymentInDB,
     RefundCreate, RefundResponse, PaymentMethod, PaymentStatus,
     CardPaymentDetails, CashPaymentDetails, PayPalPaymentDetails,
-    PaymentGatewayDetails, POSTransactionCreate, POSTransactionResponse,
+    PaymentGatewayDetails,
     CardType, TransactionType
-)
-from .pos import (
-    POSTransactionCreate as POSTransactionCreateModel, 
-    POSTransactionResponse as POSTransactionResponseModel,
-    POSSessionCreate, POSSessionResponse, POSSessionSummary,
-    QuickSaleCreate, QuickSaleResponse, POSReceiptResponse,
-    POSLineItem, POSPayment, POSCustomer, POSSessionStatus,
-    TransactionType as POSTransactionType
 )
 from .pagination import PaginationResponse

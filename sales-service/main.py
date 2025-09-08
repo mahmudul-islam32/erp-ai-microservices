@@ -17,7 +17,7 @@ from app.api.v1 import (
     payments_router,
     analytics_router,
     reports_router,
-    pos_router
+    # pos_router  # Removed - using sales orders as POS
 )# Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
@@ -55,7 +55,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -142,7 +142,7 @@ app.include_router(invoices_router, prefix="/api/v1")
 app.include_router(payments_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
-app.include_router(pos_router, prefix="/api/v1")
+# app.include_router(pos_router, prefix="/api/v1")  # Removed - using sales orders as POS
 
 
 if __name__ == "__main__":

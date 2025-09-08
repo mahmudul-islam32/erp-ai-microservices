@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     
     # Database
     mongodb_url: str = "mongodb://localhost:27017"
-    database_name: str = "erp_sales"
+    database_name: str = "sales_db"
     
     # Service
     service_name: str = "sales-service"

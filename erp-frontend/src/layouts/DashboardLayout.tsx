@@ -6,7 +6,8 @@ import {
   IconReportAnalytics, IconCalendar, IconShield, IconKey, 
   IconUserPlus, IconUsersGroup, IconLock,
   IconFingerprint, IconUserCog, IconChevronRight,
-  IconPackage, IconShoppingCart, IconCurrencyDollar, IconUserCircle
+  IconPackage, IconShoppingCart, IconCurrencyDollar, IconUserCircle,
+  IconCash
 } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types/auth';
@@ -127,6 +128,13 @@ export function DashboardLayout() {
 
   // Sales Management Section
   const salesNavItems = [
+    { 
+      label: 'Create Order', 
+      icon: <IconCash size={20} />, 
+      path: '/dashboard/sales/orders/create', 
+      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE],
+      description: 'Create new sales orders'
+    },
     { 
       label: 'Orders', 
       icon: <IconShoppingCart size={20} />, 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models.payment import (
     PaymentCreate, PaymentUpdate, PaymentResponse, RefundCreate, RefundResponse,
-    PaymentMethod, PaymentStatus, POSTransactionCreate, POSTransactionResponse
+    PaymentMethod, PaymentStatus
 )
 from app.models.pagination import PaginationResponse
 from app.services.payment_service import payment_service
@@ -64,7 +64,7 @@ async def create_cash_payment(
     request: Request,
     current_user=Depends(require_sales_write())
 ):
-    """Create a cash payment (POS specific)"""
+    """Create a cash payment"""
     try:
         # Ensure payment method is cash
         payment_data.payment_method = PaymentMethod.CASH
@@ -151,60 +151,6 @@ async def create_card_payment(
         )
 
 
-@router.post("/pos-transaction", response_model=POSTransactionResponse, status_code=status.HTTP_201_CREATED)
-async def create_pos_transaction(
-    transaction_data: POSTransactionCreate,
-    request: Request,
-    current_user=Depends(require_sales_write())
-):
-    """Create a complete POS transaction with order and payments"""
-    try:
-        # Validate transaction data
-        if not transaction_data.line_items or len(transaction_data.line_items) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="At least one line item is required"
-            )
-        
-        if not transaction_data.payments or len(transaction_data.payments) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="At least one payment is required"
-            )
-        
-        # Validate total payment amount matches transaction total
-        total_payment_amount = sum(payment.amount for payment in transaction_data.payments)
-        if total_payment_amount < transaction_data.total_amount:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Total payment amount ({total_payment_amount}) is less than transaction total ({transaction_data.total_amount})"
-            )
-        
-        # Get user ID and token
-        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User ID not available"
-            )
-        
-        token = await get_token_from_request(request)
-        
-        transaction = await payment_service.process_pos_transaction(transaction_data, user_id, token)
-        return transaction
-    except HTTPException:
-        raise
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"POS transaction creation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
-        )
 
 
 @router.get("/", response_model=PaginationResponse[PaymentResponse])
@@ -412,7 +358,7 @@ async def get_daily_payments_summary(
     date_filter: Optional[date] = Query(None, description="Date for summary (defaults to today)"),
     current_user=Depends(require_sales_access())
 ):
-    """Get daily payments summary for POS reporting"""
+    """Get daily payments summary for reporting"""
     try:
         target_date = date_filter or date.today()
         
