@@ -1,0 +1,68 @@
+/* SAP Layout Styles */
+.sap-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--sap-bg-secondary);
+}
+
+.sap-sidebar-container {
+  position: relative;
+  z-index: 100;
+}
+
+.sap-main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin-left: 0;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.sap-main-content {
+  flex: 1;
+  background-color: var(--sap-bg-secondary);
+  overflow-y: auto;
+}
+
+.sap-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  display: none;
+}
+
+/* Desktop Layout */
+@media (min-width: 769px) {
+
+  .sap-sidebar-collapsed + .sap-main-container {
+    margin-left: 60px;
+  }
+}
+
+/* Mobile Layout */
+@media (max-width: 768px) {
+  .sap-sidebar-container {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    z-index: 1000;
+    transition: left 0.3s ease-in-out;
+  }
+  
+  .sap-sidebar-container.sap-sidebar-open {
+    left: 0;
+  }
+  
+  .sap-sidebar-overlay {
+    display: block;
+  }
+  
+  .sap-main-container {
+    margin-left: 0;
+  }
+}

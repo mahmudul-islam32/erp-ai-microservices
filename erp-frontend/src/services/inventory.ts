@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// Resolve inventory API base URL; default to direct backend URL
+const INVENTORY_API_BASE = (import.meta as any)?.env?.VITE_INVENTORY_API_URL || 'http://localhost:8002';
+
 // Create axios instance for inventory service
 const inventoryApiClient = axios.create({
-  baseURL: 'http://localhost:8002',
+  baseURL: INVENTORY_API_BASE,
   headers: {
     'Content-Type': 'application/json'
   },
@@ -58,7 +61,6 @@ export interface Product {
   price: number;
   cost: number;
   unit: string;
-  currentStock: number;
   minStockLevel: number;
   maxStockLevel: number;
   reorderPoint: number;
