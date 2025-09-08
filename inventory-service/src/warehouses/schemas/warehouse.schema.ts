@@ -25,9 +25,9 @@ export class Warehouse {
   @Prop()
   description?: string;
 
-  @Field()
-  @Prop({ required: true })
-  address: string;
+  @Field({ nullable: true })
+  @Prop()
+  address?: string;
 
   @Field({ nullable: true })
   @Prop()
@@ -64,6 +64,14 @@ export class Warehouse {
   @Field()
   @Prop({ default: false })
   isMainWarehouse: boolean;
+
+  @Field({ nullable: true })
+  @Prop()
+  capacity?: number;
+
+  @Field({ nullable: true })
+  @Prop()
+  type?: string;
 
   @Field({ nullable: true })
   @Prop()

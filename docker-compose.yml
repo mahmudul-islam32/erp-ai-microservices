@@ -147,7 +147,7 @@ services:
     container_name: erp-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8080:80"
     environment:
       VITE_API_URL: http://localhost:8001
     depends_on:
