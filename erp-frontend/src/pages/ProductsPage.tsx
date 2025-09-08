@@ -110,6 +110,17 @@ const ProductsPage = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const getTotalAvailableForProduct = useCallback((productId: string) => {
+    const items = inventory.filter(inv => inv.productId === productId);
+    if (items.length === 0) return 0;
+    return items.reduce((sum, inv) => {
+      const available = typeof inv.availableQuantity === 'number'
+        ? inv.availableQuantity
+        : Math.max(0, (inv.quantity || 0) - (inv.reservedQuantity || 0));
+      return sum + available;
+    }, 0);
+  }, [inventory]);
+
   const getStatusBadge = (isActive: boolean) => {
     return (
       <span 
@@ -198,6 +209,19 @@ const ProductsPage = () => {
           {value || 'N/A'}
         </span>
       )
+    },
+    {
+      key: 'available',
+      title: 'AVAILABLE',
+      dataIndex: '_id',
+      render: (value: string) => {
+        const total = getTotalAvailableForProduct(value);
+        return (
+          <span style={{ fontWeight: '600', color: total > 0 ? 'var(--sap-text-primary)' : '#EF4444' }}>
+            {total}
+          </span>
+        );
+      }
     },
     {
       key: 'warehouses',
