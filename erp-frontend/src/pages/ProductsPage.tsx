@@ -1,686 +1,445 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Container,
-  Title,
-  Paper,
-  Table,
-  Group,
-  Button,
-  TextInput,
-  Select,
-  ActionIcon,
-  Badge,
-  Text,
-  Modal,
-  Stack,
-  NumberInput,
-  Textarea,
-  Switch,
-  Loader,
-  Center,
-  Alert,
-  Menu,
-  Pagination,
-  Grid,
-  Card,
-  Breadcrumbs,
-  Anchor,
-  MultiSelect,
-} from '@mantine/core';
+import { SAPPageLayout } from '../components/Layout/SAPPageLayout';
+import { SAPCard } from '../components/UI/SAPCard';
+import { SAPButton } from '../components/UI/SAPButton';
+import { SAPTable } from '../components/UI/SAPTable';
+import ProductImage from '../components/UI/ProductImage';
 import {
   IconPlus,
   IconSearch,
   IconEdit,
   IconTrash,
-  IconDots,
   IconEye,
-  IconPackage,
-  IconAlertCircle,
-  IconArrowUp,
-  IconArrowDown,
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { ProductService, CategoryService, SupplierService, Product, Category, Supplier } from '../services/inventory';
+import { ProductService, CategoryService, InventoryService, WarehouseService, Product, Category, Inventory, Warehouse } from '../services/inventory';
 
 const ProductsPage = () => {
   const navigate = useNavigate();
   
-  // State management
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [inventory, setInventory] = useState<Inventory[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  
-  // Pagination and filtering
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(10);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [isActiveFilter, setIsActiveFilter] = useState<string>('');
-  const [lowStockFilter, setLowStockFilter] = useState(false);
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    sku: '',
-    name: '',
-    description: '',
-    categoryId: '',
-    price: 0,
-    cost: 0,
-    unit: '',
-    currentStock: 0,
-    minStockLevel: 0,
-    maxStockLevel: 0,
-    reorderPoint: 0,
-    reorderQuantity: 0,
-    isActive: true,
-    isTrackable: true,
-    images: [] as string[],
-    tags: '',
-    dimensions: '',
-    weight: 0,
-    barcode: '',
-    supplierIds: [] as string[],
-  });
+  const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Load data
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await ProductService.getProducts({
-        page: currentPage,
-        limit: pageSize,
-        search: searchTerm || undefined,
-        categoryId: categoryFilter || undefined,
-        isActive: isActiveFilter ? isActiveFilter === 'true' : undefined,
-        lowStock: lowStockFilter || undefined,
-        sortBy,
-        sortOrder,
-      });
-      
+      setError(null);
+      const response = await ProductService.getProducts();
+      console.log('Products API response:', response);
+      console.log('First product categoryId:', response.products?.[0]?.categoryId);
       setProducts(response.products || []);
-      setTotalPages(response.totalPages);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      alert('Failed to fetch products');
+    } catch (err) {
+      setError('Failed to fetch products');
+      console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, searchTerm, categoryFilter, isActiveFilter, lowStockFilter, sortBy, sortOrder]);
+  }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
-      const response = await CategoryService.getCategories({ limit: 100, isActive: true });
+      const response = await CategoryService.getCategories();
+      console.log('Categories API response:', response);
       setCategories(response.categories || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
     }
-  };
+  }, []);
 
-  const fetchSuppliers = async () => {
+  const fetchInventory = useCallback(async () => {
     try {
-      const response = await SupplierService.getSuppliers({ limit: 100, isActive: true });
-      setSuppliers(response.suppliers || []);
-    } catch (error) {
-      console.error('Error fetching suppliers:', error);
+      const response = await InventoryService.getInventory({ limit: 1000 });
+      setInventory(response.inventory || []);
+    } catch (err) {
+      console.error('Error fetching inventory:', err);
     }
-  };
+  }, []);
+
+  const fetchWarehouses = useCallback(async () => {
+    try {
+      const response = await WarehouseService.getWarehouses({ limit: 1000 });
+      setWarehouses(response.warehouses || []);
+    } catch (err) {
+      console.error('Error fetching warehouses:', err);
+    }
+  }, []);
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
+    fetchInventory();
+    fetchWarehouses();
+  }, [fetchProducts, fetchCategories, fetchInventory, fetchWarehouses]);
+
+  const handleDelete = useCallback(async (product: Product) => {
+    const confirmed = window.confirm(`Delete product "${product.name}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(product._id);
+      await ProductService.deleteProduct(product._id);
+      await fetchProducts();
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      setError('Failed to delete product');
+    } finally {
+      setDeletingId(null);
+    }
   }, [fetchProducts]);
 
-  useEffect(() => {
-    fetchCategories();
-    fetchSuppliers();
-  }, []);
-
-  // Form handlers
-  const handleSubmit = async () => {
-    try {
-      if (editingProduct) {
-        await ProductService.updateProduct(editingProduct._id, formData);
-        alert('Product updated successfully');
-      } else {
-        await ProductService.createProduct(formData);
-        alert('Product created successfully');
-      }
-      
-      setModalOpen(false);
-      setEditingProduct(null);
-      resetForm();
-      fetchProducts();
-    } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Failed to save product');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!productToDelete) return;
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.sku?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    try {
-      await ProductService.deleteProduct(productToDelete._id);
-      alert('Product deleted successfully');
-      
-      setDeleteModalOpen(false);
-      setProductToDelete(null);
-      fetchProducts();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+    let matchesCategory = true;
+    if (categoryFilter !== 'ALL') {
+      if (typeof product.categoryId === 'object' && product.categoryId?._id) {
+        matchesCategory = product.categoryId._id === categoryFilter;
+      } else if (typeof product.categoryId === 'string') {
+        matchesCategory = product.categoryId === categoryFilter;
+      }
     }
-  };
+    
+    return matchesSearch && matchesCategory;
+  });
 
-  const resetForm = () => {
-    setFormData({
-      sku: '',
-      name: '',
-      description: '',
-      categoryId: '',
-      price: 0,
-      cost: 0,
-      unit: '',
-      currentStock: 0,
-      minStockLevel: 0,
-      maxStockLevel: 0,
-      reorderPoint: 0,
-      reorderQuantity: 0,
-      isActive: true,
-      isTrackable: true,
-      images: [],
-      tags: '',
-      dimensions: '',
-      weight: 0,
-      barcode: '',
-      supplierIds: [],
-    });
-  };
-
-  const openEditModal = (product: Product) => {
-    setEditingProduct(product);
-    setFormData({
-      sku: product.sku,
-      name: product.name,
-      description: product.description || '',
-      categoryId: product.categoryId,
-      price: product.price,
-      cost: product.cost,
-      unit: product.unit,
-      currentStock: product.currentStock,
-      minStockLevel: product.minStockLevel,
-      maxStockLevel: product.maxStockLevel,
-      reorderPoint: product.reorderPoint,
-      reorderQuantity: product.reorderQuantity,
-      isActive: product.isActive,
-      isTrackable: product.isTrackable,
-      images: product.images || [],
-      tags: product.tags || '',
-      dimensions: product.dimensions || '',
-      weight: product.weight || 0,
-      barcode: product.barcode || '',
-      supplierIds: product.supplierIds || [],
-    });
-    setModalOpen(true);
-  };
-
-  const openCreateModal = () => {
-    setEditingProduct(null);
-    resetForm();
-    setModalOpen(true);
-  };
-
-  const breadcrumbItems = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Inventory', href: '/dashboard/inventory' },
-    { title: 'Products', href: '/dashboard/inventory/products' },
-  ].map((item, index) => (
-    <Anchor key={index} component="button" onClick={() => navigate(item.href)}>
-      {item.title}
-    </Anchor>
-  ));
-
-  const categoryOptions = categories.map(cat => ({ value: cat._id, label: cat.name }));
-  const supplierOptions = suppliers.map(sup => ({ value: sup._id, label: sup.name }));
-
-  const getStockStatus = (product: Product) => {
-    if (product.currentStock <= 0) {
-      return { color: 'red', label: 'Out of Stock' };
-    } else if (product.currentStock <= product.reorderPoint) {
-      return { color: 'yellow', label: 'Low Stock' };
-    } else {
-      return { color: 'green', label: 'In Stock' };
-    }
-  };
-
-  if (loading) {
+  const getStatusBadge = (isActive: boolean) => {
     return (
-      <Center h={400}>
-        <Loader size="lg" />
-      </Center>
+      <span 
+        style={{ 
+          backgroundColor: isActive ? '#10B98120' : '#EF444420',
+          color: isActive ? '#10B981' : '#EF4444',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          fontWeight: '600',
+          textTransform: 'uppercase'
+        }}
+      >
+        {isActive ? 'ACTIVE' : 'INACTIVE'}
+      </span>
     );
-  }
+  };
+
+  const columns = [
+    {
+      key: 'product',
+      title: 'PRODUCT',
+      dataIndex: 'name',
+      render: (value: string, record: Product) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Product Image */}
+          <ProductImage
+            src={record.images && record.images.length > 0 ? record.images[0] : undefined}
+            alt={record.name}
+            width={48}
+            height={48}
+          />
+          
+          {/* Product Info */}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontWeight: '600', color: 'var(--sap-text-primary)', marginBottom: '2px' }}>
+              {record.name}
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--sap-text-secondary)' }}>
+              SKU: {record.sku || 'N/A'}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'category',
+      title: 'CATEGORY',
+      dataIndex: 'categoryId',
+      render: (value: any, record: Product) => {
+        // Handle both populated category object and category ID
+        let categoryName = 'Uncategorized';
+        
+        if (typeof value === 'object' && value?.name) {
+          // If categoryId is populated as an object
+          categoryName = value.name;
+        } else if (typeof value === 'string') {
+          // If categoryId is just an ID string, find in categories array
+          const category = categories.find(c => c._id === value);
+          categoryName = category?.name || 'Uncategorized';
+        }
+        
+        return (
+          <span style={{ color: 'var(--sap-text-primary)' }}>
+            {categoryName}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'price',
+      title: 'PRICE',
+      dataIndex: 'price',
+      render: (value: number) => (
+        <span style={{ fontWeight: '600', color: 'var(--sap-text-primary)' }}>
+          ${value?.toFixed(2) || '0.00'}
+        </span>
+      )
+    },
+    {
+      key: 'unit',
+      title: 'UNIT',
+      dataIndex: 'unit',
+      render: (value: string) => (
+        <span style={{ fontWeight: '600', color: 'var(--sap-text-primary)' }}>
+          {value || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'warehouses',
+      title: 'WAREHOUSES',
+      dataIndex: '_id',
+      render: (value: string, record: Product) => {
+        // Find inventory records for this product
+        const productInventory = inventory.filter(inv => inv.productId === value);
+        
+        if (productInventory.length === 0) {
+          return (
+            <span style={{ color: 'var(--sap-text-secondary)', fontSize: '12px' }}>
+              No stock
+            </span>
+          );
+        }
+        
+        // Group by warehouse and show total quantity
+        const warehouseGroups = productInventory.reduce((acc, inv) => {
+          const warehouseId = inv.warehouseId;
+          if (!acc[warehouseId]) {
+            acc[warehouseId] = 0;
+          }
+          acc[warehouseId] += inv.quantity;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {Object.entries(warehouseGroups).map(([warehouseId, quantity]) => {
+              const warehouse = warehouses.find(w => w._id === warehouseId);
+              const warehouseName = warehouse?.name || `Warehouse ${warehouseId.slice(-4)}`;
+              
+              return (
+                <span key={warehouseId} style={{ 
+                  fontSize: '12px', 
+                  color: 'var(--sap-text-primary)',
+                  backgroundColor: quantity > 0 ? '#10B98120' : '#EF444420',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  display: 'inline-block',
+                  width: 'fit-content'
+                }}>
+                  {warehouseName}: {quantity > 0 ? `${quantity} units` : 'Out of stock'}
+                </span>
+              );
+            })}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'status',
+      title: 'STATUS',
+      dataIndex: 'isActive',
+      render: (value: boolean) => getStatusBadge(value)
+    },
+    {
+      key: 'actions',
+      title: 'ACTIONS',
+      dataIndex: '_id',
+      render: (value: string, record: Product) => (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <SAPButton
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/dashboard/inventory/products/${record._id}`)}
+          >
+            <IconEye size={16} />
+          </SAPButton>
+          <SAPButton
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/dashboard/inventory/products/${record._id}/edit`)}
+          >
+            <IconEdit size={16} />
+          </SAPButton>
+          <SAPButton
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDelete(record)}
+            loading={deletingId === record._id}
+          >
+            <IconTrash size={16} />
+          </SAPButton>
+        </div>
+      )
+    }
+  ];
+
+  const pageActions = (
+    <div style={{ display: 'flex', gap: '12px' }}>
+      <SAPButton
+        variant="outline"
+        onClick={fetchProducts}
+        loading={loading}
+      >
+        Refresh
+      </SAPButton>
+      <SAPButton
+        variant="primary"
+        onClick={() => navigate('/dashboard/inventory/products/create')}
+      >
+        <IconPlus size={16} />
+            Add Product
+      </SAPButton>
+    </div>
+  );
 
   return (
-    <Container size="xl" py="xl">
-      <Stack spacing="lg">
-        {/* Header */}
-        <Group position="apart" align="center">
-          <div>
-            <Breadcrumbs>{breadcrumbItems}</Breadcrumbs>
-            <Title order={2} mt="sm">
-              <Group spacing="sm">
-                <IconPackage size={28} />
-                Products
-              </Group>
-            </Title>
-            <Text color="dimmed" size="sm">
-              Manage your product catalog
-            </Text>
+    <SAPPageLayout
+      title="Products"
+      subtitle="Manage your product catalog and inventory"
+      actions={pageActions}
+    >
+          <SAPCard>
+        <div style={{ padding: '24px' }}>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: '#F0F9FF',
+            border: '1px solid #BAE6FD',
+            borderRadius: '8px',
+            color: '#0369A1',
+            fontSize: '14px',
+            marginBottom: '20px'
+          }}>
+            <strong>Note:</strong> Stock quantities are managed separately through the inventory system. 
+            Use the "Stock Management" page to view and manage actual stock levels.
           </div>
-          <Button leftIcon={<IconPlus size={16} />} onClick={openCreateModal}>
-            Add Product
-          </Button>
-        </Group>
-
-        {/* Filters */}
-        <Card shadow="sm" p="lg" radius="md" withBorder>
-          <Grid>
-            <Grid.Col xs={12} sm={6} md={3}>
-              <TextInput
+          <div style={{ 
+            display: 'flex', 
+            gap: '16px', 
+            marginBottom: '24px',
+            alignItems: 'center'
+          }}>
+            <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+              <IconSearch 
+                size={16} 
+                style={{ 
+                  position: 'absolute', 
+                  left: '12px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)',
+                  color: 'var(--sap-text-secondary)'
+                }} 
+              />
+              <input
+                type="text"
                 placeholder="Search products..."
-                icon={<IconSearch size={16} />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 12px 12px 40px',
+                  border: '1px solid var(--sap-neutral-300)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  backgroundColor: 'var(--sap-bg-primary)',
+                  color: 'var(--sap-text-primary)'
+                }}
               />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={6} md={2}>
-              <Select
-                placeholder="Category"
-                data={[{ value: '', label: 'All Categories' }, ...categoryOptions]}
-                value={categoryFilter}
-                onChange={(value) => setCategoryFilter(value || '')}
-              />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={6} md={2}>
-              <Select
-                placeholder="Status"
-                data={[
-                  { value: '', label: 'All Status' },
-                  { value: 'true', label: 'Active' },
-                  { value: 'false', label: 'Inactive' },
-                ]}
-                value={isActiveFilter}
-                onChange={(value) => setIsActiveFilter(value || '')}
-              />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={6} md={2}>
-              <Switch
-                label="Low Stock Only"
-                checked={lowStockFilter}
-                onChange={(e) => setLowStockFilter(e.currentTarget.checked)}
-              />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={6} md={2}>
-              <Select
-                placeholder="Sort By"
-                data={[
-                  { value: 'name', label: 'Name' },
-                  { value: 'sku', label: 'SKU' },
-                  { value: 'price', label: 'Price' },
-                  { value: 'currentStock', label: 'Stock' },
-                  { value: 'createdAt', label: 'Created' },
-                ]}
-                value={sortBy}
-                onChange={(value) => setSortBy(value || 'createdAt')}
-              />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={6} md={1}>
-              <ActionIcon
-                variant="outline"
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              >
-                {sortOrder === 'asc' ? <IconArrowUp size={16} /> : <IconArrowDown size={16} />}
-              </ActionIcon>
-            </Grid.Col>
-          </Grid>
-        </Card>
-
-        {/* Products Table */}
-        <Paper shadow="sm" p="lg" radius="md" withBorder>
-          {products.length === 0 ? (
-            <Center h={200}>
-              <Stack align="center" spacing="sm">
-                <IconPackage size={48} stroke={1} color="gray" />
-                <Text color="dimmed">No products found</Text>
-                <Button variant="light" onClick={openCreateModal}>
-                  Create your first product
-                </Button>
-              </Stack>
-            </Center>
-          ) : (
-            <Table highlightOnHover>
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((product) => {
-                  const stockStatus = getStockStatus(product);
-                  const category = categories.find(c => c._id === product.categoryId);
-                  
-                  return (
-                    <tr key={product._id}>
-                      <td>
-                        <Text weight={500}>{product.sku}</Text>
-                      </td>
-                      <td>
-                        <div>
-                          <Text weight={500}>{product.name}</Text>
-                          {product.description && (
-                            <Text size="sm" color="dimmed" truncate>
-                              {product.description}
-                            </Text>
-                          )}
                         </div>
-                      </td>
-                      <td>
-                        <Text size="sm">{category?.name || 'N/A'}</Text>
-                      </td>
-                      <td>
-                        <Text weight={500}>${product.price.toFixed(2)}</Text>
-                      </td>
-                      <td>
-                        <Group spacing="xs">
-                          <Text>{product.currentStock} {product.unit}</Text>
-                          <Badge color={stockStatus.color} size="sm">
-                            {stockStatus.label}
-                          </Badge>
-                        </Group>
-                      </td>
-                      <td>
-                        <Badge color={product.isActive ? 'green' : 'gray'}>
-                          {product.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Menu shadow="md" width={200}>
-                          <Menu.Target>
-                            <ActionIcon>
-                              <IconDots size={16} />
-                            </ActionIcon>
-                          </Menu.Target>
-                          <Menu.Dropdown>
-                            <Menu.Item icon={<IconEye size={14} />}>
-                              View Details
-                            </Menu.Item>
-                            <Menu.Item 
-                              icon={<IconEdit size={14} />}
-                              onClick={() => openEditModal(product)}
-                            >
-                              Edit Product
-                            </Menu.Item>
-                            <Menu.Divider />
-                            <Menu.Item
-                              icon={<IconTrash size={14} />}
-                              color="red"
-                              onClick={() => {
-                                setProductToDelete(product);
-                                setDeleteModalOpen(true);
-                              }}
-                            >
-                              Delete Product
-                            </Menu.Item>
-                          </Menu.Dropdown>
-                        </Menu>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          )}
-        </Paper>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <Center>
-            <Pagination
-              value={currentPage}
-              onChange={setCurrentPage}
-              total={totalPages}
-            />
-          </Center>
-        )}
-      </Stack>
-
-      {/* Create/Edit Modal */}
-      <Modal
-        opened={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingProduct(null);
-          resetForm();
-        }}
-        title={editingProduct ? 'Edit Product' : 'Create Product'}
-        size="lg"
-      >
-        <Stack spacing="md">
-          <Grid>
-            <Grid.Col span={6}>
-              <TextInput
-                required
-                label="SKU"
-                placeholder="Enter product SKU"
-                value={formData.sku}
-                onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value }))}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <TextInput
-                required
-                label="Product Name"
-                placeholder="Enter product name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </Grid.Col>
-          </Grid>
-
-          <Textarea
-            label="Description"
-            placeholder="Enter product description"
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            minRows={3}
-          />
-
-          <Grid>
-            <Grid.Col span={6}>
-              <Select
-                required
-                label="Category"
-                placeholder="Select category"
-                data={categoryOptions}
-                value={formData.categoryId}
-                onChange={(value) => setFormData(prev => ({ ...prev, categoryId: value || '' }))}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <TextInput
-                required
-                label="Unit"
-                placeholder="e.g., pieces, kg, liters"
-                value={formData.unit}
-                onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-              />
-            </Grid.Col>
-          </Grid>
-
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                required
-                label="Price"
-                placeholder="0.00"
-                precision={2}
-                min={0}
-                value={formData.price}
-                onChange={(value) => setFormData(prev => ({ ...prev, price: value || 0 }))}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <NumberInput
-                required
-                label="Cost"
-                placeholder="0.00"
-                precision={2}
-                min={0}
-                value={formData.cost}
-                onChange={(value) => setFormData(prev => ({ ...prev, cost: value || 0 }))}
-              />
-            </Grid.Col>
-          </Grid>
-
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                required
-                label="Current Stock"
-                placeholder="0"
-                min={0}
-                value={formData.currentStock}
-                onChange={(value) => setFormData(prev => ({ ...prev, currentStock: value || 0 }))}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <NumberInput
-                required
-                label="Reorder Point"
-                placeholder="0"
-                min={0}
-                value={formData.reorderPoint}
-                onChange={(value) => setFormData(prev => ({ ...prev, reorderPoint: value || 0 }))}
-              />
-            </Grid.Col>
-          </Grid>
-
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Min Stock Level"
-                placeholder="0"
-                min={0}
-                value={formData.minStockLevel}
-                onChange={(value) => setFormData(prev => ({ ...prev, minStockLevel: value || 0 }))}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Max Stock Level"
-                placeholder="0"
-                min={0}
-                value={formData.maxStockLevel}
-                onChange={(value) => setFormData(prev => ({ ...prev, maxStockLevel: value || 0 }))}
-              />
-            </Grid.Col>
-          </Grid>
-
-          <MultiSelect
-            label="Suppliers"
-            placeholder="Select suppliers"
-            data={supplierOptions}
-            value={formData.supplierIds}
-            onChange={(value) => setFormData(prev => ({ ...prev, supplierIds: value }))}
-          />
-
-          <Grid>
-            <Grid.Col span={6}>
-              <Switch
-                label="Active"
-                checked={formData.isActive}
-                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.currentTarget.checked }))}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Switch
-                label="Trackable"
-                checked={formData.isTrackable}
-                onChange={(e) => setFormData(prev => ({ ...prev, isTrackable: e.currentTarget.checked }))}
-              />
-            </Grid.Col>
-          </Grid>
-
-          <Group position="right" mt="md">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setModalOpen(false);
-                setEditingProduct(null);
-                resetForm();
+            
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              style={{
+                padding: '12px',
+                border: '1px solid var(--sap-neutral-300)',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: 'var(--sap-bg-primary)',
+                color: 'var(--sap-text-primary)',
+                minWidth: '150px'
               }}
             >
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>
-              {editingProduct ? 'Update Product' : 'Create Product'}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+              <option value="ALL">All Categories</option>
+              {categories.map(category => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        opened={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setProductToDelete(null);
-        }}
-        title="Delete Product"
-        size="sm"
-      >
-        <Stack spacing="md">
-          <Alert icon={<IconAlertCircle size={16} />} color="red">
-            Are you sure you want to delete this product? This action cannot be undone.
-          </Alert>
-          
-          {productToDelete && (
-            <Text>
-              Product: <strong>{productToDelete.name}</strong> (SKU: {productToDelete.sku})
-            </Text>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '16px',
+            marginBottom: '24px'
+          }}>
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'var(--sap-bg-secondary)',
+              borderRadius: '8px',
+              border: '1px solid var(--sap-neutral-200)'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--sap-text-primary)' }}>
+                {products.length}
+              </div>
+              <div style={{ fontSize: '14px', color: 'var(--sap-text-secondary)' }}>
+                Total Products
+              </div>
+            </div>
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'var(--sap-bg-secondary)',
+              borderRadius: '8px',
+              border: '1px solid var(--sap-neutral-200)'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#10B981' }}>
+                {products.filter(p => p.isActive).length}
+              </div>
+              <div style={{ fontSize: '14px', color: 'var(--sap-text-secondary)' }}>
+                Active Products
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div style={{
+              padding: '12px 16px',
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: '8px',
+              color: '#DC2626',
+              fontSize: '14px',
+              marginBottom: '16px'
+            }}>
+              {error}
+            </div>
           )}
 
-          <Group position="right" mt="md">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeleteModalOpen(false);
-                setProductToDelete(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button color="red" onClick={handleDelete}>
-              Delete Product
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </Container>
+          <SAPTable
+            columns={columns}
+            data={filteredProducts}
+            loading={loading}
+            emptyText="No products found"
+          />
+        </div>
+      </SAPCard>
+    </SAPPageLayout>
   );
 };
 

@@ -1,9 +1,12 @@
 import axios from 'axios';
 import { AuthToken, LoginCredentials, RegisterData, User, ChangePasswordData } from '../types/auth';
 
+// Resolve base URL from environment or fall back to direct backend URL
+const AUTH_API_BASE = (import.meta as any)?.env?.VITE_AUTH_API_URL || (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) || 'http://localhost:8001';
+
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8001',
+  baseURL: AUTH_API_BASE,
   headers: {
     'Content-Type': 'application/json'
   },

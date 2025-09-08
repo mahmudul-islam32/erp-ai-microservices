@@ -1,0 +1,220 @@
+/* SAP Dashboard Chart Styles */
+.sap-chart-container {
+  background-color: var(--sap-bg-primary);
+  border-radius: var(--sap-radius-md);
+  padding: var(--sap-spacing-lg);
+  box-shadow: var(--sap-shadow-sm);
+  border: 1px solid var(--sap-neutral-200);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sap-chart-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sap-chart-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--sap-spacing-md);
+}
+
+.sap-chart-date {
+  font-size: var(--sap-font-size-sm);
+  color: var(--sap-text-secondary);
+  font-weight: 500;
+}
+
+.sap-chart-tooltip {
+  background-color: var(--sap-bg-primary);
+  border: 1px solid var(--sap-neutral-300);
+  border-radius: var(--sap-radius-sm);
+  padding: var(--sap-spacing-sm);
+  box-shadow: var(--sap-shadow-md);
+  font-size: var(--sap-font-size-sm);
+}
+
+.sap-chart-tooltip-label {
+  font-weight: 600;
+  color: var(--sap-text-primary);
+  margin: 0 0 var(--sap-spacing-xs) 0;
+}
+
+.sap-chart-summary {
+  margin-top: var(--sap-spacing-lg);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sap-summary-card {
+  background-color: var(--sap-bg-secondary);
+  border: 1px solid var(--sap-neutral-200);
+  border-radius: var(--sap-radius-sm);
+  padding: var(--sap-spacing-md);
+  min-width: 200px;
+}
+
+.sap-summary-title {
+  font-size: var(--sap-font-size-sm);
+  font-weight: 600;
+  color: var(--sap-text-primary);
+  margin: 0 0 var(--sap-spacing-sm) 0;
+  text-align: center;
+}
+
+.sap-summary-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sap-spacing-xs);
+}
+
+.sap-summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--sap-spacing-xs);
+  background-color: var(--sap-bg-primary);
+  border-radius: var(--sap-radius-sm);
+  border: 1px solid var(--sap-neutral-200);
+}
+
+.sap-summary-stat.sap-summary-total {
+  background-color: var(--sap-primary-50);
+  border-color: var(--sap-primary-200);
+}
+
+.sap-summary-number {
+  font-size: var(--sap-font-size-lg);
+  font-weight: 700;
+  color: var(--sap-text-primary);
+  line-height: 1.2;
+}
+
+.sap-summary-label {
+  font-size: var(--sap-font-size-xs);
+  color: var(--sap-text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Donut Chart Styles */
+.sap-donut-chart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+}
+
+.sap-donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.sap-donut-total {
+  font-size: var(--sap-font-size-2xl);
+  font-weight: 700;
+  color: var(--sap-text-primary);
+  line-height: 1;
+}
+
+.sap-donut-label {
+  font-size: var(--sap-font-size-sm);
+  color: var(--sap-text-secondary);
+  font-weight: 500;
+  margin-top: var(--sap-spacing-xs);
+}
+
+.sap-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sap-spacing-sm);
+  margin-top: var(--sap-spacing-lg);
+}
+
+.sap-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sap-spacing-sm);
+}
+
+.sap-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sap-legend-label {
+  font-size: var(--sap-font-size-sm);
+  color: var(--sap-text-primary);
+  font-weight: 500;
+}
+
+/* Status Metrics Styles */
+.sap-status-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sap-spacing-md);
+  height: 100%;
+  justify-content: center;
+}
+
+.sap-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sap-spacing-xs);
+  padding: var(--sap-spacing-sm);
+  background-color: var(--sap-bg-secondary);
+  border-radius: var(--sap-radius-sm);
+  border: 1px solid var(--sap-neutral-200);
+}
+
+.sap-metric-label {
+  font-size: var(--sap-font-size-xs);
+  color: var(--sap-text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sap-metric-value {
+  font-size: var(--sap-font-size-lg);
+  color: var(--sap-text-primary);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sap-chart-container {
+    padding: var(--sap-spacing-md);
+  }
+  
+  .sap-summary-card {
+    min-width: 150px;
+  }
+  
+  .sap-donut-chart {
+    height: 200px;
+  }
+  
+  .sap-donut-total {
+    font-size: var(--sap-font-size-xl);
+  }
+  
+  .sap-status-metrics {
+    gap: var(--sap-spacing-sm);
+  }
+  
+  .sap-metric-item {
+    padding: var(--sap-spacing-xs);
+  }
+}
