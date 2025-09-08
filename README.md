@@ -1,292 +1,167 @@
-# ERP AI Microservices
+# ERP System - Microservices Architecture
 
-A modern ERP system buil## ⚙️ Tech Stack
+A comprehensive Enterprise Resource Planning (ERP) system built with microservices architecture, featuring authentication, inventory management, sales management, and a modern React frontend with SAP-inspired design.
 
-### **Frontend**
-- **Web**: React 18 + TypeScript + Vite + Mantine UI
-- **Mobile**: React Native + TypeScript
-- **State Management**: React Context + Custom Hooks
+## 🏗️ Architecture
 
-### **Backend Microservices**
-- **API Gateway**: Node.js + Apollo GraphQL Federation
-- **Auth Service**: FastAPI + Python (JWT + Cookie-based auth)
-- **Business Services**: Node.js + Express.js / FastAPI + Python
-- **Database**: MongoDB + Redis (caching)
+### Services
+- **Auth Service** (FastAPI) - User authentication and authorization
+- **Inventory Service** (NestJS) - Product and inventory management
+- **Sales Service** (FastAPI) - Sales orders, customers, and invoicing
+- **Frontend** (React + TypeScript) - Modern web interface with SAP design system
 
-### **AI/ML Stack**
-- **Framework**: Python + FastAPI
-- **Libraries**: Scikit-learn, TensorFlow, PyTorch, Prophet
-- **Features**: Demand forecasting, Customer segmentation, Fraud detection
-
-### **DevOps & Infrastructure**
-- **Containerization**: Docker + Docker Compose
-- **Orchestration**: Kubernetes + Helm
-- **Infrastructure**: Terraform
-- **CI/CD**: GitHub Actions
-- **Monitoring**: Prometheus + Grafana
-- **Message Queue**: Redis/RabbitMQicroservices architecture, combining FastAPI, Node.js (Express), React, GraphQL, and MongoDB. Includes built-in AI capabilities for forecasting, segmentation, fraud detection, and more.
+### Infrastructure
+- **MongoDB** - Primary database
+- **Redis** - Caching and session management
+- **Docker** - Containerization and orchestration
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Docker and Docker Compose
+- Git
+
+### Installation & Running
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd erp-ai-microservices
+   ```
+
+2. **Start all services**
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Access the application**
+   - Frontend: http://localhost:5173
+   - Auth API: http://localhost:8001
+   - Inventory API: http://localhost:8002
+   - Sales API: http://localhost:8003
+
+### Development Mode
 ```bash
-# Clone the repository
-git clone https://github.com/mahmudul-islam32/erp-ai-microservices.git
-cd erp-ai-microservices
+# Start with development tools (includes Mongo Express)
+docker compose --profile development up -d
 
-# Start Development Environment (with hot-reload)
-./start-dev.sh
-
-# Or start Production Environment
-./start-prod.sh
-
-# Test the API
-cd tests && ./test-auth.sh
+# Access Mongo Express: http://localhost:8081
+# Username: admin, Password: admin123
 ```
 
-### 🌐 Available URLs (Development)
-- **Frontend**: http://localhost:5173 (with hot-reload)
-- **Auth API**: http://localhost:8001
-- **MongoDB Express**: http://localhost:8081 (admin/admin123)
+## 📚 Documentation
 
-## 🌐 Features
+- **[Docker Commands Guide](DOCKER_COMMANDS.md)** - Complete Docker Compose commands reference
+- **[API Documentation](docs/)** - Service-specific documentation
 
-### ✅ Implemented: Auth Service
-- 🔐 **JWT Authentication** – Secure HTTP-only cookie-based auth with refresh tokens
-- 👤 **User Management** – CRUD operations with role-based access
-- 🛡️ **Authorization** – Granular permission system
-- 🔄 **Auto-Refresh** – Background token refresh every 10 minutes
-- 🔒 **Security Features** – Account locking, password hashing, CORS protection
-- 📊 **Role Hierarchy** – Super Admin → Admin → Manager → Employee → Customer/Vendor
-- 🐳 **Docker Ready** – Fully containerized with MongoDB
+## 🌐 Service URLs
 
-### ✅ Implemented: Inventory Service
-- � **Product Management** – Complete CRUD with SKU, pricing, categories
-- 🏭 **Supplier Management** – Supplier information and relationships
-- 🏢 **Warehouse Management** – Multi-location inventory tracking
-- � **Inventory Tracking** – Real-time stock levels and transactions
-- 🔄 **Stock Operations** – Add, subtract, adjust, transfer between locations
-- 🚨 **Low Stock Alerts** – Automatic reorder point monitoring
-- 📝 **Transaction History** – Complete audit trail of all movements
-- 🏷️ **Batch/Serial Tracking** – Product traceability features
-- 🌐 **GraphQL + REST APIs** – Dual API approach for maximum flexibility
-- 🔐 **Role-Based Security** – Integrated with auth service
-- 📚 **Swagger Documentation** – Auto-generated API documentation
-- 🐳 **Docker Ready** – NestJS microservice with MongoDB
+| Service | URL | Description |
+|---------|-----|-------------|
+| Frontend | http://localhost:5173 | React application |
+| Auth Service | http://localhost:8001 | Authentication API |
+| Inventory Service | http://localhost:8002 | Inventory management |
+| Sales Service | http://localhost:8003 | Sales management |
+| Mongo Express | http://localhost:8081 | Database web interface |
 
-### 🚧 Planned Modules
-- 🧾 **Sales & Orders** – Customer orders, status tracking (Express)
-- 💰 **Finance** – Invoicing, payments, fraud detection
-- 🧑‍💼 **HR** – Employee records, attendance, attrition prediction
+## 🔧 Development
 
-### 🤖 AI Features (Planned)
-- 📊 Demand forecasting (Prophet/LSTM)
-- 🧍 Customer segmentation (KMeans)
-- 🕵️ Fraud detection (Anomaly detection)
-- 🗣️ Smart assistant (optional)
-
-## �️ Tech Stack
-
-- **Frontend**: React, Tailwind, Apollo Client
-- **Backend**:
-  - ✅ FastAPI (Python) - Auth Service
-  - ✅ NestJS (Node.js) - Inventory Service 
-  - 🚧 Express.js (Node.js) - Other services
-  - 🚧 Apollo GraphQL Federation Gateway
-- **Database**: MongoDB
-- **AI**: Scikit-learn, TensorFlow, PyTorch
-- **DevOps**: Docker, Docker Compose, GitHub Actions
-
-## 📁 Project Structure
-
-```bash
+### Project Structure
+```
 erp-ai-microservices/
-├── 🔐 auth-service/                  # ✅ Authentication & Authorization (FastAPI)
-│   ├── app/
-│   │   ├── api/v1/                  # API routes and dependencies
-│   │   ├── models/                  # Pydantic models
-│   │   ├── services/                # Business logic
-│   │   ├── database/                # MongoDB connection
-│   │   └── config.py               # Configuration settings
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── README.md
-│
-├── 📦 inventory-service/             # ✅ Inventory Management (NestJS/GraphQL)
-│   ├── src/
-│   │   ├── products/                # Product management
-│   │   ├── categories/              # Product categories
-│   │   ├── suppliers/               # Supplier management
-│   │   ├── warehouses/              # Warehouse management
-│   │   ├── inventory/               # Stock tracking & transactions
-│   │   ├── auth/                    # Authentication integration
-│   │   └── database/                # MongoDB schemas & seed data
-│   ├── Dockerfile
-│   ├── Dockerfile.dev
-│   ├── package.json
-│   ├── README.md
-│   ├── QUICKSTART.md
-│   └── start-inventory.sh
-│   ├── src/
-│   │   ├── controllers/             # Request handlers
-│   │   ├── models/                  # Database models
-│   │   ├── services/                # Business logic
-│   │   ├── middleware/              # Custom middleware
-│   │   ├── routes/                  # API routes
-│   │   └── config/                  # Configuration
-│   ├── Dockerfile
-│   ├── package.json
-│   └── README.md
-│
-├── 🧾 order-service/                 # 🚧 Sales & Order Management (Node.js/Express)
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   └── config/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── README.md
-│
-├── 💰 finance-service/               # 🚧 Financial Management (FastAPI/Python)
-│   ├── app/
-│   │   ├── api/v1/
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── database/
-│   │   └── config.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── README.md
-│
-├── 🧑‍💼 hr-service/                     # 🚧 Human Resources (FastAPI/Python)
-│   ├── app/
-│   │   ├── api/v1/
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── database/
-│   │   └── config.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── README.md
-│
-├── 🤖 ai-service/                    # 🚧 AI/ML Analytics (Python/FastAPI)
-│   ├── app/
-│   │   ├── api/v1/
-│   │   ├── models/                  # ML models and data models
-│   │   ├── services/
-│   │   ├── ml/                      # Machine learning modules
-│   │   │   ├── forecasting/         # Demand forecasting
-│   │   │   ├── segmentation/        # Customer segmentation
-│   │   │   └── fraud_detection/     # Fraud detection
-│   │   └── config.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── README.md
-│
-├── 🌐 api-gateway/                   # 🚧 API Gateway (Node.js/Apollo GraphQL)
-│   ├── src/
-│   │   ├── schema/                  # GraphQL schemas
-│   │   ├── resolvers/               # GraphQL resolvers
-│   │   ├── middleware/              # Authentication, rate limiting
-│   │   ├── services/                # Service integrations
-│   │   └── config/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── README.md
-│
-├── 📧 notification-service/          # 🚧 Email/SMS/Push Notifications (Node.js)
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── templates/               # Email templates
-│   │   ├── providers/               # Email/SMS providers
-│   │   └── config/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── README.md
-│
-├── 📊 reporting-service/             # 🚧 Reports & Analytics (Python/FastAPI)
-│   ├── app/
-│   │   ├── api/v1/
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── generators/              # Report generators
-│   │   └── config.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── README.md
-│
-├── 🎨 erp-frontend/                  # ✅ React Frontend (TypeScript/Vite)
-│   ├── src/
-│   │   ├── components/              # Reusable UI components
-│   │   ├── pages/                   # Page components
-│   │   ├── context/                 # React contexts
-│   │   ├── hooks/                   # Custom hooks
-│   │   ├── services/                # API services
-│   │   ├── types/                   # TypeScript types
-│   │   ├── utils/                   # Utility functions
-│   │   └── assets/                  # Static assets
-│   ├── Dockerfile
-│   ├── Dockerfile.dev
-│   ├── package.json
-│   └── README.md
-│
-├── 📱 mobile-app/                    # 🚧 React Native Mobile App
-│   ├── src/
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── navigation/
-│   │   ├── services/
-│   │   └── utils/
-│   ├── android/
-│   ├── ios/
-│   ├── package.json
-│   └── README.md
-│
-├── 🏗️ infrastructure/                # Infrastructure as Code
-│   ├── terraform/                   # Terraform configurations
-│   ├── kubernetes/                  # K8s manifests
-│   │   ├── auth-service/
-│   │   ├── inventory-service/
-│   │   ├── order-service/
-│   │   ├── finance-service/
-│   │   ├── hr-service/
-│   │   ├── ai-service/
-│   │   ├── api-gateway/
-│   │   ├── notification-service/
-│   │   ├── reporting-service/
-│   │   └── frontend/
-│   ├── helm/                        # Helm charts
-│   └── monitoring/                  # Prometheus, Grafana configs
-│
-├── 🧪 tests/                         # Integration & E2E Tests
-│   ├── integration/                 # Cross-service tests
-│   ├── e2e/                         # End-to-end tests
-│   ├── load/                        # Load testing scripts
-│   └── fixtures/                    # Test data
-│
-├── 📜 scripts/                       # Automation Scripts
-│   ├── setup/                       # Environment setup
-│   ├── database/                    # Database migrations
-│   ├── deployment/                  # Deployment scripts
-│   └── monitoring/                  # Health checks
-│
-├── 📚 docs/                          # Documentation
-│   ├── api/                         # API documentation
-│   ├── architecture/                # System architecture
-│   ├── deployment/                  # Deployment guides
-│   └── user-guides/                 # User manuals
-│
-├── .github/                          # GitHub workflows
-│   ├── workflows/                   # CI/CD pipelines
-│   └── templates/                   # Issue/PR templates
-│
-├── docker-compose.yml                # Multi-service orchestration
-├── docker-compose.dev.yml            # Development environment
-├── docker-compose.prod.yml           # Production environment
-├── start-dev.sh                      # Development startup script
-├── start-prod.sh                     # Production startup script
-├── .env.example                      # Environment variables template
-└── README.md                         # Main documentation
+├── auth-service/          # FastAPI authentication service
+├── inventory-service/     # NestJS inventory management
+├── sales-service/         # FastAPI sales management
+├── erp-frontend/          # React frontend application
+├── nginx/                 # Nginx configuration
+├── scripts/               # Database initialization
+└── docs/                  # Documentation
+```
+
+### Key Features
+- **SAP-Inspired Design System** - Professional enterprise UI
+- **Role-Based Access Control** - Secure user management
+- **Real-time Inventory Tracking** - Stock management and alerts
+- **Sales Order Management** - Complete sales workflow
+- **Responsive Design** - Works on all devices
+- **Hot Reload Development** - Fast development cycle
+
+### Technology Stack
+- **Frontend**: React, TypeScript, Redux Toolkit, Mantine UI
+- **Backend**: FastAPI, NestJS, Python, Node.js
+- **Database**: MongoDB, Redis
+- **Infrastructure**: Docker, Docker Compose
+
+## 🛠️ Management Commands
+
+### Start Services
+```bash
+docker compose up -d                    # Start all services
+docker compose --profile development up -d  # Include Mongo Express
+```
+
+### Stop Services
+```bash
+docker compose down                     # Stop all services
+docker compose down -v                  # Stop and remove data
+```
+
+### View Logs
+```bash
+docker compose logs                     # All services
+docker compose logs auth-service        # Specific service
+docker compose logs -f                  # Follow logs
+```
+
+### Rebuild Services
+```bash
+docker compose build                    # Rebuild all
+docker compose up -d --build           # Rebuild and start
+```
+
+For complete command reference, see [DOCKER_COMMANDS.md](DOCKER_COMMANDS.md).
+
+## 🔐 Default Credentials
+
+- **MongoDB**: admin / password123
+- **Mongo Express**: admin / admin123
+- **Application**: Create admin user through registration
+
+## 📊 API Documentation
+
+- **Auth Service**: http://localhost:8001/docs
+- **Inventory Service**: http://localhost:8002/docs
+- **Sales Service**: http://localhost:8003/docs
+
+## 🚨 Troubleshooting
+
+### Common Issues
+1. **Port conflicts**: Check if ports 8001-8003, 5173, 27017, 6379 are available
+2. **Service won't start**: Check logs with `docker compose logs service-name`
+3. **Database issues**: Restart MongoDB with `docker compose restart mongodb`
+
+### Reset Everything
+```bash
+docker compose down -v --rmi all
+docker system prune -a --volumes
+```
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with Docker Compose
+5. Submit a pull request
+
+## 📞 Support
+
+For issues and questions:
+1. Check the [Docker Commands Guide](DOCKER_COMMANDS.md)
+2. Review service logs
+3. Check API documentation
+4. Create an issue in the repository

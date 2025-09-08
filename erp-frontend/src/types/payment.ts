@@ -94,11 +94,7 @@ export interface PaymentCreate {
   reference_number?: string;
   notes?: string;
   receipt_email?: string;
-  
-  // POS specific fields
-  terminal_id?: string;
-  cashier_id?: string;
-  shift_id?: string;
+  // POS fields removed
 }
 
 export interface Payment {
@@ -136,12 +132,7 @@ export interface Payment {
   notes?: string;
   receipt_email?: string;
   receipt_url?: string;
-  
-  // POS specific fields
-  terminal_id?: string;
-  cashier_id?: string;
-  cashier_name?: string;
-  shift_id?: string;
+  // POS fields removed
   
   // Refund information
   refunded_amount: number;
@@ -179,46 +170,7 @@ export interface Refund {
   created_by: string;
 }
 
-export interface POSLineItem {
-  product_id: string;
-  quantity: number;
-  unit_price?: number;
-  notes?: string;
-}
-
-export interface POSTransactionCreate {
-  customer_id?: string;
-  line_items: POSLineItem[];
-  payments: PaymentCreate[];
-  subtotal: number;
-  tax_amount: number;
-  discount_amount: number;
-  total_amount: number;
-  terminal_id?: string;
-  cashier_id?: string;
-  shift_id?: string;
-  notes?: string;
-}
-
-export interface POSTransaction {
-  id: string;
-  transaction_number: string;
-  order_id: string;
-  customer_id?: string;
-  payments: Payment[];
-  subtotal: number;
-  tax_amount: number;
-  discount_amount: number;
-  total_amount: number;
-  change_due: number;
-  terminal_id?: string;
-  cashier_id?: string;
-  cashier_name?: string;
-  shift_id?: string;
-  transaction_date: string;
-  receipt_url?: string;
-  created_at: string;
-}
+// POS transaction types removed
 
 export interface PaymentSummary {
   date: string;

@@ -107,10 +107,7 @@ class PaymentCreate(BaseModel):
     notes: Optional[str] = None
     receipt_email: Optional[str] = None
     
-    # POS specific fields
-    terminal_id: Optional[str] = None
-    cashier_id: Optional[str] = None
-    shift_id: Optional[str] = None
+    # POS specific fields removed
 
     @field_validator('card_details')
     @classmethod
@@ -179,11 +176,7 @@ class PaymentResponse(BaseModel):
     receipt_email: Optional[str] = None
     receipt_url: Optional[str] = None
     
-    # POS specific fields
-    terminal_id: Optional[str] = None
-    cashier_id: Optional[str] = None
-    cashier_name: Optional[str] = None
-    shift_id: Optional[str] = None
+    # POS specific fields removed
     
     # Refund information
     refunded_amount: float = 0
@@ -243,11 +236,7 @@ class PaymentInDB(BaseModel):
     receipt_email: Optional[str] = None
     receipt_url: Optional[str] = None
     
-    # POS specific fields
-    terminal_id: Optional[str] = None
-    cashier_id: Optional[str] = None
-    cashier_name: Optional[str] = None
-    shift_id: Optional[str] = None
+    # POS specific fields removed
     
     # Refund information
     refunded_amount: float = 0
@@ -300,47 +289,4 @@ class RefundResponse(BaseModel):
         populate_by_name = True
 
 
-# POS Transaction Models for complete transactions
-class POSTransactionCreate(BaseModel):
-    customer_id: Optional[str] = None  # Walk-in customers
-    line_items: List[Dict[str, Any]]  # Product items
-    payments: List[PaymentCreate]  # Multiple payment methods allowed
-    subtotal: float = Field(..., ge=0)
-    tax_amount: float = Field(0, ge=0)
-    discount_amount: float = Field(0, ge=0)
-    total_amount: float = Field(..., gt=0)
-    terminal_id: Optional[str] = None
-    cashier_id: Optional[str] = None
-    shift_id: Optional[str] = None
-    notes: Optional[str] = None
-
-
-class POSTransactionResponse(BaseModel):
-    id: str = Field(alias="_id")
-    transaction_number: str
-    order_id: str
-    customer_id: Optional[str] = None
-    payments: List[PaymentResponse]
-    subtotal: float
-    tax_amount: float
-    discount_amount: float
-    total_amount: float
-    change_due: float = 0
-    terminal_id: Optional[str] = None
-    cashier_id: Optional[str] = None
-    cashier_name: Optional[str] = None
-    shift_id: Optional[str] = None
-    transaction_date: datetime
-    receipt_url: Optional[str] = None
-    created_at: datetime
-
-    @field_validator('id', mode='before')
-    @classmethod
-    def convert_objectid_to_str(cls, v):
-        """Convert ObjectId to string"""
-        if hasattr(v, '__str__'):
-            return str(v)
-        return v
-
-    class Config:
-        populate_by_name = True
+"""Removed POS transaction models"""

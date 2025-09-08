@@ -15,9 +15,12 @@ import {
 } from '../types/sales';
 import { AuthService } from './api';
 
+// Resolve sales API base URL; default to direct backend URL
+const SALES_API_BASE = (import.meta as any)?.env?.VITE_SALES_API_URL || 'http://localhost:8003';
+
 // Create sales API client
 const salesApiClient = axios.create({
-  baseURL: 'http://localhost:8003',
+  baseURL: SALES_API_BASE,
   headers: {
     'Content-Type': 'application/json'
   },

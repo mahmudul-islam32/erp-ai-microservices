@@ -4,8 +4,6 @@ import {
   PaymentCreate,
   PaymentFilters,
   PaymentSummary,
-  POSTransaction,
-  POSTransactionCreate,
   Refund,
   RefundCreate
 } from '../types/payment';
@@ -70,11 +68,7 @@ export const paymentsApi = {
     return response.data;
   },
 
-  // Create complete POS transaction
-  createPOSTransaction: async (transaction: POSTransactionCreate): Promise<POSTransaction> => {
-    const response = await paymentApiClient.post('/api/v1/payments/pos-transaction', transaction);
-    return response.data;
-  },
+  // POS transaction removed
 
   // Get payments with pagination and filters
   getPayments: async (
@@ -155,95 +149,7 @@ export const paymentsApi = {
     return response.data;
   },
 
-  // POS specific endpoints
-  pos: {
-    // Create complete POS transaction (order + payment + invoice)
-    createTransaction: async (transaction: POSTransactionCreate): Promise<POSTransaction> => {
-      const response = await paymentApiClient.post('/api/v1/pos/transactions', transaction);
-      return response.data;
-    },
-
-    // Quick sale for walk-in customers
-    quickSale: async (saleData: any): Promise<any> => {
-      const response = await paymentApiClient.post('/api/v1/pos/quick-sale', saleData);
-      return response.data;
-    },
-
-    // Session management
-    startSession: async (sessionData: any): Promise<any> => {
-      const response = await paymentApiClient.post('/api/v1/pos/sessions', sessionData);
-      return response.data;
-    },
-
-    getActiveSession: async (terminalId?: string): Promise<any> => {
-      const params = terminalId ? { terminal_id: terminalId } : {};
-      const response = await paymentApiClient.get('/api/v1/pos/sessions/active', { params });
-      return response.data;
-    },
-
-    closeSession: async (sessionId: string, closingCashAmount: number): Promise<any> => {
-      const response = await paymentApiClient.put(`/api/v1/pos/sessions/${sessionId}/close`, {
-        closing_cash_amount: closingCashAmount
-      });
-      return response.data;
-    },
-
-    getSessionSummary: async (sessionId: string): Promise<any> => {
-      const response = await paymentApiClient.get(`/api/v1/pos/sessions/${sessionId}/summary`);
-      return response.data;
-    },
-
-    // Transaction management
-    getTransactionReceipt: async (transactionId: string): Promise<any> => {
-      const response = await paymentApiClient.get(`/api/v1/pos/transactions/${transactionId}/receipt`);
-      return response.data;
-    },
-
-    getTodayTransactions: async (): Promise<POSTransaction[]> => {
-      const response = await paymentApiClient.get('/api/v1/pos/transactions/today');
-      return response.data;
-    },
-
-    processRefund: async (
-      transactionId: string, 
-      refundAmount: number, 
-      reason: string, 
-      refundMethod: string
-    ): Promise<any> => {
-      const response = await paymentApiClient.post(`/api/v1/pos/transactions/${transactionId}/refund`, {
-        refund_amount: refundAmount,
-        reason,
-        refund_method: refundMethod
-      });
-      return response.data;
-    },
-
-    voidTransaction: async (transactionId: string, reason: string): Promise<any> => {
-      const response = await paymentApiClient.post(`/api/v1/pos/void-transaction/${transactionId}`, {
-        reason
-      });
-      return response.data;
-    },
-
-    // Utilities
-    getDailySummary: async (date?: string): Promise<any> => {
-      const params = date ? { target_date: date } : {};
-      const response = await paymentApiClient.get('/api/v1/pos/daily-summary', { params });
-      return response.data;
-    },
-
-    getPaymentMethods: async (): Promise<any[]> => {
-      const response = await paymentApiClient.get('/api/v1/pos/payment-methods');
-      return response.data;
-    },
-
-    openCashDrawer: async (reason: string): Promise<any> => {
-      const response = await paymentApiClient.post('/api/v1/pos/cash-drawer/open', {
-        reason
-      });
-      return response.data;
-    }
-  }
+  // POS endpoints removed
 };
 
 export default paymentsApi;

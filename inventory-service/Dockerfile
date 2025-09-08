@@ -21,4 +21,4 @@ RUN npm prune --production
 EXPOSE 8002
 
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main.js"]

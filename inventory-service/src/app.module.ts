@@ -11,6 +11,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { WarehousesModule } from './warehouses/warehouses.module';
 import { AuthModule } from './auth/auth.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { AuthModule } from './auth/auth.module';
     CategoriesModule,
     SuppliersModule,
     WarehousesModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],
