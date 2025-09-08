@@ -130,11 +130,29 @@ const WarehousesPage = () => {
 
   const handleSubmit = async () => {
     try {
+      // Transform form data to match backend expectations
+      const warehouseData = {
+        name: formData.name,
+        code: formData.code || undefined,
+        description: formData.description || undefined,
+        address: formData.address.street || undefined,
+        city: formData.address.city || undefined,
+        state: formData.address.state || undefined,
+        country: formData.address.country || undefined,
+        postalCode: formData.address.zipCode || undefined,
+        contactPerson: formData.contactInfo.manager || undefined,
+        phone: formData.contactInfo.phone || undefined,
+        email: formData.contactInfo.email || undefined,
+        capacity: formData.capacity || undefined,
+        isActive: formData.isActive,
+        isMainWarehouse: false, // Default to false
+      };
+
       if (editingWarehouse) {
-        await WarehouseService.updateWarehouse(editingWarehouse._id, formData);
+        await WarehouseService.updateWarehouse(editingWarehouse._id, warehouseData);
         alert('Warehouse updated successfully');
       } else {
-        await WarehouseService.createWarehouse(formData);
+        await WarehouseService.createWarehouse(warehouseData);
         alert('Warehouse created successfully');
       }
       setModalOpen(false);
@@ -152,17 +170,17 @@ const WarehousesPage = () => {
       name: warehouse.name,
       code: warehouse.code || '',
       description: warehouse.description || '',
-      address: warehouse.address || {
-        street: '',
-        city: '',
-        state: '',
-        country: '',
-        zipCode: '',
+      address: {
+        street: warehouse.address || '',
+        city: warehouse.city || '',
+        state: warehouse.state || '',
+        country: warehouse.country || '',
+        zipCode: warehouse.postalCode || '',
       },
-      contactInfo: warehouse.contactInfo || {
-        phone: '',
-        email: '',
-        manager: '',
+      contactInfo: {
+        phone: warehouse.phone || '',
+        email: warehouse.email || '',
+        manager: warehouse.contactPerson || '',
       },
       isActive: warehouse.isActive,
       capacity: warehouse.capacity || 0,

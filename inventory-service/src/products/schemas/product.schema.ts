@@ -89,6 +89,19 @@ export class Product {
   @Prop()
   tags?: string; // JSON string for search tags
 
+  // Denormalized stock totals (updated after inventory mutations)
+  @Field(() => Int, { nullable: true })
+  @Prop({ default: 0, min: 0 })
+  totalQuantity?: number;
+
+  @Field(() => Int, { nullable: true })
+  @Prop({ default: 0, min: 0 })
+  reservedQuantity?: number;
+
+  @Field(() => Int, { nullable: true })
+  @Prop({ default: 0, min: 0 })
+  availableQuantity?: number;
+
   @Field()
   createdAt: Date;
 

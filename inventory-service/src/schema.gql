@@ -202,6 +202,7 @@ type Mutation {
 
 type Product {
   _id: ID!
+  availableQuantity: Int
   barcode: String
   categoryId: ID!
   cost: Float!
@@ -217,9 +218,11 @@ type Product {
   price: Float!
   reorderPoint: Int!
   reorderQuantity: Int!
+  reservedQuantity: Int
   sku: String!
   supplierIds: [ID!]
   tags: String
+  totalQuantity: Int
   unit: String!
   updatedAt: DateTime!
   weight: Float
