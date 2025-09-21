@@ -73,6 +73,10 @@ export interface Product {
   weight?: number;
   barcode?: string;
   supplierIds?: string[];
+  // Optional stock snapshot fields for products without per-warehouse inventory
+  stock?: number;
+  availableStock?: number;
+  reservedStock?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -121,7 +125,7 @@ export interface Warehouse {
   name: string;
   code?: string;
   description?: string;
-  address: string;
+  address?: string;
   city?: string;
   state?: string;
   postalCode?: string;
@@ -133,6 +137,7 @@ export interface Warehouse {
   isActive: boolean;
   isMainWarehouse?: boolean;
   type?: string;
+  currentStock?: number;
   createdAt: string;
   updatedAt: string;
 }

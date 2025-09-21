@@ -226,6 +226,9 @@ export class InventoryService {
       transaction.save(),
     ]);
 
+    // Recalculate denormalized product totals
+    await this.recalculateProductTotals(input.productId);
+
     return {
       inventory: savedInventory,
       transaction: savedTransaction,
@@ -284,6 +287,9 @@ export class InventoryService {
       reference: `TRANSFER-${Date.now()}`,
     });
 
+    // Recalculate totals for product
+    await this.recalculateProductTotals(input.productId);
+
     return {
       fromInventory: outResult.inventory,
       toInventory: inResult.inventory,
@@ -305,7 +311,9 @@ export class InventoryService {
     inventory.reservedQuantity += quantity;
     inventory.availableQuantity -= quantity;
 
-    return await inventory.save();
+    const updated = await inventory.save();
+    await this.recalculateProductTotals(productId);
+    return updated;
   }
 
   async releaseReservedStock(productId: string, warehouseId: string, quantity: number): Promise<InventoryDocument> {
@@ -321,7 +329,9 @@ export class InventoryService {
     inventory.reservedQuantity -= quantity;
     inventory.availableQuantity += quantity;
 
-    return await inventory.save();
+    const updated = await inventory.save();
+    await this.recalculateProductTotals(productId);
+    return updated;
   }
 
   // Method for getting transaction history by inventory ID (used by controller)
@@ -627,5 +637,24 @@ export class InventoryService {
 
     const result = await this.recordStockMovement(stockMovementInput);
     return result.transaction;
+  }
+
+  private async recalculateProductTotals(productId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(productId)) return;
+    const rows = await this.inventoryModel.aggregate([
+      { $match: { productId: new Types.ObjectId(productId) } },
+      { $group: {
+          _id: '$productId',
+          totalQuantity: { $sum: { $ifNull: ['$quantity', 0] } },
+          reservedQuantity: { $sum: { $ifNull: ['$reservedQuantity', 0] } }
+      } }
+    ]);
+    const totals = rows[0] || { totalQuantity: 0, reservedQuantity: 0 };
+    const availableQuantity = Math.max(0, (totals.totalQuantity || 0) - (totals.reservedQuantity || 0));
+    await this.productModel.findByIdAndUpdate(productId, {
+      totalQuantity: totals.totalQuantity || 0,
+      reservedQuantity: totals.reservedQuantity || 0,
+      availableQuantity
+    });
   }
 }
