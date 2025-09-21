@@ -110,6 +110,8 @@ const StockManagementPage = () => {
     }
   }, [currentPage, pageSize, warehouseFilter, stockFilter, sortBy, sortOrder]);
 
+  
+
   const fetchProducts = async () => {
     try {
       const response = await ProductService.getProducts({ limit: 1000, isActive: true });
@@ -260,15 +262,33 @@ const StockManagementPage = () => {
 
   const warehouseOptions = warehouses.map(wh => ({ value: wh._id, label: wh.name }));
 
+  const resolveProduct = (item: Inventory): Product | undefined => {
+    const pid: any = (item as any).productId;
+    if (pid && typeof pid === 'object') {
+      // If backend populated product object
+      return pid as unknown as Product;
+    }
+    return products.find(p => p._id === item.productId);
+  };
+
+  const resolveWarehouse = (item: Inventory): Warehouse | undefined => {
+    const wid: any = (item as any).warehouseId;
+    if (wid && typeof wid === 'object') {
+      return wid as unknown as Warehouse;
+    }
+    return warehouses.find(w => w._id === item.warehouseId);
+  };
+
   const getStockStatus = (item: Inventory) => {
-    const product = products.find(p => p._id === item.productId);
+    const product = resolveProduct(item);
     if (!product) return { color: 'gray', label: 'Unknown' };
 
-    if (item.quantity <= 0) {
+    const quantity = item.quantity ?? 0;
+    if (quantity <= 0) {
       return { color: 'red', label: 'Out of Stock', progress: 0 };
-    } else if (item.quantity <= product.reorderPoint) {
+    } else if (quantity <= (product.reorderPoint ?? 0)) {
       return { color: 'yellow', label: 'Low Stock', progress: 25 };
-    } else if (item.quantity <= product.maxStockLevel * 0.5) {
+    } else if (product.maxStockLevel && quantity <= product.maxStockLevel * 0.5) {
       return { color: 'blue', label: 'Normal', progress: 50 };
     } else {
       return { color: 'green', label: 'In Stock', progress: 75 };
@@ -276,10 +296,51 @@ const StockManagementPage = () => {
   };
 
   const getStockLevel = (item: Inventory) => {
-    const product = products.find(p => p._id === item.productId);
-    if (!product || product.maxStockLevel === 0) return 0;
-    return (item.quantity / product.maxStockLevel) * 100;
+    const product = resolveProduct(item);
+    if (!product || !product.maxStockLevel) return 0;
+    const quantity = item.quantity ?? 0;
+    return (quantity / product.maxStockLevel) * 100;
   };
+
+  // Compose a merged view that includes products without inventory rows
+  const mergedRows = React.useMemo(() => {
+    // Index inventory by productId for quick lookup
+    const byProductId = inventory.reduce<Record<string, Inventory[]>>((acc, inv) => {
+      const pid = (inv as any).productId && typeof (inv as any).productId === 'object' ? (inv as any).productId._id : inv.productId;
+      if (!acc[pid]) acc[pid] = [];
+      acc[pid].push(inv);
+      return acc;
+    }, {} as Record<string, Inventory[]>);
+
+    const rows: Array<{ key: string; product: Product; warehouse?: Warehouse; quantity: number; available: number; reserved: number; inv?: Inventory }>= [];
+
+    products.forEach((p) => {
+      const invs = byProductId[p._id];
+      if (!invs || invs.length === 0) {
+        // Show product with stock snapshot if present, else zeros
+        const available = (p as any).availableStock ?? (p as any).stock ?? 0;
+        const reserved = (p as any).reservedStock ?? 0;
+        rows.push({ key: `prod-${p._id}`, product: p, quantity: available + reserved, available, reserved });
+      } else {
+        invs.forEach((inv) => {
+          const wh = resolveWarehouse(inv);
+          const available = inv.availableQuantity ?? Math.max(0, (inv.quantity ?? 0) - (inv.reservedQuantity ?? 0));
+          rows.push({ key: inv._id, product: (resolveProduct(inv) as Product) ?? p, warehouse: wh, quantity: inv.quantity ?? 0, available, reserved: inv.reservedQuantity ?? 0, inv });
+        });
+      }
+    });
+
+    // Apply client-side search/filters
+    const q = searchTerm.trim().toLowerCase();
+    return rows.filter(r => {
+      const matchesSearch = q ? (r.product.name.toLowerCase().includes(q) || r.product.sku?.toLowerCase().includes(q)) : true;
+      const matchesWarehouse = warehouseFilter ? (r.warehouse ? r.warehouse._id === warehouseFilter : false) : true;
+      const matchesStock = stockFilter === 'low' ? r.available <= (r.product.reorderPoint ?? 0) && r.available > 0
+                          : stockFilter === 'out' ? r.available === 0
+                          : true;
+      return matchesSearch && matchesWarehouse && matchesStock;
+    });
+  }, [inventory, products, warehouseFilter, stockFilter, searchTerm]);
 
   if (loading) {
     return (
@@ -364,7 +425,7 @@ const StockManagementPage = () => {
 
         {/* Stock Table */}
         <Paper shadow="sm" p="lg" radius="md" withBorder>
-          {inventory.length === 0 ? (
+          {mergedRows.length === 0 ? (
             <Center h={200}>
               <Stack align="center" spacing="sm">
                 <IconPackage size={48} stroke={1} color="gray" />
@@ -385,14 +446,14 @@ const StockManagementPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {inventory.map((item) => {
-                  const product = products.find(p => p._id === item.productId);
-                  const warehouse = warehouses.find(w => w._id === item.warehouseId);
-                  const stockStatus = getStockStatus(item);
-                  const stockLevel = getStockLevel(item);
+                {mergedRows.map((row) => {
+                  const product = row.product;
+                  const warehouse = row.warehouse;
+                  const stockStatus = row.inv ? getStockStatus(row.inv) : (row.available === 0 ? { color: 'red', label: 'Out of Stock' } : { color: 'blue', label: 'Normal' });
+                  const stockLevel = row.inv ? getStockLevel(row.inv) : 0;
                   
                   return (
-                    <tr key={item._id}>
+                    <tr key={row.key}>
                       <td>
                         <div>
                           <Text weight={500}>{product?.name || 'Unknown Product'}</Text>
@@ -402,13 +463,13 @@ const StockManagementPage = () => {
                         </div>
                       </td>
                       <td>
-                        <Text size="sm">{warehouse?.name || 'Unknown Warehouse'}</Text>
+                        <Text size="sm">{warehouse?.name || (row.inv ? 'Unknown Warehouse' : '—')}</Text>
                       </td>
                       <td>
                         <Stack spacing={4}>
                           <Group spacing="xs">
-                            <Text size="sm">{item.quantity} {product?.unit || 'units'}</Text>
-                            {stockLevel > 0 && (
+                            <Text size="sm">{row.quantity} {product?.unit || 'units'}</Text>
+                            {stockLevel > 0 && row.inv && (
                               <Progress 
                                 value={Math.min(stockLevel, 100)} 
                                 size="sm" 
@@ -418,15 +479,15 @@ const StockManagementPage = () => {
                             )}
                           </Group>
                           <Text size="xs" color="dimmed">
-                            Max: {product?.maxStockLevel || 'N/A'}
+                            Max: {product?.maxStockLevel ?? 'N/A'}
                           </Text>
                         </Stack>
                       </td>
                       <td>
-                        <Text>{item.availableQuantity || item.quantity}</Text>
+                        <Text>{row.available}</Text>
                       </td>
                       <td>
-                        <Text>{item.reservedQuantity || 0}</Text>
+                        <Text>{row.reserved}</Text>
                       </td>
                       <td>
                         <Badge color={stockStatus.color} variant="filled">
@@ -443,19 +504,22 @@ const StockManagementPage = () => {
                           <Menu.Dropdown>
                             <Menu.Item 
                               icon={<IconEye size={14} />}
-                              onClick={() => openTransactionModal(item)}
+                              onClick={() => row.inv && openTransactionModal(row.inv)}
+                              disabled={!row.inv}
                             >
                               View History
                             </Menu.Item>
                             <Menu.Item 
                               icon={<IconAdjustments size={14} />}
-                              onClick={() => openAdjustModal(item)}
+                              onClick={() => row.inv && openAdjustModal(row.inv)}
+                              disabled={!row.inv}
                             >
                               Adjust Stock
                             </Menu.Item>
                             <Menu.Item 
                               icon={<IconTransfer size={14} />}
-                              onClick={() => openTransferModal(item)}
+                              onClick={() => row.inv && openTransferModal(row.inv)}
+                              disabled={!row.inv}
                             >
                               Transfer Stock
                             </Menu.Item>
@@ -497,7 +561,7 @@ const StockManagementPage = () => {
           {selectedInventory && (
             <Alert icon={<IconAdjustments size={16} />}>
               <Text weight={500}>
-                {products.find(p => p._id === selectedInventory.productId)?.name}
+                {resolveProduct(selectedInventory)?.name}
               </Text>
               <Text size="sm" color="dimmed">
                 Current Stock: {selectedInventory.quantity} units
@@ -572,7 +636,7 @@ const StockManagementPage = () => {
           {selectedInventory && (
             <Alert icon={<IconTransfer size={16} />}>
               <Text weight={500}>
-                {products.find(p => p._id === selectedInventory.productId)?.name}
+                {resolveProduct(selectedInventory)?.name}
               </Text>
               <Text size="sm" color="dimmed">
                 Available Stock: {selectedInventory.availableQuantity || selectedInventory.quantity} units
@@ -651,7 +715,7 @@ const StockManagementPage = () => {
                 {products.find(p => p._id === selectedInventory.productId)?.name}
               </Text>
               <Text size="sm" color="dimmed">
-                {warehouses.find(w => w._id === selectedInventory.warehouseId)?.name}
+                {resolveWarehouse(selectedInventory)?.name}
               </Text>
             </Alert>
           )}

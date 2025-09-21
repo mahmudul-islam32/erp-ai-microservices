@@ -1,0 +1,38 @@
+name: Deploy Backends to Render
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'auth-service/**'
+      - 'inventory-service/**'
+      - 'sales-service/**'
+      - '.github/workflows/backend-render.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Auth Service deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_AUTH != '' }}
+        run: |
+          curl -sSf -X POST "$RENDER_DEPLOY_HOOK_AUTH"
+        env:
+          RENDER_DEPLOY_HOOK_AUTH: ${{ secrets.RENDER_DEPLOY_HOOK_AUTH }}
+
+      - name: Trigger Inventory Service deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_INVENTORY != '' }}
+        run: |
+          curl -sSf -X POST "$RENDER_DEPLOY_HOOK_INVENTORY"
+        env:
+          RENDER_DEPLOY_HOOK_INVENTORY: ${{ secrets.RENDER_DEPLOY_HOOK_INVENTORY }}
+
+      - name: Trigger Sales Service deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_SALES != '' }}
+        run: |
+          curl -sSf -X POST "$RENDER_DEPLOY_HOOK_SALES"
+        env:
+          RENDER_DEPLOY_HOOK_SALES: ${{ secrets.RENDER_DEPLOY_HOOK_SALES }}
+
+
