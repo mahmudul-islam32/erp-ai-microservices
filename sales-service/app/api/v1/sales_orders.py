@@ -390,6 +390,54 @@ async def duplicate_order(
         )
 
 
+@router.patch("/{order_id}/status")
+async def update_order_status(
+    order_id: str,
+    status_data: dict,
+    current_user=Depends(require_sales_write())
+):
+    """Update order status"""
+    try:
+        # Get user ID
+        user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User ID not available"
+            )
+        
+        # Extract status from request body
+        new_status = status_data.get("status")
+        if not new_status:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Status is required in request body"
+            )
+        
+        success = await sales_order_service.update_order_status(order_id, new_status, user_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sales order not found or could not be updated"
+            )
+
+        return {"message": "Order status updated successfully"}
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Update order status error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+
 @router.post("/{order_id}/payment-status")
 async def update_order_payment_status(
     order_id: str,

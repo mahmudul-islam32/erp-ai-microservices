@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models.payment import (
     PaymentCreate, PaymentUpdate, PaymentResponse, RefundCreate, RefundResponse,
-    PaymentMethod, PaymentStatus
+    PaymentMethod, PaymentStatus, CashPaymentCreate
 )
 from app.models.pagination import PaginationResponse
 from app.services.payment_service import payment_service
@@ -9,7 +9,7 @@ from app.api.dependencies import (
     get_current_active_user, require_sales_access, require_sales_write, 
     get_token_from_request, require_sales_access_flexible
 )
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import date
 import logging
 
@@ -60,27 +60,31 @@ async def create_payment(
 
 @router.post("/cash", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def create_cash_payment(
-    payment_data: PaymentCreate,
+    payment_data: Union[CashPaymentCreate, PaymentCreate],
     request: Request,
     current_user=Depends(require_sales_write())
 ):
-    """Create a cash payment"""
+    """Create a simplified cash payment - automatically updates order status"""
     try:
-        # Ensure payment method is cash
-        payment_data.payment_method = PaymentMethod.CASH
+        logger.info(f"🔄 Cash payment request received: {payment_data.dict()}")
         
-        # Validate cash payment requirements
-        if not payment_data.cash_details:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cash details are required for cash payments"
+        # Convert old PaymentCreate structure to CashPaymentCreate if needed
+        if hasattr(payment_data, 'payment_method') and hasattr(payment_data, 'cash_details'):
+            # This is the old PaymentCreate structure
+            logger.info("🔄 Converting old PaymentCreate structure to CashPaymentCreate")
+            cash_payment_data = CashPaymentCreate(
+                order_id=payment_data.order_id,
+                customer_id=payment_data.customer_id,
+                amount=payment_data.amount,
+                amount_tendered=payment_data.cash_details.amount_tendered,
+                currency=payment_data.currency or "USD",
+                notes=payment_data.notes,
+                cash_drawer_id=payment_data.cash_details.cash_drawer_id,
+                cashier_id=payment_data.cash_details.cashier_id
             )
-        
-        if payment_data.cash_details.amount_tendered < payment_data.amount:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Amount tendered cannot be less than payment amount"
-            )
+        else:
+            # This is already the new CashPaymentCreate structure
+            cash_payment_data = payment_data
         
         # Get user ID
         user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
@@ -90,17 +94,21 @@ async def create_cash_payment(
                 detail="User ID not available"
             )
         
-        payment = await payment_service.process_cash_payment(payment_data, user_id)
+        # Process the simplified cash payment
+        payment = await payment_service.process_simple_cash_payment(cash_payment_data, user_id)
         return payment
     except HTTPException:
         raise
     except ValueError as e:
+        logger.error(f"❌ Cash payment validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Cash payment creation error: {e}")
+        logger.error(f"❌ Cash payment creation error: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"

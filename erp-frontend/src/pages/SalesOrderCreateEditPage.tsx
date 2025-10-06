@@ -38,7 +38,7 @@ import { salesOrdersApi, customerApi } from '../services/salesApi';
 import { ProductService, Product as InventoryProduct } from '../services/inventory';
 import { paymentsApi } from '../services/paymentApi';
 import { SalesOrderCreate, OrderItem, OrderItemCreate, Customer, OrderStatus, PaymentStatus } from '../types/sales';
-import { PaymentMethod, PaymentCreate, CashPaymentDetails, CardPaymentDetails } from '../types/payment';
+import { PaymentMethod, PaymentCreate, CashPaymentDetails, CardPaymentDetails, CashPaymentCreate } from '../types/payment';
 
 interface OrderFormData extends Omit<SalesOrderCreate, 'line_items'> {
   line_items: (OrderItem & { id: string; notes?: string })[];
@@ -336,16 +336,11 @@ const SalesOrderCreateEditPage: React.FC = () => {
           const orderId = order.id || order._id;
           
           if (paymentData.paymentMethod === PaymentMethod.CASH) {
-            const cashPayment: PaymentCreate = {
+            const cashPayment: CashPaymentCreate = {
               order_id: orderId,
               customer_id: formData.customer_id,
-              payment_method: PaymentMethod.CASH,
               amount: totalAmount,
-              cash_details: {
-                amount_tendered: paymentData.cashAmount,
-                change_given: paymentData.cashAmount - totalAmount,
-                currency: "USD"
-              },
+              amount_tendered: paymentData.cashAmount,
               currency: "USD",
               notes: "Cash payment for order"
             };

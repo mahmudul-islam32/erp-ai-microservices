@@ -1,13 +1,14 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 import logging
 import uvicorn
 
 from app.config import settings
-from app.database import connect_to_mongo, close_mongo_connection
+from app.database.connection import connect_to_mongo, close_mongo_connection
 from app.api.v1 import (
     customers_router,
     inventory_products_router,
@@ -55,7 +56,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:5174"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,6 +76,28 @@ async def value_error_handler(request, exc):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"detail": str(exc)}
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle Pydantic validation errors with detailed logging"""
+    logger.error(f"❌ Validation error on {request.method} {request.url}")
+    logger.error(f"❌ Validation errors: {exc.errors()}")
+    
+    # Try to get request body, but handle client disconnect gracefully
+    try:
+        body = await request.body()
+        logger.error(f"❌ Request body: {body}")
+    except Exception as e:
+        logger.error(f"❌ Could not read request body: {e}")
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Validation error",
+            "errors": exc.errors()
+        }
     )
 
 

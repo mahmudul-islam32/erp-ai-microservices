@@ -59,6 +59,17 @@ export interface CashPaymentDetails {
   cashier_id?: string;
 }
 
+export interface CashPaymentCreate {
+  order_id: string;
+  customer_id?: string;
+  amount: number;
+  amount_tendered: number;
+  currency?: string;
+  notes?: string;
+  cash_drawer_id?: string;
+  cashier_id?: string;
+}
+
 export interface PayPalPaymentDetails {
   paypal_transaction_id?: string;
   payer_email?: string;
