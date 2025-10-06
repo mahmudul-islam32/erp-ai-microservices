@@ -85,6 +85,25 @@ class PaymentGatewayDetails(BaseModel):
     processing_fee: Optional[float] = Field(None, ge=0)
 
 
+# Simplified Cash Payment Model
+class CashPaymentCreate(BaseModel):
+    order_id: str = Field(..., description="Order ID for the payment")
+    customer_id: Optional[str] = None  # For walk-in customers, can be None
+    amount: float = Field(..., gt=0, description="Payment amount")
+    amount_tendered: float = Field(..., gt=0, description="Amount tendered by customer")
+    currency: str = Field("USD", max_length=3)
+    notes: Optional[str] = None
+    cash_drawer_id: Optional[str] = None
+    cashier_id: Optional[str] = None
+
+    @field_validator('amount_tendered')
+    @classmethod
+    def validate_amount_tendered(cls, v, values):
+        if 'amount' in values.data and v < values.data['amount']:
+            raise ValueError("Amount tendered cannot be less than payment amount")
+        return v
+
+
 # Main Payment Models
 class PaymentCreate(BaseModel):
     order_id: Optional[str] = None  # For POS, payment can be made directly

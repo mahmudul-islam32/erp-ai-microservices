@@ -5,7 +5,8 @@ import {
   PaymentFilters,
   PaymentSummary,
   Refund,
-  RefundCreate
+  RefundCreate,
+  CashPaymentCreate
 } from '../types/payment';
 import { PaginationParams, PaginatedResponse } from '../types/sales';
 import { AuthService } from './api';
@@ -56,8 +57,8 @@ export const paymentsApi = {
     return response.data;
   },
 
-  // Create cash payment
-  createCashPayment: async (payment: PaymentCreate): Promise<Payment> => {
+  // Create cash payment (simplified)
+  createCashPayment: async (payment: CashPaymentCreate): Promise<Payment> => {
     const response = await paymentApiClient.post('/api/v1/payments/cash', payment);
     return response.data;
   },
