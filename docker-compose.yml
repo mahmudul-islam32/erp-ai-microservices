@@ -98,6 +98,12 @@ services:
       DEFAULT_TAX_RATE: 0.08
       DEFAULT_CURRENCY: USD
       REDIS_URL: redis://redis:6379
+      # Stripe Payment Gateway
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_API_VERSION: "2023-10-16"
+      STRIPE_CURRENCY: usd
     depends_on:
       - mongodb
       - auth-service

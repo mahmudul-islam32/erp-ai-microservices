@@ -9,6 +9,7 @@ class PaymentMethod(str, Enum):
     CASH = "cash"
     CREDIT_CARD = "credit_card"
     DEBIT_CARD = "debit_card"
+    STRIPE = "stripe"
     PAYPAL = "paypal"
     BANK_TRANSFER = "bank_transfer"
     CHECK = "check"
@@ -83,6 +84,14 @@ class PaymentGatewayDetails(BaseModel):
     reference_number: Optional[str] = None
     gateway_response: Optional[Dict[str, Any]] = None
     processing_fee: Optional[float] = Field(None, ge=0)
+    
+    # Stripe-specific fields
+    stripe_payment_intent_id: Optional[str] = None
+    stripe_customer_id: Optional[str] = None
+    stripe_charge_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    requires_action: Optional[bool] = None
+    next_action: Optional[Dict[str, Any]] = None
 
 
 # Simplified Cash Payment Model
@@ -102,6 +111,24 @@ class CashPaymentCreate(BaseModel):
         if 'amount' in values.data and v < values.data['amount']:
             raise ValueError("Amount tendered cannot be less than payment amount")
         return v
+
+
+# Stripe Payment Models
+class StripePaymentIntentCreate(BaseModel):
+    """Model for creating a Stripe payment intent"""
+    order_id: str = Field(..., description="Order ID for the payment")
+    customer_id: Optional[str] = None
+    amount: float = Field(..., gt=0, description="Payment amount")
+    currency: str = Field("usd", max_length=3)
+    description: Optional[str] = None
+    receipt_email: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class StripePaymentConfirm(BaseModel):
+    """Model for confirming a Stripe payment"""
+    payment_intent_id: str = Field(..., description="Stripe payment intent ID")
+    order_id: str = Field(..., description="Order ID for the payment")
 
 
 # Main Payment Models
