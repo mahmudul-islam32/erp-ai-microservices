@@ -2,6 +2,7 @@ export enum PaymentMethod {
   CASH = "cash",
   CREDIT_CARD = "credit_card",
   DEBIT_CARD = "debit_card",
+  STRIPE = "stripe",
   PAYPAL = "paypal",
   BANK_TRANSFER = "bank_transfer",
   CHECK = "check",
@@ -59,6 +60,17 @@ export interface CashPaymentDetails {
   cashier_id?: string;
 }
 
+export interface CashPaymentCreate {
+  order_id: string;
+  customer_id?: string;
+  amount: number;
+  amount_tendered: number;
+  currency?: string;
+  notes?: string;
+  cash_drawer_id?: string;
+  cashier_id?: string;
+}
+
 export interface PayPalPaymentDetails {
   paypal_transaction_id?: string;
   payer_email?: string;
@@ -72,6 +84,14 @@ export interface PaymentGatewayDetails {
   reference_number?: string;
   gateway_response?: Record<string, any>;
   processing_fee?: number;
+  
+  // Stripe-specific fields
+  stripe_payment_intent_id?: string;
+  stripe_customer_id?: string;
+  stripe_charge_id?: string;
+  client_secret?: string;
+  requires_action?: boolean;
+  next_action?: Record<string, any>;
 }
 
 export interface PaymentCreate {

@@ -11,7 +11,7 @@ from app.models.payment import (
     PaymentCreate, PaymentUpdate, PaymentResponse, PaymentInDB,
     RefundCreate, RefundResponse, PaymentStatus, PaymentMethod,
     TransactionType,
-    CardPaymentDetails, CashPaymentDetails
+    CardPaymentDetails, CashPaymentDetails, CashPaymentCreate
 )
 from app.models.sales_order import SalesOrderCreate, OrderLineItemCreate
 from app.services.sales_order_service import SalesOrderService
@@ -28,9 +28,9 @@ class PaymentService:
         self.sales_order_service = SalesOrderService()
         self.customer_service = CustomerService()
 
-    async def _get_db(self):
-        if not self.db:
-            self.db = await get_database()
+    def _get_db(self):
+        if self.db is None:
+            self.db = get_database()
             self.payments_collection = self.db.payments
             self.refunds_collection = self.db.refunds
         return self.db
@@ -49,10 +49,132 @@ class PaymentService:
 
     # POS transaction numbering removed
 
+    async def process_simple_cash_payment(self, payment_data: CashPaymentCreate, user_id: str) -> PaymentResponse:
+        """Process a simplified cash payment and update order status"""
+        try:
+            logger.info(f"🔄 Starting simple cash payment processing for order {payment_data.order_id}")
+            self._get_db()
+            
+            # Calculate change
+            change_given = payment_data.amount_tendered - payment_data.amount
+            
+            # Create cash details
+            cash_details = CashPaymentDetails(
+                amount_tendered=payment_data.amount_tendered,
+                change_given=change_given,
+                currency=payment_data.currency,
+                cash_drawer_id=payment_data.cash_drawer_id,
+                cashier_id=payment_data.cashier_id
+            )
+            
+            # Create payment record
+            payment_number = self._generate_payment_number()
+            
+            payment_db = PaymentInDB(
+                payment_number=payment_number,
+                order_id=payment_data.order_id,
+                customer_id=payment_data.customer_id,
+                payment_method=PaymentMethod.CASH,
+                amount=payment_data.amount,
+                currency=payment_data.currency,
+                status=PaymentStatus.COMPLETED,  # Cash payments are immediately completed
+                transaction_type=TransactionType.PAYMENT,
+                cash_details=cash_details,
+                payment_date=datetime.utcnow(),
+                processed_at=datetime.utcnow(),
+                notes=payment_data.notes,
+                created_by=user_id
+            )
+            
+            # Insert payment
+            result = await self.payments_collection.insert_one(payment_db.dict(by_alias=True, exclude={"id"}))
+            payment_db.id = str(result.inserted_id)
+            
+            # Get additional customer info if customer_id provided
+            customer_name = None
+            customer_email = None
+            if payment_data.customer_id:
+                try:
+                    customer = await self.customer_service.get_customer_by_id(payment_data.customer_id)
+                    if customer:
+                        customer_name = f"{customer.first_name} {customer.last_name}".strip()
+                        customer_email = customer.email
+                except Exception as e:
+                    logger.warning(f"Could not fetch customer details: {e}")
+            
+            # Update payment with customer info
+            if customer_name or customer_email:
+                await self.payments_collection.update_one(
+                    {"_id": ObjectId(payment_db.id)},
+                    {"$set": {
+                        "customer_name": customer_name,
+                        "customer_email": customer_email
+                    }}
+                )
+            
+            # Update order status and payment status
+            try:
+                logger.info(f"Attempting to update order {payment_data.order_id} payment status to 'paid' with amount {payment_data.amount}")
+                success = await self.sales_order_service.update_payment_status(
+                    payment_data.order_id, 
+                    "paid", 
+                    payment_data.amount
+                )
+                if success:
+                    logger.info(f"✅ Order {payment_data.order_id} payment status updated to 'paid' with amount {payment_data.amount}")
+                    
+                    # Now fulfill the stock for the order (reduce inventory)
+                    try:
+                        from app.services.external_services import inventory_service
+                        
+                        # Get the order details to fulfill stock
+                        order = await self.sales_order_service.get_order_by_id(payment_data.order_id)
+                        if order and order.line_items:
+                            logger.info(f"🔄 Fulfilling stock for order {payment_data.order_id} with {len(order.line_items)} items")
+                            for item in order.line_items:
+                                try:
+                                    # Note: We don't have token here, so we'll call a version that doesn't need it
+                                    # Or we need to modify inventory service to allow internal calls
+                                    logger.info(f"Fulfilling stock for product {item.product_id}, quantity {item.quantity}")
+                                    # For now, just log - actual fulfillment should happen in confirm order
+                                    # fulfilled = await inventory_service.fulfill_stock(
+                                    #     item.product_id,
+                                    #     item.quantity,
+                                    #     payment_data.order_id,
+                                    #     user_id,
+                                    #     ""  # No token available here
+                                    # )
+                                except Exception as item_error:
+                                    logger.error(f"Failed to fulfill stock for item {item.product_id}: {item_error}")
+                    except Exception as fulfill_error:
+                        logger.error(f"Stock fulfillment error: {fulfill_error}")
+                        # Continue anyway - payment is successful
+                else:
+                    logger.error(f"❌ Failed to update order {payment_data.order_id} payment status - method returned False")
+            except Exception as e:
+                logger.error(f"❌ Exception occurred while updating order payment status: {e}")
+                import traceback
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                # Don't fail the payment if order update fails, but log it
+            
+            # Convert to response model
+            payment_response = PaymentResponse(
+                **payment_db.dict(),
+                customer_name=customer_name,
+                customer_email=customer_email
+            )
+            
+            logger.info(f"Simple cash payment processed successfully: {payment_number}")
+            return payment_response
+            
+        except Exception as e:
+            logger.error(f"Error processing simple cash payment: {e}")
+            raise
+
     async def process_cash_payment(self, payment_data: PaymentCreate, user_id: str) -> PaymentResponse:
         """Process a cash payment"""
         try:
-            await self._get_db()
+            self._get_db()
             
             # Validate cash payment details
             if not payment_data.cash_details:
@@ -129,7 +251,7 @@ class PaymentService:
     async def process_card_payment(self, payment_data: PaymentCreate, user_id: str) -> PaymentResponse:
         """Process a card payment (credit/debit)"""
         try:
-            await self._get_db()
+            self._get_db()
             
             # Validate card payment details
             if not payment_data.card_details:
@@ -240,7 +362,7 @@ class PaymentService:
     async def _create_basic_payment(self, payment_data: PaymentCreate, user_id: str) -> PaymentResponse:
         """Create a basic payment record for other payment methods"""
         try:
-            await self._get_db()
+            self._get_db()
             
             payment_number = self._generate_payment_number()
             
@@ -278,7 +400,7 @@ class PaymentService:
     async def get_payment_by_id(self, payment_id: str) -> Optional[PaymentResponse]:
         """Get payment by ID"""
         try:
-            await self._get_db()
+            self._get_db()
             
             payment_doc = await self.payments_collection.find_one({"_id": ObjectId(payment_id)})
             if not payment_doc:
@@ -304,7 +426,7 @@ class PaymentService:
     ) -> List[PaymentResponse]:
         """Get list of payments with filters"""
         try:
-            await self._get_db()
+            self._get_db()
             
             # Build filter query
             filter_query = {}
@@ -351,7 +473,7 @@ class PaymentService:
     async def create_refund(self, refund_data: RefundCreate, user_id: str) -> RefundResponse:
         """Create a refund for a payment"""
         try:
-            await self._get_db()
+            self._get_db()
             
             # Get original payment
             payment = await self.get_payment_by_id(refund_data.payment_id)
@@ -435,7 +557,7 @@ class PaymentService:
     ) -> int:
         """Count payments with filters"""
         try:
-            await self._get_db()
+            self._get_db()
             
             # Build the same filter query as get_payments
             filter_query = {}

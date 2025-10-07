@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { AuthProvider } from './context/AuthContext';
+import { StripeProvider } from './context/StripeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { SAPLayout } from './components/Layout/SAPLayout';
 import './styles/global.css';
@@ -44,8 +45,9 @@ function App() {
   return (
     <Provider store={store}>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+        <StripeProvider>
+          <BrowserRouter>
+            <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
 
@@ -108,8 +110,9 @@ function App() {
               <Route path="*" element={<div>Page Not Found</div>} />
             </Routes>
           </BrowserRouter>
-        </AuthProvider>
-      </Provider>
+        </StripeProvider>
+      </AuthProvider>
+    </Provider>
   );
 }
 
