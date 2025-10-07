@@ -1,4 +1,4 @@
-from app.database import get_database
+from app.database.connection import get_database
 from app.models import (
     SalesOrderCreate, SalesOrderUpdate, SalesOrderResponse, SalesOrderInDB,
     OrderLineItem, OrderLineItemCreate, OrderStatus, PaymentStatus
@@ -257,16 +257,55 @@ class SalesOrderService:
             logger.error(f"Error updating order: {e}")
             return None
 
+    async def update_order_status(self, order_id: str, new_status: str, user_id: str) -> bool:
+        """Update order status only"""
+        try:
+            db = get_database()
+            orders_collection = db.sales_orders
+
+            # Validate status
+            valid_statuses = ["draft", "pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "returned"]
+            if new_status not in valid_statuses:
+                raise ValueError(f"Invalid status. Must be one of: {valid_statuses}")
+
+            # Update order status
+            update_data = {
+                "status": new_status,
+                "updated_at": datetime.utcnow(),
+                "updated_by": user_id
+            }
+
+            # Update order
+            result = await orders_collection.update_one(
+                {"_id": ObjectId(order_id)},
+                {"$set": update_data}
+            )
+
+            if result.modified_count > 0:
+                logger.info(f"Order {order_id} status updated to '{new_status}'")
+                return True
+            else:
+                logger.warning(f"No order was modified for order_id: {order_id}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error updating order status for order {order_id}: {e}")
+            return False
+
     async def update_payment_status(self, order_id: str, payment_status: str, paid_amount: float = 0) -> bool:
         """Update payment status and paid amount for an order"""
         try:
+            logger.info(f"🔄 update_payment_status called for order {order_id} with status '{payment_status}' and amount {paid_amount}")
             db = get_database()
             orders_collection = db.sales_orders
 
             # Get existing order to calculate balance
             existing_order = await self.get_order_by_id(order_id)
             if not existing_order:
+                logger.error(f"❌ Order {order_id} not found for payment status update")
                 return False
+            
+            logger.info(f"📋 Found existing order: total_amount={existing_order.total_amount}, current_payment_status={existing_order.payment_status}")
 
             # Update payment fields
             update_data = {
@@ -277,15 +316,22 @@ class SalesOrderService:
             }
 
             # Update order
+            logger.info(f"📝 Updating order with data: {update_data}")
             result = await orders_collection.update_one(
                 {"_id": ObjectId(order_id)},
                 {"$set": update_data}
             )
 
-            return result.modified_count > 0
+            logger.info(f"📊 Update result: matched_count={result.matched_count}, modified_count={result.modified_count}")
+            if result.modified_count > 0:
+                logger.info(f"✅ Order {order_id} payment status updated to '{payment_status}' with amount {paid_amount}")
+                return True
+            else:
+                logger.warning(f"⚠️ No order was modified for order_id: {order_id}")
+                return False
 
         except Exception as e:
-            logger.error(f"Error updating payment status: {e}")
+            logger.error(f"Error updating payment status for order {order_id}: {e}")
             return False
 
     async def get_orders(self, skip: int = 0, limit: int = 100,
@@ -371,7 +417,7 @@ class SalesOrderService:
         return filter_query
 
     async def confirm_order(self, order_id: str, user_id: str, token: str) -> bool:
-        """Confirm order and reserve stock"""
+        """Confirm order and fulfill stock (reduce inventory immediately)"""
         try:
             db = get_database()
             orders_collection = db.sales_orders
@@ -379,22 +425,32 @@ class SalesOrderService:
             # Get order
             order = await self.get_order_by_id(order_id)
             if not order or order.status != OrderStatus.DRAFT:
+                logger.warning(f"Order {order_id} cannot be confirmed - status: {order.status if order else 'not found'}")
                 return False
 
-            # Try to reserve stock for each line item (optional for now)
+            # Fulfill stock for each line item (actually reduce inventory)
+            logger.info(f"🔄 Fulfilling stock for order {order_id} with {len(order.line_items)} items")
+            stock_fulfilled_items = []
+            
             for item in order.line_items:
                 try:
-                    stock_reserved = await inventory_service.reserve_stock(
+                    logger.info(f"Fulfilling stock for product {item.product_id}, quantity {item.quantity}")
+                    stock_fulfilled = await inventory_service.fulfill_stock(
                         item.product_id, 
                         item.quantity, 
-                        order_id, 
+                        order_id,
+                        user_id,
                         token
                     )
-                    if not stock_reserved:
-                        logger.warning(f"Failed to reserve stock for product {item.product_id} - continuing anyway")
-                        # Continue processing even if stock reservation fails
+                    if stock_fulfilled:
+                        logger.info(f"✅ Stock fulfilled for product {item.product_id}")
+                        stock_fulfilled_items.append(item.product_id)
+                    else:
+                        logger.warning(f"⚠️  Failed to fulfill stock for product {item.product_id} - continuing anyway")
                 except Exception as e:
-                    logger.warning(f"Stock reservation error for product {item.product_id}: {e} - continuing anyway")
+                    logger.warning(f"Stock fulfillment error for product {item.product_id}: {e} - continuing anyway")
+                    import traceback
+                    logger.warning(traceback.format_exc())
 
             # Update order status
             result = await orders_collection.update_one(
@@ -403,19 +459,23 @@ class SalesOrderService:
                     "$set": {
                         "status": OrderStatus.CONFIRMED,
                         "updated_at": datetime.utcnow(),
-                        "updated_by": user_id
+                        "updated_by": user_id,
+                        "stock_fulfilled_items": stock_fulfilled_items
                     }
                 }
             )
 
             # Update customer stats
             if result.modified_count > 0:
+                logger.info(f"✅ Order {order_id} confirmed successfully, {len(stock_fulfilled_items)} items stock fulfilled")
                 await customer_service.update_customer_stats(order.customer_id, order.total_amount)
 
             return result.modified_count > 0
 
         except Exception as e:
             logger.error(f"Error confirming order: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return False
 
     async def cancel_order(self, order_id: str, user_id: str, token: str) -> bool:

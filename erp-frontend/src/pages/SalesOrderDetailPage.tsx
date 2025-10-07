@@ -34,11 +34,13 @@ import {
   IconMapPin,
   IconAlertCircle,
   IconCopy,
-  IconDownload
+  IconDownload,
+  IconCreditCard
 } from '@tabler/icons-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { salesOrdersApi, customerApi } from '../services/salesApi';
 import { SalesOrder, OrderStatus, PaymentStatus, Customer } from '../types/sales';
+import { StripePaymentModal } from '../components/Payment/StripePaymentModal';
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
@@ -51,12 +53,14 @@ const formatCurrency = (amount: number) => {
 const SalesOrderDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [order, setOrder] = useState<SalesOrder | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [stripePaymentModalOpen, setStripePaymentModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Load order details
@@ -90,6 +94,17 @@ const SalesOrderDetailPage: React.FC = () => {
   useEffect(() => {
     loadOrder();
   }, [loadOrder]);
+
+  // Auto-open Stripe payment modal if redirected from order creation
+  useEffect(() => {
+    const openStripeParam = searchParams.get('openStripePayment');
+    if (openStripeParam === 'true' && order && !loading) {
+      setStripePaymentModalOpen(true);
+      // Remove the query parameter
+      searchParams.delete('openStripePayment');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [order, loading, searchParams, setSearchParams]);
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (!order) return;
@@ -283,6 +298,20 @@ const SalesOrderDetailPage: React.FC = () => {
               </Group>
 
               <Group spacing="sm">
+                {/* Payment button - show if order is confirmed and not fully paid */}
+                {order.status !== OrderStatus.CANCELLED && 
+                 order.payment_status !== PaymentStatus.PAID && 
+                 order.total_amount && order.total_amount > 0 && (
+                  <Button
+                    size="sm"
+                    color="green"
+                    leftIcon={<IconCreditCard size={16} />}
+                    onClick={() => setStripePaymentModalOpen(true)}
+                  >
+                    Pay with Stripe
+                  </Button>
+                )}
+                
                 {order.status === OrderStatus.DRAFT && (
                   <Button
                     size="sm"
@@ -564,6 +593,24 @@ const SalesOrderDetailPage: React.FC = () => {
           </Group>
         </Stack>
       </Modal>
+
+      {/* Stripe Payment Modal */}
+      {order && (
+        <StripePaymentModal
+          opened={stripePaymentModalOpen}
+          onClose={() => setStripePaymentModalOpen(false)}
+          orderId={order.id || order._id!}
+          amount={order.total_amount || 0}
+          customerId={order.customer_id}
+          currency="usd"
+          description={`Payment for Order ${order.order_number}`}
+          receiptEmail={customer?.email}
+          onSuccess={() => {
+            // Reload order to see updated payment status
+            loadOrder();
+          }}
+        />
+      )}
     </Container>
   );
 };

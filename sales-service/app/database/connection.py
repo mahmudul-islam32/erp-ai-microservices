@@ -85,7 +85,22 @@ async def create_indexes():
         
         # Payments collection indexes
         payments_collection = db.payments
-        await payments_collection.create_index("payment_reference", unique=True)
+        # Drop old payment_reference index if it exists
+        try:
+            await payments_collection.drop_index("payment_reference_1")
+        except:
+            pass  # Index might not exist
+        
+        # Drop reference_number unique index if it exists (causing issues with null values)
+        try:
+            await payments_collection.drop_index("reference_number_1")
+        except:
+            pass  # Index might not exist
+        
+        # Create indexes - reference_number is just a regular index (not unique)
+        await payments_collection.create_index("payment_number", unique=True)
+        await payments_collection.create_index("reference_number")  # Regular index, not unique
+        await payments_collection.create_index("order_id")
         await payments_collection.create_index("invoice_id")
         await payments_collection.create_index("customer_id")
         await payments_collection.create_index("payment_date")

@@ -381,7 +381,8 @@ input UpdateWarehouseInput {
 
 type Warehouse {
   _id: ID!
-  address: String!
+  address: String
+  capacity: Float
   city: String
   code: String
   contactPerson: String
@@ -396,6 +397,7 @@ type Warehouse {
   phone: String
   postalCode: String
   state: String
+  type: String
   updatedAt: DateTime!
 }
 

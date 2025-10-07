@@ -140,6 +140,20 @@ const getNavigationItems = (userRole: UserRole): NavItem[] => {
           icon: <IconUsersGroup size={16} />,
           path: '/dashboard/inventory/categories',
           roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'SUPPLIERS',
+          label: 'SUPPLIERS',
+          icon: <IconBriefcase size={16} />,
+          path: '/dashboard/inventory/suppliers',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'PURCHASE_ORDERS',
+          label: 'PURCHASE ORDERS',
+          icon: <IconShoppingCart size={16} />,
+          path: '/dashboard/inventory/purchase-orders',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
         }
       ].filter(item => !item.roles || hasRole(item.roles))
     },
@@ -182,6 +196,20 @@ const getNavigationItems = (userRole: UserRole): NavItem[] => {
           icon: <IconReportAnalytics size={16} />,
           path: '/dashboard/sales/reports',
           roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'QUOTES',
+          label: 'QUOTES',
+          icon: <IconCurrencyDollar size={16} />,
+          path: '/dashboard/sales/quotes',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE]
+        },
+        {
+          id: 'SALES_DASHBOARD',
+          label: 'SALES DASHBOARD',
+          icon: <IconReportAnalytics size={16} />,
+          path: '/dashboard/sales',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE]
         }
       ].filter(item => !item.roles || hasRole(item.roles))
     },
@@ -216,6 +244,48 @@ const getNavigationItems = (userRole: UserRole): NavItem[] => {
           label: 'FINANCE REPORTS',
           icon: <IconReportAnalytics size={16} />,
           path: '/dashboard/finance/reports',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        }
+      ].filter(item => !item.roles || hasRole(item.roles))
+    },
+    {
+      id: 'ANALYTICS',
+      label: 'ANALYTICS & REPORTS',
+      icon: <IconReportAnalytics size={20} />,
+      children: [
+        {
+          id: 'DASHBOARD_ANALYTICS',
+          label: 'DASHBOARD ANALYTICS',
+          icon: <IconReportAnalytics size={16} />,
+          path: '/dashboard/analytics',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'SALES_ANALYTICS',
+          label: 'SALES ANALYTICS',
+          icon: <IconShoppingCart size={16} />,
+          path: '/dashboard/analytics/sales',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'INVENTORY_ANALYTICS',
+          label: 'INVENTORY ANALYTICS',
+          icon: <IconPackage size={16} />,
+          path: '/dashboard/analytics/inventory',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'FINANCIAL_ANALYTICS',
+          label: 'FINANCIAL ANALYTICS',
+          icon: <IconCurrencyDollar size={16} />,
+          path: '/dashboard/analytics/finance',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'CUSTOM_REPORTS',
+          label: 'CUSTOM REPORTS',
+          icon: <IconReportAnalytics size={16} />,
+          path: '/dashboard/reports/custom',
           roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
         }
       ].filter(item => !item.roles || hasRole(item.roles))
@@ -280,6 +350,20 @@ const getNavigationItems = (userRole: UserRole): NavItem[] => {
           icon: <IconReportAnalytics size={16} />,
           path: '/dashboard/reports',
           roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER]
+        },
+        {
+          id: 'PROJECTS',
+          label: 'PROJECTS',
+          icon: <IconBriefcase size={16} />,
+          path: '/dashboard/projects',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE]
+        },
+        {
+          id: 'TASKS',
+          label: 'TASKS',
+          icon: <IconCalendar size={16} />,
+          path: '/dashboard/tasks',
+          roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE]
         }
       ].filter(item => !item.roles || hasRole(item.roles))
     },
