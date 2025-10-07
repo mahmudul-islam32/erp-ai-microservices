@@ -394,9 +394,10 @@ async def duplicate_order(
 async def update_order_status(
     order_id: str,
     status_data: dict,
+    request: Request,
     current_user=Depends(require_sales_write())
 ):
-    """Update order status"""
+    """Update order status - automatically triggers stock fulfillment when status changes to 'confirmed'"""
     try:
         # Get user ID
         user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
@@ -414,6 +415,19 @@ async def update_order_status(
                 detail="Status is required in request body"
             )
         
+        # Special handling for 'confirmed' status - this should reduce inventory
+        if new_status.lower() == "confirmed":
+            logger.info(f"🔄 Order {order_id} being confirmed - will reduce inventory")
+            token = await get_token_from_request(request)
+            success = await sales_order_service.confirm_order(order_id, user_id, token)
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Unable to confirm order. Check stock availability or order status."
+                )
+            return {"message": "Order confirmed successfully and inventory reduced"}
+        
+        # For other status changes, just update the status
         success = await sales_order_service.update_order_status(order_id, new_status, user_id)
         if not success:
             raise HTTPException(
