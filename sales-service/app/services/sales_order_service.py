@@ -417,7 +417,7 @@ class SalesOrderService:
         return filter_query
 
     async def confirm_order(self, order_id: str, user_id: str, token: str) -> bool:
-        """Confirm order and reserve stock"""
+        """Confirm order and fulfill stock (reduce inventory immediately)"""
         try:
             db = get_database()
             orders_collection = db.sales_orders
@@ -425,22 +425,32 @@ class SalesOrderService:
             # Get order
             order = await self.get_order_by_id(order_id)
             if not order or order.status != OrderStatus.DRAFT:
+                logger.warning(f"Order {order_id} cannot be confirmed - status: {order.status if order else 'not found'}")
                 return False
 
-            # Try to reserve stock for each line item (optional for now)
+            # Fulfill stock for each line item (actually reduce inventory)
+            logger.info(f"🔄 Fulfilling stock for order {order_id} with {len(order.line_items)} items")
+            stock_fulfilled_items = []
+            
             for item in order.line_items:
                 try:
-                    stock_reserved = await inventory_service.reserve_stock(
+                    logger.info(f"Fulfilling stock for product {item.product_id}, quantity {item.quantity}")
+                    stock_fulfilled = await inventory_service.fulfill_stock(
                         item.product_id, 
                         item.quantity, 
-                        order_id, 
+                        order_id,
+                        user_id,
                         token
                     )
-                    if not stock_reserved:
-                        logger.warning(f"Failed to reserve stock for product {item.product_id} - continuing anyway")
-                        # Continue processing even if stock reservation fails
+                    if stock_fulfilled:
+                        logger.info(f"✅ Stock fulfilled for product {item.product_id}")
+                        stock_fulfilled_items.append(item.product_id)
+                    else:
+                        logger.warning(f"⚠️  Failed to fulfill stock for product {item.product_id} - continuing anyway")
                 except Exception as e:
-                    logger.warning(f"Stock reservation error for product {item.product_id}: {e} - continuing anyway")
+                    logger.warning(f"Stock fulfillment error for product {item.product_id}: {e} - continuing anyway")
+                    import traceback
+                    logger.warning(traceback.format_exc())
 
             # Update order status
             result = await orders_collection.update_one(
@@ -449,19 +459,23 @@ class SalesOrderService:
                     "$set": {
                         "status": OrderStatus.CONFIRMED,
                         "updated_at": datetime.utcnow(),
-                        "updated_by": user_id
+                        "updated_by": user_id,
+                        "stock_fulfilled_items": stock_fulfilled_items
                     }
                 }
             )
 
             # Update customer stats
             if result.modified_count > 0:
+                logger.info(f"✅ Order {order_id} confirmed successfully, {len(stock_fulfilled_items)} items stock fulfilled")
                 await customer_service.update_customer_stats(order.customer_id, order.total_amount)
 
             return result.modified_count > 0
 
         except Exception as e:
             logger.error(f"Error confirming order: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return False
 
     async def cancel_order(self, order_id: str, user_id: str, token: str) -> bool:

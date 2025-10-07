@@ -242,25 +242,35 @@ class InventoryService:
             logger.error(f"Inventory service error: {e}")
             return None
 
-    async def reserve_stock(self, product_id: str, quantity: int, order_id: str, token: str) -> bool:
+    async def reserve_stock(self, product_id: str, quantity: int, order_id: str, token: str, warehouse_id: str = None) -> bool:
         """Reserve stock for an order"""
         try:
             headers = {"Authorization": f"Bearer {token}"}
             payload = {
-                "product_id": product_id,
+                "productId": product_id,
                 "quantity": quantity,
-                "order_id": order_id,
-                "reason": "sales_order"
+                "orderId": order_id,
+                "notes": f"Reserved for sales order {order_id}"
             }
+            
+            if warehouse_id:
+                payload["warehouseId"] = warehouse_id
+            
+            logger.info(f"Reserving stock for product {product_id}, quantity {quantity}, order {order_id}")
             
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"{self.inventory_service_url}/api/v1/stock/reserve",
+                    f"{self.inventory_service_url}/inventory/reserve",
                     headers=headers,
                     json=payload
                 )
                 
-                return response.status_code == 200
+                if response.status_code == 200:
+                    logger.info(f"Successfully reserved stock for order {order_id}")
+                    return True
+                else:
+                    logger.warning(f"Failed to reserve stock: {response.status_code} - {response.text}")
+                    return False
                     
         except httpx.RequestError as e:
             logger.error(f"Inventory service request error: {e}")
@@ -269,25 +279,35 @@ class InventoryService:
             logger.error(f"Inventory service error: {e}")
             return False
 
-    async def release_stock(self, product_id: str, quantity: int, order_id: str, token: str) -> bool:
+    async def release_stock(self, product_id: str, quantity: int, order_id: str, token: str, warehouse_id: str = None) -> bool:
         """Release reserved stock"""
         try:
             headers = {"Authorization": f"Bearer {token}"}
             payload = {
-                "product_id": product_id,
+                "productId": product_id,
                 "quantity": quantity,
-                "order_id": order_id,
-                "reason": "order_cancelled"
+                "orderId": order_id,
+                "notes": f"Released from cancelled order {order_id}"
             }
+            
+            if warehouse_id:
+                payload["warehouseId"] = warehouse_id
+            
+            logger.info(f"Releasing stock for product {product_id}, quantity {quantity}, order {order_id}")
             
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"{self.inventory_service_url}/api/v1/stock/release",
+                    f"{self.inventory_service_url}/inventory/release",
                     headers=headers,
                     json=payload
                 )
                 
-                return response.status_code == 200
+                if response.status_code == 200:
+                    logger.info(f"Successfully released stock for order {order_id}")
+                    return True
+                else:
+                    logger.warning(f"Failed to release stock: {response.status_code} - {response.text}")
+                    return False
                     
         except httpx.RequestError as e:
             logger.error(f"Inventory service request error: {e}")
@@ -296,25 +316,36 @@ class InventoryService:
             logger.error(f"Inventory service error: {e}")
             return False
 
-    async def fulfill_stock(self, product_id: str, quantity: int, order_id: str, token: str) -> bool:
+    async def fulfill_stock(self, product_id: str, quantity: int, order_id: str, user_id: str, token: str, warehouse_id: str = None) -> bool:
         """Fulfill stock (convert reservation to actual stock reduction)"""
         try:
             headers = {"Authorization": f"Bearer {token}"}
             payload = {
-                "product_id": product_id,
+                "productId": product_id,
                 "quantity": quantity,
-                "order_id": order_id,
-                "reason": "order_fulfilled"
+                "orderId": order_id,
+                "performedBy": user_id,
+                "notes": f"Fulfilled for sales order {order_id}"
             }
+            
+            if warehouse_id:
+                payload["warehouseId"] = warehouse_id
+            
+            logger.info(f"Fulfilling stock for product {product_id}, quantity {quantity}, order {order_id}")
             
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"{self.inventory_service_url}/api/v1/stock/fulfill",
+                    f"{self.inventory_service_url}/inventory/fulfill",
                     headers=headers,
                     json=payload
                 )
                 
-                return response.status_code == 200
+                if response.status_code == 200:
+                    logger.info(f"Successfully fulfilled stock for order {order_id}")
+                    return True
+                else:
+                    logger.warning(f"Failed to fulfill stock: {response.status_code} - {response.text}")
+                    return False
                     
         except httpx.RequestError as e:
             logger.error(f"Inventory service request error: {e}")

@@ -180,12 +180,13 @@ export class InventoryService {
       }
       newQuantity -= input.quantity;
     } else if (input.type === InventoryTransactionType.ADJUSTMENT) {
-      // For adjustments, the quantity can be positive or negative
-      newQuantity = input.quantity;
+      // For adjustments, add the quantity (can be positive or negative)
+      // Negative quantity = reduction, positive quantity = addition
+      newQuantity += input.quantity;
     }
 
     if (newQuantity < 0) {
-      throw new BadRequestException('Stock quantity cannot be negative');
+      throw new BadRequestException(`Stock quantity cannot be negative. Current: ${inventory.quantity}, Adjustment: ${input.quantity}, Would result in: ${newQuantity}`);
     }
 
     // Update average cost for inbound movements
@@ -197,11 +198,22 @@ export class InventoryService {
     }
 
     // Update inventory
+    const oldQuantity = inventory.quantity;
     inventory.quantity = newQuantity;
     inventory.availableQuantity = newQuantity - inventory.reservedQuantity;
     inventory.averageCost = newAverageCost;
     if (input.batchNumber) inventory.batchNumber = input.batchNumber;
     if (input.serialNumber) inventory.serialNumber = input.serialNumber;
+
+    console.log(`📦 Updating inventory table:`, {
+      productId: input.productId,
+      warehouseId: input.warehouseId,
+      oldQuantity: oldQuantity,
+      newQuantity: newQuantity,
+      change: newQuantity - oldQuantity,
+      type: input.type,
+      reason: input.reason
+    });
 
     // Create transaction record
     const transaction = new this.transactionModel({
@@ -226,7 +238,11 @@ export class InventoryService {
       transaction.save(),
     ]);
 
+    console.log(`✅ Inventory table updated: Product ${input.productId}, new quantity: ${savedInventory.quantity}`);
+    console.log(`✅ Transaction recorded: ID ${savedTransaction._id}, reason: ${input.reason}`);
+
     // Recalculate denormalized product totals
+    console.log(`🔄 Now updating products table...`);
     await this.recalculateProductTotals(input.productId);
 
     return {
@@ -332,6 +348,11 @@ export class InventoryService {
     const updated = await inventory.save();
     await this.recalculateProductTotals(productId);
     return updated;
+  }
+
+  // Alias for releaseReservedStock
+  async releaseStock(productId: string, warehouseId: string, quantity: number): Promise<InventoryDocument> {
+    return this.releaseReservedStock(productId, warehouseId, quantity);
   }
 
   // Method for getting transaction history by inventory ID (used by controller)
@@ -641,6 +662,9 @@ export class InventoryService {
 
   private async recalculateProductTotals(productId: string): Promise<void> {
     if (!Types.ObjectId.isValid(productId)) return;
+    
+    console.log(`🔄 Recalculating product totals for product: ${productId}`);
+    
     const rows = await this.inventoryModel.aggregate([
       { $match: { productId: new Types.ObjectId(productId) } },
       { $group: {
@@ -649,12 +673,33 @@ export class InventoryService {
           reservedQuantity: { $sum: { $ifNull: ['$reservedQuantity', 0] } }
       } }
     ]);
+    
     const totals = rows[0] || { totalQuantity: 0, reservedQuantity: 0 };
     const availableQuantity = Math.max(0, (totals.totalQuantity || 0) - (totals.reservedQuantity || 0));
-    await this.productModel.findByIdAndUpdate(productId, {
-      totalQuantity: totals.totalQuantity || 0,
-      reservedQuantity: totals.reservedQuantity || 0,
-      availableQuantity
+    
+    console.log(`📊 Aggregated totals for product ${productId}:`, {
+      totalQuantity: totals.totalQuantity,
+      reservedQuantity: totals.reservedQuantity,
+      availableQuantity: availableQuantity
     });
+    
+    const updatedProduct = await this.productModel.findByIdAndUpdate(
+      productId, 
+      {
+        totalQuantity: totals.totalQuantity || 0,
+        reservedQuantity: totals.reservedQuantity || 0,
+        availableQuantity
+      },
+      { new: true }
+    );
+    
+    if (updatedProduct) {
+      console.log(`✅ Product table updated successfully for ${updatedProduct.name} (${productId})`);
+      console.log(`   - Total Quantity: ${updatedProduct.totalQuantity}`);
+      console.log(`   - Reserved: ${updatedProduct.reservedQuantity}`);
+      console.log(`   - Available: ${updatedProduct.availableQuantity}`);
+    } else {
+      console.log(`⚠️  Product ${productId} not found in products table`);
+    }
   }
 }
