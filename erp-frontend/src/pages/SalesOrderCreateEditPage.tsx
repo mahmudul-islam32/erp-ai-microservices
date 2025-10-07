@@ -332,9 +332,16 @@ const SalesOrderCreateEditPage: React.FC = () => {
 
       // Process payment if requested
       if (paymentData.processPayment && !isEdit) {
+        const orderId = order.id || order._id;
+        
+        // For Stripe payments, redirect to order detail page to complete payment
+        if (paymentData.paymentMethod === PaymentMethod.STRIPE) {
+          navigate(`/dashboard/sales/orders/${orderId}?openStripePayment=true`);
+          return;
+        }
+        
+        // Process other payment methods immediately
         try {
-          const orderId = order.id || order._id;
-          
           if (paymentData.paymentMethod === PaymentMethod.CASH) {
             const cashPayment: CashPaymentCreate = {
               order_id: orderId,
@@ -752,8 +759,9 @@ const SalesOrderCreateEditPage: React.FC = () => {
                         required
                         data={[
                           { value: PaymentMethod.CASH, label: 'Cash' },
-                          { value: PaymentMethod.CREDIT_CARD, label: 'Credit Card' },
-                          { value: PaymentMethod.DEBIT_CARD, label: 'Debit Card' }
+                          { value: PaymentMethod.STRIPE, label: 'Stripe (Credit/Debit Card)' },
+                          { value: PaymentMethod.CREDIT_CARD, label: 'Credit Card (Manual)' },
+                          { value: PaymentMethod.DEBIT_CARD, label: 'Debit Card (Manual)' }
                         ]}
                         value={paymentData.paymentMethod}
                         onChange={(value) => setPaymentData(prev => ({ 
@@ -762,6 +770,12 @@ const SalesOrderCreateEditPage: React.FC = () => {
                           cashAmount: value === PaymentMethod.CASH ? totalAmount : 0
                         }))}
                       />
+                      
+                      {paymentData.paymentMethod === PaymentMethod.STRIPE && (
+                        <Alert color="blue" icon={<IconAlertCircle size={16} />}>
+                          After creating the order, you'll be redirected to complete payment via Stripe's secure checkout.
+                        </Alert>
+                      )}
                       
                       {paymentData.paymentMethod === PaymentMethod.CASH && (
                         <div>

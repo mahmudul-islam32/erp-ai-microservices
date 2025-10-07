@@ -151,6 +151,49 @@ export const paymentsApi = {
   },
 
   // POS endpoints removed
+  
+  // ==================== STRIPE PAYMENT ENDPOINTS ====================
+  
+  // Get Stripe configuration (publishable key)
+  getStripeConfig: async (): Promise<{ publishable_key: string }> => {
+    const response = await paymentApiClient.get('/api/v1/payments/stripe/config');
+    return response.data;
+  },
+
+  // Create Stripe payment intent
+  createStripePaymentIntent: async (data: {
+    order_id: string;
+    customer_id?: string;
+    amount: number;
+    currency?: string;
+    description?: string;
+    receipt_email?: string;
+    metadata?: Record<string, any>;
+  }): Promise<{
+    client_secret: string;
+    payment_intent_id: string;
+    publishable_key: string;
+    amount: number;
+    currency: string;
+  }> => {
+    const response = await paymentApiClient.post('/api/v1/payments/stripe/create-intent', data);
+    return response.data;
+  },
+
+  // Confirm Stripe payment after client-side authorization
+  confirmStripePayment: async (data: {
+    payment_intent_id: string;
+    order_id: string;
+  }): Promise<Payment> => {
+    const response = await paymentApiClient.post('/api/v1/payments/stripe/confirm', data);
+    return response.data;
+  },
+
+  // Create Stripe refund
+  createStripeRefund: async (paymentId: string, refund: Omit<RefundCreate, 'payment_id'>): Promise<Refund> => {
+    const response = await paymentApiClient.post(`/api/v1/payments/stripe/refund/${paymentId}`, refund);
+    return response.data;
+  },
 };
 
 export default paymentsApi;

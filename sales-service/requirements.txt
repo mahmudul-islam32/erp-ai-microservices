@@ -27,3 +27,4 @@ scikit-learn==1.3.2       # Machine learning for forecasting
 aiofiles==23.2.1          # Async file operations
 aioredis==2.0.1           # Async Redis client
 pycryptodome==3.19.0      # Encryption utilities
+stripe>=9.0.0,<10.0.0     # Stripe payment gateway integration
