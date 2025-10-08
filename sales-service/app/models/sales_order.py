@@ -41,15 +41,15 @@ class OrderPriority(str, Enum):
 # Order Line Item
 class OrderLineItem(BaseModel):
     product_id: str
-    product_name: str
-    product_sku: str
+    product_name: Optional[str] = None  # Made optional for backward compatibility
+    product_sku: Optional[str] = None   # Made optional for backward compatibility
     quantity: int = Field(..., gt=0)
     unit_price: float = Field(..., ge=0)
     discount_percent: float = Field(0, ge=0, le=100)
     discount_amount: float = Field(0, ge=0)
     tax_rate: float = Field(0, ge=0, le=1)
     tax_amount: float = Field(0, ge=0)
-    line_total: float = Field(..., ge=0)
+    line_total: Optional[float] = None  # Made optional, can be calculated
     notes: Optional[str] = None
 
 

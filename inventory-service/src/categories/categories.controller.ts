@@ -87,7 +87,8 @@ export class CategoriesController {
     totalPages: number;
   }> {
     const filter: CategoryFilterInput = {};
-    if (parentId) filter.parentId = parentId;
+    // Only add parentId if it's a valid non-empty string
+    if (parentId && parentId.trim() !== '') filter.parentId = parentId;
     if (isActive !== undefined) filter.isActive = isActive;
     if (search) filter.search = search;
 

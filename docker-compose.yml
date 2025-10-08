@@ -150,14 +150,19 @@ services:
     build:
       context: ./erp-frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_AUTH_SERVICE_URL=http://localhost:8001
+        - VITE_INVENTORY_SERVICE_URL=http://localhost:8002
+        - VITE_SALES_SERVICE_URL=http://localhost:8003
+        - VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLISHABLE_KEY:-}
     container_name: erp-frontend
     restart: unless-stopped
     ports:
       - "8080:80"
-    environment:
-      VITE_API_URL: http://localhost:8001
     depends_on:
       - auth-service
+      - inventory-service
+      - sales-service
     networks:
       - erp-network
       
@@ -171,16 +176,23 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://localhost:8001
+      VITE_AUTH_SERVICE_URL: http://localhost:8001
+      VITE_INVENTORY_SERVICE_URL: http://localhost:8002
+      VITE_SALES_SERVICE_URL: http://localhost:8003
+      VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
     volumes:
       - ./erp-frontend/src:/app/src
       - ./erp-frontend/public:/app/public
       - ./erp-frontend/index.html:/app/index.html
       - ./erp-frontend/vite.config.ts:/app/vite.config.ts
+      - ./erp-frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./erp-frontend/postcss.config.js:/app/postcss.config.js
       - ./erp-frontend/tsconfig.json:/app/tsconfig.json
       - ./erp-frontend/tsconfig.node.json:/app/tsconfig.node.json
     depends_on:
       - auth-service
+      - inventory-service
+      - sales-service
     networks:
       - erp-network
     profiles:

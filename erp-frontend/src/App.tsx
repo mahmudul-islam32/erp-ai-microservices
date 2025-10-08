@@ -1,117 +1,113 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { store } from './store';
-import { AuthProvider } from './context/AuthContext';
-import { StripeProvider } from './context/StripeContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { SAPLayout } from './components/Layout/SAPLayout';
-import './styles/global.css';
+import { Toaster } from 'sonner';
+import { store } from './app/store';
+import { LoginPage } from './features/auth/pages/LoginPage';
+import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
+import { MainLayout } from './shared/components/layout/MainLayout';
 
-// Pages
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import UsersPage from './pages/UsersPage';
-import { CreateUserPage } from './pages/CreateUserPage';
-import { RoleManagementPage } from './pages/RoleManagementPage';
-import SecuritySettingsPage from './pages/SecuritySettingsPage';
-import AccessControlPage from './pages/AccessControlPage';
-import SessionManagementPage from './pages/SessionManagementPage';
-import AuditLogsPage from './pages/AuditLogsPage';
-import SystemSettingsPage from './pages/SystemSettingsPage';
+// Dashboard
+import { DashboardPage } from './features/dashboard/pages/DashboardPage';
 
-// Inventory Pages
-import InventoryDashboardPage from './pages/InventoryDashboardPage';
-import ProductsPage from './pages/ProductsPage';
-import CreateProductPage from './pages/CreateProductPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import EditProductPage from './pages/EditProductPage';
-import CategoriesPage from './pages/CategoriesPage';
-import WarehousesPage from './pages/WarehousesPage';
-import StockManagementPage from './pages/StockManagementPage';
+// User Management
+import { UsersPage } from './features/users/pages/UsersPage';
+import { CreateUserPage } from './features/users/pages/CreateUserPage';
+import { RolesPage } from './features/users/pages/RolesPage';
+import { SecurityPage } from './features/users/pages/SecurityPage';
+import { AccessControlPage } from './features/users/pages/AccessControlPage';
+import { SessionsPage } from './features/users/pages/SessionsPage';
+import { AuditLogsPage } from './features/users/pages/AuditLogsPage';
 
-// Sales Pages
-import SalesDashboardPage from './pages/SalesDashboardPage';
-import CustomersPage from './pages/CustomersPage';
-import CustomerCreateEditPage from './pages/CustomerCreateEditPage';
-import CustomerDetailPage from './pages/CustomerDetailPage';
-import SalesOrdersPage from './pages/SalesOrdersPage';
-import SalesOrderCreateEditPage from './pages/SalesOrderCreateEditPage';
-import SalesOrderDetailPage from './pages/SalesOrderDetailPage';
-import QuotesPage from './pages/QuotesPage';
-import InvoicesPage from './pages/InvoicesPage';
+// Inventory
+import { InventoryDashboardPage } from './features/inventory/pages/InventoryDashboardPage';
+import { ProductsPage } from './features/inventory/pages/ProductsPage';
+import { CreateProductPage } from './features/inventory/pages/CreateProductPage';
+import { EditProductPage } from './features/inventory/pages/EditProductPage';
+import { ProductDetailPage } from './features/inventory/pages/ProductDetailPage';
+import { CategoriesPage } from './features/inventory/pages/CategoriesPage';
+import { WarehousesPage } from './features/inventory/pages/WarehousesPage';
+import { StockManagementPage } from './features/inventory/pages/StockManagementPage';
+
+// Sales
+import { SalesDashboardPage } from './features/sales/pages/SalesDashboardPage';
+import { CustomersPage } from './features/sales/pages/CustomersPage';
+import { CreateCustomerPage } from './features/sales/pages/CreateCustomerPage';
+import { EditCustomerPage } from './features/sales/pages/EditCustomerPage';
+import { CustomerDetailPage } from './features/sales/pages/CustomerDetailPage';
+import { OrdersPage } from './features/sales/pages/OrdersPage';
+import { CreateOrderPage } from './features/sales/pages/CreateOrderPage';
+import { EditOrderPage } from './features/sales/pages/EditOrderPage';
+import { OrderDetailPage } from './features/sales/pages/OrderDetailPage';
+import { QuotesPage } from './features/sales/pages/QuotesPage';
+import { InvoicesPage } from './features/sales/pages/InvoicesPage';
+
+// Settings
+import { SettingsPage } from './features/dashboard/pages/SettingsPage';
 
 function App() {
   return (
     <Provider store={store}>
-      <AuthProvider>
-        <StripeProvider>
-          <BrowserRouter>
-            <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<LoginPage />} />
+      <BrowserRouter>
+        <Toaster position="top-right" richColors />
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
 
-            {/* Protected dashboard routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <SAPLayout />
-                </ProtectedRoute>
-              }
-            >
-                <Route index element={<DashboardPage />} />
-                
-                {/* Authentication & User Management Routes */}
-                <Route path="users" element={<UsersPage />} />
-                <Route path="users/create" element={<CreateUserPage />} />
-                <Route path="roles" element={<RoleManagementPage />} />
-                <Route path="security" element={<SecuritySettingsPage />} />
-                <Route path="access-control" element={<AccessControlPage />} />
-                <Route path="sessions" element={<SessionManagementPage />} />
-                <Route path="audit" element={<AuditLogsPage />} />
-                
-                {/* Inventory Management Routes */}
-                <Route path="inventory" element={<InventoryDashboardPage />} />
-                <Route path="inventory/products" element={<ProductsPage />} />
-                <Route path="inventory/products/create" element={<CreateProductPage />} />
-                <Route path="inventory/products/:productId" element={<ProductDetailPage />} />
-                <Route path="inventory/products/:productId/edit" element={<EditProductPage />} />
-                <Route path="inventory/categories" element={<CategoriesPage />} />
-                <Route path="inventory/warehouses" element={<WarehousesPage />} />
-                <Route path="inventory/stock" element={<StockManagementPage />} />
-                
-                {/* Sales Management Routes */}
-                <Route path="sales" element={<SalesDashboardPage />} />
-                <Route path="sales/customers" element={<CustomersPage />} />
-                <Route path="sales/customers/create" element={<CustomerCreateEditPage />} />
-                <Route path="sales/customers/:customerId" element={<CustomerDetailPage />} />
-                <Route path="sales/customers/:customerId/edit" element={<CustomerCreateEditPage />} />
-                <Route path="sales/orders" element={<SalesOrdersPage />} />
-                <Route path="sales/orders/create" element={<SalesOrderCreateEditPage />} />
-                <Route path="sales/orders/:orderId" element={<SalesOrderDetailPage />} />
-                <Route path="sales/orders/:orderId/edit" element={<SalesOrderCreateEditPage />} />
-                <Route path="sales/quotes" element={<QuotesPage />} />
-                <Route path="sales/invoices" element={<InvoicesPage />} />
-                
-                {/* Business Operations Routes */}
-                <Route path="departments" element={<div>Departments Page (Not implemented)</div>} />
-                <Route path="calendar" element={<div>Calendar Page (Not implemented)</div>} />
-                <Route path="reports" element={<div>Reports Page (Not implemented)</div>} />
-                
-                {/* System Configuration Routes */}
-                <Route path="settings" element={<SystemSettingsPage />} />
-              </Route>
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardPage />} />
 
-              {/* Default redirect to dashboard */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              
-              {/* 404 Page */}
-              <Route path="*" element={<div>Page Not Found</div>} />
-            </Routes>
-          </BrowserRouter>
-        </StripeProvider>
-      </AuthProvider>
+            {/* User Management */}
+            <Route path="users" element={<UsersPage />} />
+            <Route path="users/create" element={<CreateUserPage />} />
+            <Route path="roles" element={<RolesPage />} />
+            <Route path="security" element={<SecurityPage />} />
+            <Route path="access-control" element={<AccessControlPage />} />
+            <Route path="sessions" element={<SessionsPage />} />
+            <Route path="audit" element={<AuditLogsPage />} />
+
+            {/* Inventory */}
+            <Route path="inventory" element={<InventoryDashboardPage />} />
+            <Route path="inventory/products" element={<ProductsPage />} />
+            <Route path="inventory/products/create" element={<CreateProductPage />} />
+            <Route path="inventory/products/:id" element={<ProductDetailPage />} />
+            <Route path="inventory/products/:id/edit" element={<EditProductPage />} />
+            <Route path="inventory/categories" element={<CategoriesPage />} />
+            <Route path="inventory/warehouses" element={<WarehousesPage />} />
+            <Route path="inventory/stock" element={<StockManagementPage />} />
+
+            {/* Sales */}
+            <Route path="sales" element={<SalesDashboardPage />} />
+            <Route path="sales/customers" element={<CustomersPage />} />
+            <Route path="sales/customers/create" element={<CreateCustomerPage />} />
+            <Route path="sales/customers/:id" element={<CustomerDetailPage />} />
+            <Route path="sales/customers/:id/edit" element={<EditCustomerPage />} />
+            <Route path="sales/orders" element={<OrdersPage />} />
+            <Route path="sales/orders/create" element={<CreateOrderPage />} />
+            <Route path="sales/orders/:id" element={<OrderDetailPage />} />
+            <Route path="sales/orders/:id/edit" element={<EditOrderPage />} />
+            <Route path="sales/quotes" element={<QuotesPage />} />
+            <Route path="sales/invoices" element={<InvoicesPage />} />
+
+            {/* Settings */}
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+
+          {/* Default redirect */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          
+          {/* 404 */}
+          <Route path="*" element={<div className="flex items-center justify-center min-h-screen"><h1 className="text-2xl font-bold">404 - Page Not Found</h1></div>} />
+        </Routes>
+      </BrowserRouter>
     </Provider>
   );
 }

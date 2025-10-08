@@ -221,7 +221,7 @@ class SalesOrderService:
         """Update sales order"""
         try:
             db = get_database()
-            orders_collection = db.orders
+            orders_collection = db.sales_orders  # Fixed: was db.orders, should be db.sales_orders
 
             # Get existing order
             existing_order = await self.get_order_by_id(order_id)
