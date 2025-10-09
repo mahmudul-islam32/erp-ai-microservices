@@ -51,8 +51,14 @@ docker compose --profile development up -d
 
 ## 📚 Documentation
 
+### Development & Local Setup
 - **[Docker Commands Guide](DOCKER_COMMANDS.md)** - Complete Docker Compose commands reference
 - **[API Documentation](docs/)** - Service-specific documentation
+
+### Production Deployment
+- **[Quick Deploy Guide](QUICK_DEPLOY.md)** - Deploy to AWS EC2 in 5 steps ⚡
+- **[Complete AWS Deployment Guide](AWS_DEPLOYMENT_GUIDE.md)** - Detailed step-by-step deployment
+- **[CI/CD Setup Complete](CICD_SETUP_COMPLETE.md)** - Deployment summary and checklist
 
 ## 🌐 Service URLs
 
@@ -121,11 +127,39 @@ docker compose up -d --build           # Rebuild and start
 
 For complete command reference, see [DOCKER_COMMANDS.md](DOCKER_COMMANDS.md).
 
+## ☁️ Deploy to AWS
+
+Deploy your ERP application to AWS EC2 with automated CI/CD pipeline:
+
+### Quick Deploy (5 Steps - 15 minutes)
+```bash
+# 1. Launch AWS EC2 t2.micro instance (Free Tier)
+# 2. Create MongoDB Atlas free cluster
+# 3. Run setup script on EC2
+# 4. Configure environment variables
+# 5. Deploy!
+```
+
+**See**: [QUICK_DEPLOY.md](QUICK_DEPLOY.md) for step-by-step instructions
+
+### CI/CD Pipeline
+- ✅ GitHub Actions workflow configured
+- ✅ Auto-deploy on push to main
+- ✅ Zero-downtime deployments
+- ✅ Health checks included
+- ✅ Free tier eligible
+
+**See**: [AWS_DEPLOYMENT_GUIDE.md](AWS_DEPLOYMENT_GUIDE.md) for complete guide
+
 ## 🔐 Default Credentials
 
+### Local Development
 - **MongoDB**: admin / password123
 - **Mongo Express**: admin / admin123
 - **Application**: Create admin user through registration
+
+### Production
+- Configure secure credentials in `.env` file (see `env.production.template`)
 
 ## 📊 API Documentation
 
