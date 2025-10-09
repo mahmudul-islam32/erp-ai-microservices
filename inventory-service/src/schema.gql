@@ -123,6 +123,7 @@ input CreateWarehouseInput {
   isActive: Boolean! = true
   isMainWarehouse: Boolean! = false
   name: String!
+  notes: String
   phone: String
   postalCode: String
   state: String
