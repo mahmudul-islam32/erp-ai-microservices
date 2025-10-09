@@ -140,3 +140,8 @@ data/
 
 # Test outputs
 /tests/*.json
+
+# Environment files with secrets
+CORRECTED_ENV.txt
+*.env.local
+env.production.template
