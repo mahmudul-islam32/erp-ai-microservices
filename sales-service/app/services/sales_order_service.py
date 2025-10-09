@@ -152,6 +152,7 @@ class SalesOrderService:
                 shipping_cost=order_data.shipping_cost,
                 total_amount=order_total,
                 payment_status=PaymentStatus.PENDING,
+                payment_method=order_data.payment_method,
                 paid_amount=0.0,
                 balance_due=order_total,
                 notes=order_data.notes,
@@ -193,7 +194,11 @@ class SalesOrderService:
             db = get_database()
             orders_collection = db.sales_orders
             
-            order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+            # Exclude deleted orders
+            order = await orders_collection.find_one({
+                "_id": ObjectId(order_id),
+                "deleted": {"$ne": True}
+            })
             if order:
                 return SalesOrderInDB(**order)
             return None
@@ -395,7 +400,9 @@ class SalesOrderService:
                            end_date: Optional[date] = None,
                            search: Optional[str] = None) -> dict:
         """Build filter query for orders"""
-        filter_query = {}
+        # Exclude deleted orders by default
+        filter_query = {"deleted": {"$ne": True}}
+        
         if status:
             filter_query["status"] = status
         if customer_id:
@@ -529,13 +536,14 @@ class SalesOrderService:
             # Check if order exists and can be deleted
             order = await orders_collection.find_one({"_id": ObjectId(order_id)})
             if not order:
+                logger.warning(f"Order not found for deletion: {order_id}")
                 return False
 
-            # Only allow deletion if order is in draft or pending status
-            if order.get("status") not in [OrderStatus.DRAFT, OrderStatus.PENDING]:
-                raise ValueError("Cannot delete order that has been confirmed or processed")
+            # Allow deletion for any status (soft delete by marking as cancelled and deleted)
+            # Previously only allowed draft/pending, but now allow all statuses
+            logger.info(f"Deleting order {order_id} with status: {order.get('status')}")
 
-            # Soft delete by setting status to cancelled
+            # Soft delete by setting status to cancelled and marking as deleted
             result = await orders_collection.update_one(
                 {"_id": ObjectId(order_id)},
                 {
@@ -549,10 +557,15 @@ class SalesOrderService:
                 }
             )
 
-            return result.modified_count > 0
+            if result.modified_count > 0:
+                logger.info(f"Successfully deleted order {order_id}")
+                return True
+            else:
+                logger.warning(f"Failed to delete order {order_id} - no changes made")
+                return False
 
         except Exception as e:
-            logger.error(f"Error deleting order: {e}")
+            logger.error(f"Error deleting order {order_id}: {e}")
             return False
 
     async def _generate_order_number(self) -> str:

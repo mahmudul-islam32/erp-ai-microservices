@@ -48,14 +48,36 @@ export const ProductsPage: React.FC = () => {
     },
     {
       key: 'totalQuantity',
-      header: 'Stock',
+      header: 'On Hand',
+      render: (product) => (
+        <div className="text-sm">
+          <span className="font-semibold text-slate-900">
+            {product.totalQuantity || 0}
+          </span>
+          <span className="text-xs text-slate-500 ml-1">
+            {product.unit || 'pcs'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'availableQuantity',
+      header: 'Available',
       render: (product) => {
-        const qty = product.totalQuantity || 0;
+        const available = product.availableQuantity || 0;
+        const total = product.totalQuantity || 0;
         const reorder = product.reorderPoint || 0;
         return (
-          <Badge variant={qty > reorder ? 'success' : qty > 0 ? 'warning' : 'danger'}>
-            {qty} {product.unit || 'pcs'}
-          </Badge>
+          <div className="flex flex-col gap-0.5">
+            <Badge variant={available > reorder ? 'success' : available > 0 ? 'warning' : 'danger'}>
+              {available} {product.unit || 'pcs'}
+            </Badge>
+            {product.reservedQuantity > 0 && (
+              <span className="text-xs text-slate-500">
+                ({product.reservedQuantity} reserved)
+              </span>
+            )}
+          </div>
         );
       },
     },

@@ -47,35 +47,40 @@ export class CreateProductInput {
   @IsNotEmpty()
   unit: string;
 
-  @Field(() => Int)
-  @ApiProperty({ description: 'Current stock quantity' })
+  @Field(() => Int, { nullable: true })
+  @ApiPropertyOptional({ description: 'Current stock quantity (optional, managed by inventory service)' })
   @IsNumber()
   @Min(0)
-  currentStock: number;
+  @IsOptional()
+  currentStock?: number;
 
-  @Field(() => Int)
-  @ApiProperty({ description: 'Minimum stock level' })
+  @Field(() => Int, { nullable: true })
+  @ApiPropertyOptional({ description: 'Minimum stock level', default: 0 })
   @IsNumber()
   @Min(0)
-  minStockLevel: number;
+  @IsOptional()
+  minStockLevel?: number;
 
-  @Field(() => Int)
-  @ApiProperty({ description: 'Maximum stock level' })
+  @Field(() => Int, { nullable: true })
+  @ApiPropertyOptional({ description: 'Maximum stock level', default: 0 })
   @IsNumber()
   @Min(0)
-  maxStockLevel: number;
+  @IsOptional()
+  maxStockLevel?: number;
 
-  @Field(() => Int)
-  @ApiProperty({ description: 'Reorder point' })
+  @Field(() => Int, { nullable: true })
+  @ApiPropertyOptional({ description: 'Reorder point', default: 0 })
   @IsNumber()
   @Min(0)
-  reorderPoint: number;
+  @IsOptional()
+  reorderPoint?: number;
 
-  @Field(() => Int)
-  @ApiProperty({ description: 'Reorder quantity' })
+  @Field(() => Int, { nullable: true })
+  @ApiPropertyOptional({ description: 'Reorder quantity', default: 0 })
   @IsNumber()
   @Min(0)
-  reorderQuantity: number;
+  @IsOptional()
+  reorderQuantity?: number;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Product barcode' })

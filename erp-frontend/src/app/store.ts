@@ -5,6 +5,7 @@ import productsReducer from '../features/inventory/store/productsSlice';
 import categoriesReducer from '../features/inventory/store/categoriesSlice';
 import warehousesReducer from '../features/inventory/store/warehousesSlice';
 import customersReducer from '../features/sales/store/customersSlice';
+import ordersReducer from '../features/sales/store/ordersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     categories: categoriesReducer,
     warehouses: warehousesReducer,
     customers: customersReducer,
+    orders: ordersReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

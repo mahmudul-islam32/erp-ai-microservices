@@ -111,23 +111,36 @@ export const StockManagementPage: React.FC = () => {
     { key: 'unit', header: 'Unit' },
     {
       key: 'totalQuantity',
-      header: 'Total Stock',
+      header: 'On Hand',
       render: (product) => (
-        <span className="font-semibold">{product.totalQuantity || 0} {product.unit}</span>
+        <div className="text-sm">
+          <span className="font-semibold text-slate-900">
+            {product.totalQuantity || 0}
+          </span>
+          <span className="text-xs text-slate-500 ml-1">
+            {product.unit || 'pcs'}
+          </span>
+        </div>
       ),
     },
     {
       key: 'availableQuantity',
-      header: 'Available',
-      render: (product) => (
-        <Badge variant="success">{product.availableQuantity || 0} {product.unit}</Badge>
-      ),
+      header: 'Available to Sell',
+      render: (product) => {
+        const available = product.availableQuantity || 0;
+        const reorder = product.reorderPoint || 0;
+        return (
+          <Badge variant={available > reorder ? 'success' : available > 0 ? 'warning' : 'danger'}>
+            {available} {product.unit || 'pcs'}
+          </Badge>
+        );
+      },
     },
     {
       key: 'reservedQuantity',
       header: 'Reserved',
       render: (product) => (
-        <Badge variant="warning">{product.reservedQuantity || 0} {product.unit}</Badge>
+        <Badge variant="warning">{product.reservedQuantity || 0} {product.unit || 'pcs'}</Badge>
       ),
     },
     {
@@ -199,6 +212,19 @@ export const StockManagementPage: React.FC = () => {
           { label: 'Stock' },
         ]}
       />
+
+      {/* Stock Info Banner */}
+      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 className="text-sm font-semibold text-blue-900 mb-2">📊 How Stock Works</h3>
+        <div className="text-xs text-blue-800 space-y-1">
+          <p><strong>On Hand:</strong> Physical stock in all warehouses (decreases when orders are shipped)</p>
+          <p><strong>Available to Sell:</strong> On Hand - Reserved (what customers can buy right now)</p>
+          <p><strong>Reserved:</strong> Stock allocated to pending orders (not yet shipped)</p>
+          <p className="mt-2 pt-2 border-t border-blue-200">
+            <strong>When order is paid:</strong> On Hand decreases, Available decreases automatically ✅
+          </p>
+        </div>
+      </div>
 
       <Card>
         <div className="p-4 border-b border-slate-200">

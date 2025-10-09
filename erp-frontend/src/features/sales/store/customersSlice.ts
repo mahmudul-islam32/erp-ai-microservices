@@ -18,7 +18,9 @@ const initialState: CustomersState = {
 
 export const fetchCustomers = createAsyncThunk('customers/fetchAll', async (_, { rejectWithValue }) => {
   try {
-    return await customersApi.getAll();
+    const data = await customersApi.getAll();
+    // Ensure we return an array
+    return Array.isArray(data) ? data : [];
   } catch (error: any) {
     return rejectWithValue(error.response?.data?.detail || 'Failed to fetch customers');
   }
