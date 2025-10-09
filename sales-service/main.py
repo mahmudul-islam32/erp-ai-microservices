@@ -48,8 +48,8 @@ app = FastAPI(
     title="ERP Sales Service",
     description="Sales and Order Management microservice for ERP system",
     version="1.0.0",
-    docs_url="/docs",  # Always enable docs
-    redoc_url="/redoc",  # Always enable redoc
+    docs_url="/docs",  
+    redoc_url="/redoc",  
     lifespan=lifespan
 )
 
