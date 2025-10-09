@@ -7,10 +7,10 @@ import { LoginPage } from './features/auth/pages/LoginPage';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
 import { MainLayout } from './shared/components/layout/MainLayout';
 
-// Dashboard
+
 import { DashboardPage } from './features/dashboard/pages/DashboardPage';
 
-// User Management
+
 import { UsersPage } from './features/users/pages/UsersPage';
 import { CreateUserPage } from './features/users/pages/CreateUserPage';
 import { RolesPage } from './features/users/pages/RolesPage';
