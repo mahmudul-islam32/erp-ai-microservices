@@ -1,4 +1,4 @@
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from app.config import settings
@@ -6,19 +6,51 @@ from app.models import TokenData, UserRole, Permission
 from typing import Optional, List
 import secrets
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 class SecurityService:
     @staticmethod
+    def _truncate_password(password: str) -> str:
+        """Truncate password to 72 bytes for bcrypt"""
+        # bcrypt has a 72 byte limit
+        # Truncate at byte level, then find the last valid UTF-8 boundary
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) <= 72:
+            return password
+        
+        # Truncate to 72 bytes
+        truncated = password_bytes[:72]
+        
+        # Find the last valid UTF-8 character boundary
+        # UTF-8 continuation bytes start with 10xxxxxx (0x80-0xBF)
+        while len(truncated) > 0 and (truncated[-1] & 0xC0) == 0x80:
+            truncated = truncated[:-1]
+        
+        try:
+            return truncated.decode('utf-8')
+        except UnicodeDecodeError:
+            # If still invalid, just use the first 72 bytes as-is
+            return password[:72]
+    
+    @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash"""
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            # Truncate password to 72 bytes (bcrypt limitation)
+            password_bytes = plain_password.encode('utf-8')[:72]
+            hashed_bytes = hashed_password.encode('utf-8')
+            return bcrypt.checkpw(password_bytes, hashed_bytes)
+        except Exception as e:
+            print(f"Password verification error: {e}")
+            return False
 
     @staticmethod
     def get_password_hash(password: str) -> str:
         """Hash a password"""
-        return pwd_context.hash(password)
+        # Truncate password to 72 bytes (bcrypt limitation)
+        password_bytes = password.encode('utf-8')[:72]
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        return hashed.decode('utf-8')
 
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

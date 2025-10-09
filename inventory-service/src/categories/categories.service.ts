@@ -49,46 +49,79 @@ export class CategoriesService {
     sortBy: string = 'sortOrder',
     sortOrder: 'asc' | 'desc' = 'asc'
   ): Promise<{ categories: Category[], total: number, page: number, totalPages: number }> {
-    const query: any = {};
+    try {
+      const query: any = {};
 
-    // Apply filters
-    if (filter) {
-      if (filter.parentId) {
-        query.parentId = new Types.ObjectId(filter.parentId);
+      // Apply filters with strict validation
+      if (filter && typeof filter === 'object') {
+        // Only add parentId if it's a valid ObjectId
+        if (filter.parentId) {
+          const parentIdStr = String(filter.parentId).trim();
+          if (parentIdStr && parentIdStr !== '' && Types.ObjectId.isValid(parentIdStr)) {
+            query.parentId = new Types.ObjectId(parentIdStr);
+          }
+        }
+        
+        // Handle isActive filter
+        if (filter.isActive !== undefined && filter.isActive !== null) {
+          query.isActive = filter.isActive;
+        }
+        
+        // Handle search filter
+        if (filter.search && String(filter.search).trim() !== '') {
+          const searchStr = String(filter.search).trim();
+          query.$or = [
+            { name: { $regex: searchStr, $options: 'i' } },
+            { description: { $regex: searchStr, $options: 'i' } },
+            { code: { $regex: searchStr, $options: 'i' } },
+          ];
+        }
       }
-      if (filter.isActive !== undefined) {
-        query.isActive = filter.isActive;
-      }
-      if (filter.search) {
-        query.$or = [
-          { name: { $regex: filter.search, $options: 'i' } },
-          { description: { $regex: filter.search, $options: 'i' } },
-          { code: { $regex: filter.search, $options: 'i' } },
-        ];
-      }
+
+      const skip = (page - 1) * limit;
+      const sortOptions: any = {};
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+      const [categories, total] = await Promise.all([
+        this.categoryModel
+          .find(query)
+          .sort(sortOptions)
+          .skip(skip)
+          .limit(limit)
+          .exec(),
+        this.categoryModel.countDocuments(query),
+      ]);
+
+      // Manually populate parentId only for valid ObjectIds to avoid cast errors
+      const populatedCategories = await Promise.all(
+        categories.map(async (category) => {
+          if (category.parentId && Types.ObjectId.isValid(category.parentId.toString())) {
+            try {
+              await category.populate('parentId');
+            } catch (err) {
+              // If populate fails, just keep the ID
+            }
+          }
+          return category;
+        })
+      );
+
+      return {
+        categories: populatedCategories,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.error('Error in findAllCategories:', error);
+      // Return empty result instead of throwing
+      return {
+        categories: [],
+        total: 0,
+        page,
+        totalPages: 0,
+      };
     }
-
-    const skip = (page - 1) * limit;
-    const sortOptions: any = {};
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
-
-    const [categories, total] = await Promise.all([
-      this.categoryModel
-        .find(query)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .populate('parentId')
-        .exec(),
-      this.categoryModel.countDocuments(query),
-    ]);
-
-    return {
-      categories,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-    };
   }
 
   async findCategoryById(id: string): Promise<Category> {

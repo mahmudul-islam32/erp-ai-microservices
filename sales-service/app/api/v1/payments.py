@@ -7,6 +7,7 @@ from app.models.payment import (
 from app.models.pagination import PaginationResponse
 from app.services.payment_service import payment_service
 from app.services.stripe_service import stripe_service
+from app.services.external_services import inventory_service
 from app.api.dependencies import (
     get_current_active_user, require_sales_access, require_sales_write, 
     get_token_from_request, require_sales_access_flexible
@@ -97,8 +98,11 @@ async def create_cash_payment(
                 detail="User ID not available"
             )
         
+        # Get token for inventory service calls
+        token = await get_token_from_request(request)
+        
         # Process the simplified cash payment
-        payment = await payment_service.process_simple_cash_payment(cash_payment_data, user_id)
+        payment = await payment_service.process_simple_cash_payment(cash_payment_data, user_id, token)
         return payment
     except HTTPException:
         raise
@@ -453,6 +457,7 @@ async def create_stripe_payment_intent(
 @router.post("/stripe/confirm", response_model=PaymentResponse)
 async def confirm_stripe_payment(
     confirm_data: StripePaymentConfirm,
+    request: Request,
     current_user=Depends(require_sales_write())
 ):
     """Confirm a Stripe payment and create payment record"""
@@ -466,6 +471,9 @@ async def confirm_stripe_payment(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User ID not available"
             )
+        
+        # Get token for inventory service calls
+        token = await get_token_from_request(request)
         
         # Retrieve payment intent from Stripe
         payment_intent_data = await stripe_service.retrieve_payment_intent(confirm_data.payment_intent_id)
@@ -502,25 +510,84 @@ async def confirm_stripe_payment(
             processing_fee=None  # Can calculate based on Stripe fees if needed
         )
         
+        # Determine payment status based on Stripe payment intent status
+        payment_status = PaymentStatus.COMPLETED if payment_intent_data["status"] == "succeeded" else PaymentStatus.PENDING
+        
         payment_data = PaymentCreate(
             order_id=confirm_data.order_id,
             customer_id=customer_id,
             payment_method=PaymentMethod.STRIPE,
             amount=payment_intent_data["amount"],
             currency=payment_intent_data["currency"],
+            status=payment_status,  # Set status based on Stripe result
             gateway_details=gateway_details,
             reference_number=confirm_data.payment_intent_id,
             notes="Payment processed via Stripe"
         )
         
-        # Create payment and update order status
+        # Create payment with correct status
         payment = await payment_service.create_payment(payment_data, user_id)
         
-        # Update payment status to completed if Stripe says succeeded
-        if payment_intent_data["status"] == "succeeded":
-            from app.models.payment import PaymentUpdate
-            update_data = PaymentUpdate(status=PaymentStatus.COMPLETED)
-            payment = await payment_service.update_payment_status(str(payment.id), PaymentStatus.COMPLETED, user_id)
+        # Update order status if payment succeeded
+        if payment_status == PaymentStatus.COMPLETED:
+            from app.services.sales_order_service import sales_order_service
+            from app.models.sales_order import OrderStatus
+            
+            # Update order payment status and order status
+            order = await sales_order_service.get_order_by_id(confirm_data.order_id)
+            if order:
+                # Convert to dict if it's a Pydantic model
+                order_dict = order.dict() if hasattr(order, 'dict') else order
+                current_status = order_dict.get("status") if isinstance(order_dict, dict) else getattr(order, "status", "draft")
+                
+                # Update payment status to paid
+                await sales_order_service.update_payment_status(
+                    confirm_data.order_id,
+                    "paid",
+                    payment_intent_data["amount"]
+                )
+                
+                # Update order status from draft to confirmed when payment is completed
+                if current_status == "draft":
+                    await sales_order_service.update_order_status(
+                        confirm_data.order_id,
+                        "confirmed",
+                        user_id
+                    )
+                    logger.info(f"✅ Order {confirm_data.order_id} updated: payment_status=paid, status={current_status}→confirmed")
+                    
+                    # Fulfill stock after successful payment
+                    if token:
+                        try:
+                            if order.line_items:
+                                logger.info(f"🔄 Fulfilling stock for order {confirm_data.order_id} with {len(order.line_items)} items")
+                                fulfilled_count = 0
+                                for item in order.line_items:
+                                    try:
+                                        logger.info(f"Fulfilling stock for product {item.product_id}, quantity {item.quantity}")
+                                        fulfilled = await inventory_service.fulfill_stock(
+                                            item.product_id,
+                                            item.quantity,
+                                            confirm_data.order_id,
+                                            user_id,
+                                            token
+                                        )
+                                        if fulfilled:
+                                            fulfilled_count += 1
+                                            logger.info(f"✅ Stock fulfilled for product {item.product_id}")
+                                        else:
+                                            logger.warning(f"⚠️ Failed to fulfill stock for product {item.product_id}")
+                                    except Exception as item_error:
+                                        logger.error(f"Failed to fulfill stock for item {item.product_id}: {item_error}")
+                                
+                                logger.info(f"✅ Stock fulfillment complete: {fulfilled_count}/{len(order.line_items)} items fulfilled")
+                        except Exception as stock_error:
+                            logger.error(f"Stock fulfillment error: {stock_error}")
+                            # Continue anyway - payment is successful
+                    else:
+                        logger.warning("⚠️ No token available for stock fulfillment - skipping inventory update")
+                else:
+                    logger.info(f"✅ Order {confirm_data.order_id} payment updated: payment_status=paid, status={current_status} (unchanged)")
         
         logger.info(f"✅ Stripe payment confirmed and recorded: {payment.payment_number}")
         

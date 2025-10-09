@@ -72,18 +72,18 @@ input CreateProductInput {
   barcode: String
   categoryId: ID!
   cost: Float!
-  currentStock: Int!
+  currentStock: Int
   description: String
   dimensions: String
   images: [String!]
   isActive: Boolean! = true
   isTrackable: Boolean! = false
-  maxStockLevel: Int!
-  minStockLevel: Int!
+  maxStockLevel: Int
+  minStockLevel: Int
   name: String!
   price: Float!
-  reorderPoint: Int!
-  reorderQuantity: Int!
+  reorderPoint: Int
+  reorderQuantity: Int
   sku: String!
   supplierIds: [ID!]
   tags: String

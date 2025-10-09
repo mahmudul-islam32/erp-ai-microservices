@@ -276,6 +276,29 @@ export class InventoryController {
     return await this.inventoryService.getTransactionHistory(inventoryId, page, limit);
   }
 
+  @Get('transactions/product/:productId')
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF, UserRole.VIEWER)
+  @ApiOperation({ summary: 'Get transaction history for a product across all warehouses' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiQuery({ name: 'page', required: false, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Items per page (default: 50)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Transaction history retrieved successfully',
+  })
+  async getTransactionHistoryByProduct(
+    @Param('productId') productId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+  ): Promise<{
+    transactions: InventoryTransaction[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    return await this.inventoryService.getTransactionHistoryByFilters(productId, undefined, page, limit);
+  }
+
   @Post('adjust')
   // @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
   @ApiOperation({ summary: 'Adjust inventory levels for a product in a warehouse' })
