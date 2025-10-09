@@ -95,9 +95,6 @@ jobs:
           scp -o StrictHostKeyChecking=no -i private_key.pem \
             docker-compose.prod.yml $USER@$HOST:~/erp/docker-compose.yml
           
-          scp -o StrictHostKeyChecking=no -i private_key.pem \
-            .env.production.example $USER@$HOST:~/erp/.env.example
-          
           # Deploy on EC2
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
             set -e
