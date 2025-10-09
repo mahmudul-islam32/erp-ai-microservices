@@ -309,3 +309,4 @@ Your ERP application is fully deployed with automated CI/CD pipeline!
 
 *Deployment completed successfully! Happy coding! 🎊*
 
+# Trigger deployment
