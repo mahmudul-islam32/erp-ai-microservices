@@ -99,6 +99,12 @@ export class CreateWarehouseInput {
   @IsOptional()
   @IsBoolean()
   isMainWarehouse?: boolean;
+
+  @Field({ nullable: true })
+  @ApiPropertyOptional({ description: 'Additional notes about the warehouse' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 @InputType()
