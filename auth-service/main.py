@@ -34,13 +34,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"{settings.service_name} shutdown complete")
 
 
-# Create FastAPI application
+
 app = FastAPI(
     title="ERP Auth Service",
     description="Authentication and Authorization microservice for ERP system",
     version="1.0.0",
-    docs_url="/docs",  # Always enable docs
-    redoc_url="/redoc",  # Always enable redoc
+    docs_url="/docs",  
+    redoc_url="/redoc",  
     lifespan=lifespan
 )
 
