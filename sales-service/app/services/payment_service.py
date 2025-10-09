@@ -49,7 +49,7 @@ class PaymentService:
 
     # POS transaction numbering removed
 
-    async def process_simple_cash_payment(self, payment_data: CashPaymentCreate, user_id: str) -> PaymentResponse:
+    async def process_simple_cash_payment(self, payment_data: CashPaymentCreate, user_id: str, token: str = None) -> PaymentResponse:
         """Process a simplified cash payment and update order status"""
         try:
             logger.info(f"🔄 Starting simple cash payment processing for order {payment_data.order_id}")
@@ -123,32 +123,53 @@ class PaymentService:
                 if success:
                     logger.info(f"✅ Order {payment_data.order_id} payment status updated to 'paid' with amount {payment_data.amount}")
                     
-                    # Now fulfill the stock for the order (reduce inventory)
+                    # Update order status from draft to confirmed after successful payment
                     try:
-                        from app.services.external_services import inventory_service
-                        
-                        # Get the order details to fulfill stock
                         order = await self.sales_order_service.get_order_by_id(payment_data.order_id)
-                        if order and order.line_items:
-                            logger.info(f"🔄 Fulfilling stock for order {payment_data.order_id} with {len(order.line_items)} items")
-                            for item in order.line_items:
-                                try:
-                                    # Note: We don't have token here, so we'll call a version that doesn't need it
-                                    # Or we need to modify inventory service to allow internal calls
-                                    logger.info(f"Fulfilling stock for product {item.product_id}, quantity {item.quantity}")
-                                    # For now, just log - actual fulfillment should happen in confirm order
-                                    # fulfilled = await inventory_service.fulfill_stock(
-                                    #     item.product_id,
-                                    #     item.quantity,
-                                    #     payment_data.order_id,
-                                    #     user_id,
-                                    #     ""  # No token available here
-                                    # )
-                                except Exception as item_error:
-                                    logger.error(f"Failed to fulfill stock for item {item.product_id}: {item_error}")
-                    except Exception as fulfill_error:
-                        logger.error(f"Stock fulfillment error: {fulfill_error}")
-                        # Continue anyway - payment is successful
+                        if order and order.status == "draft":
+                            await self.sales_order_service.update_order_status(
+                                payment_data.order_id,
+                                "confirmed",
+                                user_id
+                            )
+                            logger.info(f"✅ Order {payment_data.order_id} status updated to 'confirmed'")
+                    except Exception as status_error:
+                        logger.error(f"Failed to update order status: {status_error}")
+                    
+                    # Now fulfill the stock for the order (reduce inventory)
+                    if token:  # Only if we have a token
+                        try:
+                            from app.services.external_services import inventory_service
+                            
+                            # Get the order details to fulfill stock
+                            order = await self.sales_order_service.get_order_by_id(payment_data.order_id)
+                            if order and order.line_items:
+                                logger.info(f"🔄 Fulfilling stock for order {payment_data.order_id} with {len(order.line_items)} items")
+                                fulfilled_count = 0
+                                for item in order.line_items:
+                                    try:
+                                        logger.info(f"Fulfilling stock for product {item.product_id}, quantity {item.quantity}")
+                                        fulfilled = await inventory_service.fulfill_stock(
+                                            item.product_id,
+                                            item.quantity,
+                                            payment_data.order_id,
+                                            user_id,
+                                            token
+                                        )
+                                        if fulfilled:
+                                            fulfilled_count += 1
+                                            logger.info(f"✅ Stock fulfilled for product {item.product_id}")
+                                        else:
+                                            logger.warning(f"⚠️ Failed to fulfill stock for product {item.product_id}")
+                                    except Exception as item_error:
+                                        logger.error(f"Failed to fulfill stock for item {item.product_id}: {item_error}")
+                                
+                                logger.info(f"✅ Stock fulfillment complete: {fulfilled_count}/{len(order.line_items)} items fulfilled")
+                        except Exception as fulfill_error:
+                            logger.error(f"Stock fulfillment error: {fulfill_error}")
+                            # Continue anyway - payment is successful
+                    else:
+                        logger.warning("⚠️ No token available for stock fulfillment - skipping inventory update")
                 else:
                     logger.error(f"❌ Failed to update order {payment_data.order_id} payment status - method returned False")
             except Exception as e:
@@ -158,8 +179,10 @@ class PaymentService:
                 # Don't fail the payment if order update fails, but log it
             
             # Convert to response model
+            # Exclude customer fields from dict since we're passing them explicitly
+            payment_dict = payment_db.dict(exclude={'customer_name', 'customer_email'})
             payment_response = PaymentResponse(
-                **payment_db.dict(),
+                **payment_dict,
                 customer_name=customer_name,
                 customer_email=customer_email
             )

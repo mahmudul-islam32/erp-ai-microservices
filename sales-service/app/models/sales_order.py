@@ -41,15 +41,15 @@ class OrderPriority(str, Enum):
 # Order Line Item
 class OrderLineItem(BaseModel):
     product_id: str
-    product_name: str
-    product_sku: str
+    product_name: Optional[str] = None  # Made optional for backward compatibility
+    product_sku: Optional[str] = None   # Made optional for backward compatibility
     quantity: int = Field(..., gt=0)
     unit_price: float = Field(..., ge=0)
     discount_percent: float = Field(0, ge=0, le=100)
     discount_amount: float = Field(0, ge=0)
     tax_rate: float = Field(0, ge=0, le=1)
     tax_amount: float = Field(0, ge=0)
-    line_total: float = Field(..., ge=0)
+    line_total: Optional[float] = None  # Made optional, can be calculated
     notes: Optional[str] = None
 
 
@@ -75,6 +75,7 @@ class SalesOrderCreate(BaseModel):
     subtotal_discount_percent: float = Field(0, ge=0, le=100)
     subtotal_discount_amount: float = Field(0, ge=0)
     shipping_cost: float = Field(0, ge=0)
+    payment_method: Optional[str] = None  # cash, stripe, bank_transfer, check, etc.
     notes: Optional[str] = None
     internal_notes: Optional[str] = None
 
@@ -118,6 +119,7 @@ class SalesOrderResponse(BaseModel):
     shipping_cost: float = 0
     total_amount: float
     payment_status: PaymentStatus = PaymentStatus.PENDING
+    payment_method: Optional[str] = None  # cash, stripe, bank_transfer, check, etc.
     paid_amount: float = 0
     balance_due: float = 0
     notes: Optional[str] = None
@@ -172,6 +174,7 @@ class SalesOrderInDB(BaseModel):
     shipping_cost: float = 0
     total_amount: float
     payment_status: PaymentStatus = PaymentStatus.PENDING
+    payment_method: Optional[str] = None  # cash, stripe, bank_transfer, check, etc.
     paid_amount: float = 0
     balance_due: float = 0
     notes: Optional[str] = None

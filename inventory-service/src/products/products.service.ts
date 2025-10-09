@@ -18,11 +18,17 @@ export class ProductsService {
         throw new ConflictException(`Product with SKU '${createProductInput.sku}' already exists`);
       }
 
-      // Convert categoryId string to ObjectId
+      // Convert categoryId string to ObjectId and set defaults for optional fields
       const productData = {
         ...createProductInput,
         categoryId: new Types.ObjectId(createProductInput.categoryId),
         supplierIds: createProductInput.supplierIds?.map(id => new Types.ObjectId(id)) || [],
+        // Set defaults for optional stock-related fields
+        currentStock: createProductInput.currentStock ?? 0,
+        minStockLevel: createProductInput.minStockLevel ?? 0,
+        maxStockLevel: createProductInput.maxStockLevel ?? 0,
+        reorderPoint: createProductInput.reorderPoint ?? 0,
+        reorderQuantity: createProductInput.reorderQuantity ?? 0,
       };
 
       const newProduct = new this.productModel(productData);
