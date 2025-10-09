@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MongoDB - You can use MongoDB Atlas free tier instead
   mongodb:
