@@ -22,12 +22,14 @@ const productSchema = z.object({
   price: z.coerce.number().min(0, 'Price must be positive'),
   cost: z.coerce.number().min(0, 'Cost must be positive'),
   unit: z.string().min(1, 'Unit is required'),
+  barcode: z.string().optional(),
+  weight: z.coerce.number().min(0).optional(),
+  dimensions: z.string().optional(),
+  tags: z.string().optional(),
   minStockLevel: z.coerce.number().min(0).optional(),
   maxStockLevel: z.coerce.number().min(0).optional(),
   reorderPoint: z.coerce.number().min(0).optional(),
   reorderQuantity: z.coerce.number().min(0).optional(),
-  barcode: z.string().optional(),
-  weight: z.coerce.number().min(0).optional(),
   isActive: z.boolean().optional(),
   isTrackable: z.boolean().optional(),
 });
@@ -72,12 +74,14 @@ export const EditProductPage: React.FC = () => {
         price: selectedProduct.price,
         cost: selectedProduct.cost,
         unit: selectedProduct.unit,
+        barcode: selectedProduct.barcode,
+        weight: selectedProduct.weight,
+        dimensions: selectedProduct.dimensions,
+        tags: selectedProduct.tags,
         minStockLevel: selectedProduct.minStockLevel,
         maxStockLevel: selectedProduct.maxStockLevel,
         reorderPoint: selectedProduct.reorderPoint,
         reorderQuantity: selectedProduct.reorderQuantity,
-        barcode: selectedProduct.barcode,
-        weight: selectedProduct.weight,
         isActive: selectedProduct.isActive,
         isTrackable: selectedProduct.isTrackable,
       });
@@ -120,13 +124,25 @@ export const EditProductPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Basic Information</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="SKU *" {...register('sku')} error={errors.sku?.message} />
-                <Input label="Product Name *" {...register('name')} error={errors.name?.message} />
-              </div>
+                <Input 
+                  label="SKU *" 
+                  {...register('sku')} 
+                  error={errors.sku?.message}
+                  helpText="Unique product identifier"
+                />
+                <Input 
+                  label="Product Name *" 
+                  {...register('name')} 
+                  error={errors.name?.message}
+                />
+                
+                <Input 
+                  label="Barcode" 
+                  {...register('barcode')}
+                  placeholder="UPC, EAN, ISBN, etc."
+                  helpText="Product barcode number"
+                />
 
-              <Textarea label="Description" {...register('description')} rows={3} />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select
                   label="Category *"
                   {...register('categoryId')}
@@ -136,47 +152,161 @@ export const EditProductPage: React.FC = () => {
                     ...(categories || []).map((cat) => ({ value: cat._id, label: cat.name })),
                   ]}
                 />
-                <Input label="Unit *" {...register('unit')} error={errors.unit?.message} />
               </div>
 
-              <Input label="Barcode" {...register('barcode')} />
+              <Textarea 
+                label="Description" 
+                {...register('description')} 
+                rows={3}
+                placeholder="Detailed product description"
+              />
+
+              <Input 
+                label="Tags" 
+                {...register('tags')}
+                placeholder="e.g., electronics, premium, featured (comma-separated)"
+                helpText="Tags for categorization and search"
+              />
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Pricing</h3>
+              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Pricing & Unit</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input 
+                  label="Selling Price *" 
+                  type="number" 
+                  step="0.01" 
+                  {...register('price')} 
+                  error={errors.price?.message}
+                  placeholder="0.00"
+                  helpText="Price customers pay"
+                />
+                <Input 
+                  label="Cost Price *" 
+                  type="number" 
+                  step="0.01" 
+                  {...register('cost')} 
+                  error={errors.cost?.message}
+                  placeholder="0.00"
+                  helpText="Your cost/purchase price"
+                />
+                <Input 
+                  label="Unit of Measure *" 
+                  {...register('unit')} 
+                  error={errors.unit?.message}
+                  placeholder="e.g., pcs, kg, liter"
+                  helpText="Unit for counting stock"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Stock Management Settings</h3>
+              
+              <div className="p-3 bg-slate-50 rounded-md mb-4">
+                <p className="text-xs text-slate-600">
+                  <strong>Note:</strong> Stock quantities are managed via the Stock Management page. These settings control alerts and reorder suggestions.
+                </p>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Price *" type="number" step="0.01" {...register('price')} error={errors.price?.message} />
-                <Input label="Cost *" type="number" step="0.01" {...register('cost')} error={errors.cost?.message} />
+                <Input 
+                  label="Reorder Point" 
+                  type="number" 
+                  {...register('reorderPoint')}
+                  placeholder="0"
+                  helpText="Alert when stock falls below this"
+                />
+                <Input 
+                  label="Reorder Quantity" 
+                  type="number" 
+                  {...register('reorderQuantity')}
+                  placeholder="0"
+                  helpText="Suggested quantity to reorder"
+                />
+                <Input 
+                  label="Minimum Stock Level" 
+                  type="number" 
+                  {...register('minStockLevel')}
+                  placeholder="0"
+                  helpText="Minimum inventory to maintain"
+                />
+                <Input 
+                  label="Maximum Stock Level" 
+                  type="number" 
+                  {...register('maxStockLevel')}
+                  placeholder="0"
+                  helpText="Maximum inventory capacity"
+                />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Stock Management</h3>
+              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Physical Properties</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Min Stock Level" type="number" {...register('minStockLevel')} />
-                <Input label="Max Stock Level" type="number" {...register('maxStockLevel')} />
-                <Input label="Reorder Point" type="number" {...register('reorderPoint')} />
-                <Input label="Reorder Quantity" type="number" {...register('reorderQuantity')} />
+                <Input 
+                  label="Weight (kg)" 
+                  type="number" 
+                  step="0.01" 
+                  {...register('weight')}
+                  placeholder="0.00"
+                  helpText="Product weight for shipping"
+                />
+                <Input 
+                  label="Dimensions" 
+                  {...register('dimensions')}
+                  placeholder="e.g., 30x20x10 cm"
+                  helpText="Length x Width x Height"
+                />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Additional Details</h3>
-              <Input label="Weight (kg)" type="number" step="0.01" {...register('weight')} />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="isActive" {...register('isActive')} className="rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
-                  <label htmlFor="isActive" className="text-sm text-slate-700">Active Product</label>
+              <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Additional Information</h3>
+              <Input 
+                label="Tags" 
+                {...register('tags')}
+                placeholder="e.g., electronics, premium, featured"
+                helpText="Comma-separated tags for categorization"
+              />
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="isActive" 
+                    {...register('isActive')} 
+                    className="mt-1 rounded border-slate-300 text-primary-600 focus:ring-primary-500" 
+                  />
+                  <div>
+                    <label htmlFor="isActive" className="text-sm font-medium text-slate-700">
+                      Active Product
+                    </label>
+                    <p className="text-xs text-slate-500">Product can be sold and appears in listings</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="isTrackable" {...register('isTrackable')} className="rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
-                  <label htmlFor="isTrackable" className="text-sm text-slate-700">Track Serial Numbers/Batches</label>
+                
+                <div className="flex items-start gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="isTrackable" 
+                    {...register('isTrackable')} 
+                    className="mt-1 rounded border-slate-300 text-primary-600 focus:ring-primary-500" 
+                  />
+                  <div>
+                    <label htmlFor="isTrackable" className="text-sm font-medium text-slate-700">
+                      Track Serial Numbers/Batches
+                    </label>
+                    <p className="text-xs text-slate-500">Enable batch or serial number tracking</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
