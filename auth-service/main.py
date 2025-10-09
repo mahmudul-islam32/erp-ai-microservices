@@ -47,17 +47,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",   # Create React App default
-        "http://localhost:5173",   # Vite default
-        "http://localhost:5174",   # Vite alternative port
-        "http://localhost:8080",   # Docker frontend port
-        "http://localhost:80",     # Production frontend
-        "http://localhost",        # Production frontend without port
-    ] if settings.environment == "development" else [
-        "http://localhost:80",
-        "http://localhost"
-    ],
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
