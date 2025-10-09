@@ -39,8 +39,8 @@ app = FastAPI(
     title="ERP Auth Service",
     description="Authentication and Authorization microservice for ERP system",
     version="1.0.0",
-    docs_url="/docs" if settings.environment == "development" else None,
-    redoc_url="/redoc" if settings.environment == "development" else None,
+    docs_url="/docs",  # Always enable docs
+    redoc_url="/redoc",  # Always enable redoc
     lifespan=lifespan
 )
 
@@ -67,7 +67,7 @@ app.add_middleware(
 if settings.environment == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["localhost", "127.0.0.1", "auth-service"]
+        allowed_hosts=["*"]  # Allow all hosts
     )
 
 
