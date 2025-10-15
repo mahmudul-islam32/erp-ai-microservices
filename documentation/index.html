@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System - Complete Documentation</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>ERP System</span>
+            </div>
+            <nav class="nav">
+                <a href="#introduction">Introduction</a>
+                <a href="#installation">Installation</a>
+                <a href="#features">Features</a>
+                <a href="#support">Support</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-content">
+            <h3>Documentation</h3>
+            <ul class="nav-menu">
+                <li><a href="#introduction"><i class="fas fa-home"></i> Introduction</a></li>
+                <li><a href="#requirements"><i class="fas fa-server"></i> Requirements</a></li>
+                <li><a href="#installation"><i class="fas fa-download"></i> Installation</a></li>
+                <li><a href="#quick-start"><i class="fas fa-rocket"></i> Quick Start</a></li>
+                <li><a href="#dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="#user-management"><i class="fas fa-users"></i> User Management</a></li>
+                <li><a href="#inventory"><i class="fas fa-boxes"></i> Inventory</a></li>
+                <li><a href="#sales"><i class="fas fa-shopping-cart"></i> Sales</a></li>
+                <li><a href="#payments"><i class="fas fa-credit-card"></i> Payments</a></li>
+                <li><a href="#customization"><i class="fas fa-paint-brush"></i> Customization</a></li>
+                <li><a href="#api"><i class="fas fa-code"></i> API Reference</a></li>
+                <li><a href="#troubleshooting"><i class="fas fa-wrench"></i> Troubleshooting</a></li>
+                <li><a href="#faq"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                <li><a href="#support"><i class="fas fa-life-ring"></i> Support</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Introduction Section -->
+            <section id="introduction" class="section">
+                <h1 class="section-title">📘 Welcome to ERP System Documentation</h1>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Version 1.0.0</strong> - Complete Enterprise Resource Planning System
+                </div>
+                
+                <p class="lead">
+                    Thank you for purchasing our ERP System! This comprehensive guide will help you get started 
+                    and make the most of all features.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-users fa-3x"></i>
+                        <h3>User Management</h3>
+                        <p>Complete RBAC with 6 roles and granular permissions</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-boxes fa-3x"></i>
+                        <h3>Inventory</h3>
+                        <p>Products, categories, warehouses & stock tracking</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-shopping-cart fa-3x"></i>
+                        <h3>Sales</h3>
+                        <p>Orders, customers, invoices with Stripe payments</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-bar fa-3x"></i>
+                        <h3>Analytics</h3>
+                        <p>Real-time dashboard with interactive charts</p>
+                    </div>
+                </div>
+
+                <div class="video-container">
+                    <h3>🎥 Introduction Video</h3>
+                    <div class="video-placeholder">
+                        <i class="fas fa-play-circle"></i>
+                        <p>Video tutorial coming soon</p>
+                        <!-- Replace with actual video embed -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Requirements Section -->
+            <section id="requirements" class="section">
+                <h2 class="section-title">📋 System Requirements</h2>
+                
+                <div class="requirements-grid">
+                    <div class="requirement-card">
+                        <h4><i class="fas fa-server"></i> Server</h4>
+                        <ul>
+                            <li><strong>OS:</strong> Linux (Ubuntu 20.04+), macOS, Windows 10+</li>
+                            <li><strong>CPU:</strong> 2+ cores (4 recommended)</li>
+                            <li><strong>RAM:</strong> 4GB minimum (8GB recommended)</li>
+                            <li><strong>Storage:</strong> 10GB minimum (20GB recommended)</li>
+                        </ul>
+                    </div>
+                    <div class="requirement-card">
+                        <h4><i class="fas fa-code"></i> Software</h4>
+                        <ul>
+                            <li><strong>Docker:</strong> 20.10+</li>
+                            <li><strong>Docker Compose:</strong> 2.0+</li>
+                            <li><strong>Git:</strong> Latest version (optional)</li>
+                        </ul>
+                    </div>
+                    <div class="requirement-card">
+                        <h4><i class="fas fa-globe"></i> Browser</h4>
+                        <ul>
+                            <li><strong>Chrome:</strong> 90+</li>
+                            <li><strong>Firefox:</strong> 88+</li>
+                            <li><strong>Safari:</strong> 14+</li>
+                            <li><strong>Edge:</strong> 90+</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Installation Section -->
+            <section id="installation" class="section">
+                <h2 class="section-title">🚀 Installation Guide</h2>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Important:</strong> Make sure Docker and Docker Compose are installed before proceeding.
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Download & Extract</h3>
+                            <p>Extract the downloaded ZIP file to your desired location.</p>
+                            <div class="code-block">
+                                <pre><code>unzip erp-system.zip
+cd erp-system</code></pre>
+                            </div>
+                            <div class="screenshot">
+                                <img src="assets/screenshots/extract.png" alt="Extract files" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22800%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2224%22 text-anchor=%22middle%22 fill=%22%23999%22%3EScreenshot: Extract Files%3C/text%3E%3C/svg%3E'">
+                                <p class="caption">Extract the downloaded package</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Configure Environment</h3>
+                            <p>Copy the environment template and configure your settings.</p>
+                            <div class="code-block">
+                                <pre><code>cp .env.example .env
+nano .env  # Edit configuration</code></pre>
+                            </div>
+                            <div class="note">
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>Tip:</strong> The system works with default values. You can configure later.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Start the Application</h3>
+                            <p>Launch all services with Docker Compose.</p>
+                            <div class="code-block">
+                                <pre><code>docker-compose up -d</code></pre>
+                            </div>
+                            <div class="screenshot">
+                                <img src="assets/screenshots/docker-start.png" alt="Docker start" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22800%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2224%22 text-anchor=%22middle%22 fill=%22%23999%22%3EScreenshot: Docker Starting%3C/text%3E%3C/svg%3E'">
+                                <p class="caption">Services starting with Docker Compose</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Access Your ERP</h3>
+                            <p>Open your browser and navigate to the application.</p>
+                            <div class="access-info">
+                                <div class="access-item">
+                                    <strong>Frontend:</strong> <a href="http://localhost:5173" target="_blank">http://localhost:5173</a>
+                                </div>
+                                <div class="access-item">
+                                    <strong>Default Email:</strong> <code>admin@example.com</code>
+                                </div>
+                                <div class="access-item">
+                                    <strong>Default Password:</strong> <code>admin123</code>
+                                </div>
+                            </div>
+                            <div class="screenshot">
+                                <img src="assets/screenshots/login.png" alt="Login page" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22%3E%3Crect fill=%22%234f46e5%22 width=%22800%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2224%22 text-anchor=%22middle%22 fill=%22white%22%3EScreenshot: Login Page%3C/text%3E%3C/svg%3E'">
+                                <p class="caption">Login page - Use default credentials</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Success!</strong> Your ERP system is now running. Change the default password immediately!
+                </div>
+            </section>
+
+            <!-- Quick Start Section -->
+            <section id="quick-start" class="section">
+                <h2 class="section-title">⚡ Quick Start Guide</h2>
+                
+                <div class="quick-start-grid">
+                    <div class="quick-card">
+                        <div class="quick-number">1</div>
+                        <h3>Login</h3>
+                        <p>Use default credentials to access the system</p>
+                        <div class="screenshot-small">
+                            <img src="assets/screenshots/login-small.png" alt="Login" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22%23999%22%3ELogin%3C/text%3E%3C/svg%3E'">
+                        </div>
+                    </div>
+                    <div class="quick-card">
+                        <div class="quick-number">2</div>
+                        <h3>Explore Dashboard</h3>
+                        <p>View statistics and recent activity</p>
+                        <div class="screenshot-small">
+                            <img src="assets/screenshots/dashboard-small.png" alt="Dashboard" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22%23999%22%3EDashboard%3C/text%3E%3C/svg%3E'">
+                        </div>
+                    </div>
+                    <div class="quick-card">
+                        <div class="quick-number">3</div>
+                        <h3>Add Products</h3>
+                        <p>Go to Inventory and create your first product</p>
+                        <div class="screenshot-small">
+                            <img src="assets/screenshots/product-small.png" alt="Products" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22%23999%22%3EProducts%3C/text%3E%3C/svg%3E'">
+                        </div>
+                    </div>
+                    <div class="quick-card">
+                        <div class="quick-number">4</div>
+                        <h3>Create Orders</h3>
+                        <p>Process your first sales order</p>
+                        <div class="screenshot-small">
+                            <img src="assets/screenshots/order-small.png" alt="Orders" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2218%22 text-anchor=%22middle%22 fill=%22%23999%22%3EOrders%3C/text%3E%3C/svg%3E'">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section">
+                <h2 class="section-title">📊 Dashboard</h2>
+                
+                <p>The dashboard provides a real-time overview of your business metrics.</p>
+
+                <div class="screenshot">
+                    <img src="assets/screenshots/dashboard-full.png" alt="Dashboard" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22500%22%3E%3Crect fill=%22%23f9fafb%22 width=%22800%22 height=%22500%22/%3E%3Crect fill=%22%234f46e5%22 width=%22800%22 height=%2280%22/%3E%3Ctext x=%2220%22 y=%2250%22 font-size=%2224%22 fill=%22white%22%3EER System Dashboard%3C/text%3E%3Crect fill=%22white%22 x=%2220%22 y=%22100%22 width=%22180%22 height=%22120%22 rx=%228%22/%3E%3Ctext x=%2230%22 y=%22140%22 font-size=%2216%22 fill=%22%23666%22%3ETotal Sales%3C/text%3E%3Ctext x=%2230%22 y=%22190%22 font-size=%2232%22 fill=%22%234f46e5%22%3E$45,231%3C/text%3E%3Crect fill=%22white%22 x=%22220%22 y=%22100%22 width=%22180%22 height=%22120%22 rx=%228%22/%3E%3Ctext x=%22230%22 y=%22140%22 font-size=%2216%22 fill=%22%23666%22%3EOrders%3C/text%3E%3Ctext x=%22230%22 y=%22190%22 font-size=%2232%22 fill=%22%2310b981%22%3E234%3C/text%3E%3Crect fill=%22white%22 x=%22420%22 y=%22100%22 width=%22180%22 height=%22120%22 rx=%228%22/%3E%3Ctext x=%22430%22 y=%22140%22 font-size=%2216%22 fill=%22%23666%22%3EProducts%3C/text%3E%3Ctext x=%22430%22 y=%22190%22 font-size=%2232%22 fill=%22%23f59e0b%22%3E1,234%3C/text%3E%3Crect fill=%22white%22 x=%22620%22 y=%22100%22 width=%22180%22 height=%22120%22 rx=%228%22/%3E%3Ctext x=%22630%22 y=%22140%22 font-size=%2216%22 fill=%22%23666%22%3ECustomers%3C/text%3E%3Ctext x=%22630%22 y=%22190%22 font-size=%2232%22 fill=%22%23ef4444%22%3E892%3C/text%3E%3Crect fill=%22white%22 x=%2220%22 y=%22240%22 width=%22560%22 height=%22240%22 rx=%228%22/%3E%3Ctext x=%2230%22 y=%22270%22 font-size=%2218%22 fill=%22%23333%22%3ESales Chart%3C/text%3E%3Cpolyline points=%2250,450 100,400 150,420 200,380 250,390 300,350 350,360 400,320 450,340 500,300 550,320%22 fill=%22none%22 stroke=%22%234f46e5%22 stroke-width=%223%22/%3E%3C/svg%3E'">
+                    <p class="caption">Dashboard with statistics and charts</p>
+                </div>
+
+                <h3>Key Features</h3>
+                <ul class="feature-list">
+                    <li><i class="fas fa-chart-line"></i> Real-time statistics cards</li>
+                    <li><i class="fas fa-chart-bar"></i> Interactive sales charts</li>
+                    <li><i class="fas fa-list"></i> Recent activity feed</li>
+                    <li><i class="fas fa-bell"></i> Low stock alerts</li>
+                    <li><i class="fas fa-filter"></i> Date range filters</li>
+                </ul>
+            </section>
+
+            <!-- Continue with other sections... -->
+            
+            <!-- Support Section -->
+            <section id="support" class="section">
+                <h2 class="section-title">💬 Support</h2>
+                
+                <div class="support-grid">
+                    <div class="support-card">
+                        <i class="fas fa-envelope fa-3x"></i>
+                        <h3>Email Support</h3>
+                        <p>support@yourdomain.com</p>
+                        <p class="response-time">Response within 24 hours</p>
+                    </div>
+                    <div class="support-card">
+                        <i class="fas fa-book fa-3x"></i>
+                        <h3>Documentation</h3>
+                        <p>Complete guides and tutorials</p>
+                        <a href="#" class="btn">View Docs</a>
+                    </div>
+                    <div class="support-card">
+                        <i class="fas fa-video fa-3x"></i>
+                        <h3>Video Tutorials</h3>
+                        <p>Step-by-step video guides</p>
+                        <a href="#" class="btn">Watch Videos</a>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-star"></i>
+                    <strong>Enjoying the product?</strong> Please rate us 5 stars on CodeCanyon!
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ERP System. All rights reserved.</p>
+            <p>Version 1.0.0 | <a href="#support">Support</a> | <a href="#faq">FAQ</a></p>
+        </div>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
+
