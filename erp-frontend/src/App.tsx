@@ -13,6 +13,8 @@ import { DashboardPage } from './features/dashboard/pages/DashboardPage';
 
 import { UsersPage } from './features/users/pages/UsersPage';
 import { CreateUserPage } from './features/users/pages/CreateUserPage';
+import { EditUserPage } from './features/users/pages/EditUserPage';
+import { UserDetailPage } from './features/users/pages/UserDetailPage';
 import { RolesPage } from './features/users/pages/RolesPage';
 import { SecurityPage } from './features/users/pages/SecurityPage';
 import { AccessControlPage } from './features/users/pages/AccessControlPage';
@@ -68,6 +70,8 @@ function App() {
             {/* User Management */}
             <Route path="users" element={<UsersPage />} />
             <Route path="users/create" element={<CreateUserPage />} />
+            <Route path="users/:id" element={<UserDetailPage />} />
+            <Route path="users/:id/edit" element={<EditUserPage />} />
             <Route path="roles" element={<RolesPage />} />
             <Route path="security" element={<SecurityPage />} />
             <Route path="access-control" element={<AccessControlPage />} />
