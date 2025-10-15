@@ -1,129 +1,65 @@
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAppDispatch } from '../../../app/hooks';
+import { AppDispatch, RootState } from '../../../app/store';
 import { createUser } from '../store/usersSlice';
-import { PageHeader } from '../../../shared/components/layout/PageHeader';
-import { Card, CardContent, CardFooter } from '../../../shared/components/ui/Card';
-import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
-import { Select } from '../../../shared/components/ui/Select';
-
-const userSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Invalid email address'),
-  full_name: z.string().min(1, 'Full name is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.string().optional(),
-  is_active: z.boolean().optional(),
-});
-
-type UserFormData = z.infer<typeof userSchema>;
+import { UserForm } from '../components/UserForm';
+import { CreateUserData } from '../types';
 
 export const CreateUserPage: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
-    defaultValues: {
-      is_active: true,
-    },
-  });
+  const { loading } = useSelector((state: RootState) => state.users);
 
-  const onSubmit = async (data: UserFormData) => {
+  const handleSubmit = async (data: CreateUserData) => {
     const result = await dispatch(createUser(data));
     if (createUser.fulfilled.match(result)) {
       navigate('/dashboard/users');
     }
   };
 
+  const handleCancel = () => {
+    navigate('/dashboard/users');
+  };
+
   return (
-    <div>
-      <PageHeader
-        title="Create User"
-        subtitle="Add a new user to the system"
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Users', href: '/dashboard/users' },
-          { label: 'Create' },
-        ]}
-      />
-
-      <Card>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            <Input
-              label="Username"
-              {...register('username')}
-              error={errors.username?.message}
+    <div className="max-w-3xl mx-auto">
+      <div className="mb-6">
+        <button
+          onClick={() => navigate('/dashboard/users')}
+          className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+        >
+          <svg
+            className="h-5 w-5 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
+          </svg>
+          Back to Users
+        </button>
+      </div>
 
-            <Input
-              label="Email"
-              type="email"
-              {...register('email')}
-              error={errors.email?.message}
-            />
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Create New User</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Fill in the information below to create a new user account
+          </p>
+        </div>
 
-            <Input
-              label="Full Name"
-              {...register('full_name')}
-              error={errors.full_name?.message}
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              {...register('password')}
-              error={errors.password?.message}
-            />
-
-            <Select
-              label="Role"
-              {...register('role')}
-              error={errors.role?.message}
-              options={[
-                { value: '', label: 'Select a role' },
-                { value: 'admin', label: 'Admin' },
-                { value: 'manager', label: 'Manager' },
-                { value: 'user', label: 'User' },
-              ]}
-            />
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                {...register('is_active')}
-                className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label htmlFor="is_active" className="text-sm text-slate-700">
-                Active User
-              </label>
-            </div>
-          </CardContent>
-
-          <CardFooter align="right">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/dashboard/users')}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>
-              Create User
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+        <UserForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          loading={loading}
+        />
+      </div>
     </div>
   );
 };
