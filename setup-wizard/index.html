@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System - Easy Installation Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 3rem;
+        }
+
+        .method-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .method-card {
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .method-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .method-card.recommended {
+            border-color: #10b981;
+            background: linear-gradient(to bottom, #ecfdf5, white);
+        }
+
+        .method-card.recommended::before {
+            content: "⭐ RECOMMENDED";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .method-icon {
+            font-size: 3.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .method-card.recommended .method-icon {
+            color: #10b981;
+        }
+
+        .method-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .method-card .difficulty {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .method-card .time {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .command-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            position: relative;
+            font-size: 1.1rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .steps {
+            margin: 2rem 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: start;
+        }
+
+        .step-number {
+            min-width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-content p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert i {
+            font-size: 1.5rem;
+            margin-top: 2px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn i {
+            margin-left: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .os-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .os-tab {
+            flex: 1;
+            padding: 0.75rem;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .os-tab:hover {
+            background: #e2e8f0;
+        }
+
+        .os-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .os-content {
+            display: none;
+        }
+
+        .os-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .method-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-magic"></i> ERP System</h1>
+            <p class="tagline">Super Easy Installation - Choose Your Method</p>
+        </div>
+
+        <div class="content">
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <strong>Installation takes just 5 minutes!</strong> Choose the method that works best for you.
+                </div>
+            </div>
+
+            <div class="method-cards">
+                <!-- Method 1: Terminal Wizard -->
+                <div class="method-card recommended" onclick="showInstructions('terminal')">
+                    <i class="fas fa-terminal method-icon"></i>
+                    <h3>Terminal Wizard</h3>
+                    <p class="difficulty">⭐ Easiest</p>
+                    <p class="time">5 minutes</p>
+                    <p>Interactive setup with beautiful interface. Works everywhere!</p>
+                </div>
+
+                <!-- Method 2: One Command -->
+                <div class="method-card" onclick="showInstructions('auto')">
+                    <i class="fas fa-bolt method-icon"></i>
+                    <h3>Automated</h3>
+                    <p class="difficulty">⭐⭐ Easy</p>
+                    <p class="time">3 minutes</p>
+                    <p>Fully automated with smart defaults. No questions asked!</p>
+                </div>
+
+                <!-- Method 3: Manual -->
+                <div class="method-card" onclick="showInstructions('manual')">
+                    <i class="fas fa-book method-icon"></i>
+                    <h3>Manual Setup</h3>
+                    <p class="difficulty">⭐⭐⭐ Advanced</p>
+                    <p class="time">10 minutes</p>
+                    <p>Full control over every step. For experienced users.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <strong>Not sure which to choose?</strong> We recommend the <strong>Terminal Wizard</strong> - 
+                    it's interactive, easy, and works perfectly for everyone!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Terminal Instructions -->
+    <div class="modal" id="terminalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-terminal"></i> Terminal Wizard Installation</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="os-tabs">
+                <div class="os-tab active" onclick="switchOS('mac')">
+                    <i class="fab fa-apple"></i> macOS
+                </div>
+                <div class="os-tab" onclick="switchOS('windows')">
+                    <i class="fab fa-windows"></i> Windows
+                </div>
+                <div class="os-tab" onclick="switchOS('linux')">
+                    <i class="fab fa-linux"></i> Linux
+                </div>
+            </div>
+
+            <!-- macOS Instructions -->
+            <div class="os-content active" id="mac-content">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Open Terminal</h4>
+                            <p>Press <code>Cmd + Space</code>, type "Terminal", and press Enter</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Navigate to ERP Folder</h4>
+                            <p>In Terminal, run:</p>
+                            <div class="command-box">
+                                cd /path/to/erp-ai-microservices
+                                <button class="copy-btn" onclick="copyCommand('cd /path/to/erp-ai-microservices')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <small style="color: #666;">Replace /path/to/ with your actual folder location</small>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Run the Setup Wizard</h4>
+                            <p>Copy and paste this command:</p>
+                            <div class="command-box">
+                                ./setup.sh
+                                <button class="copy-btn" onclick="copyCommand('./setup.sh')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Follow the Wizard</h4>
+                            <p>Answer a few questions about your preferences. The wizard will:</p>
+                            <ul style="margin-top: 0.5rem; margin-left: 1.5rem; color: #666;">
+                                <li>Check system requirements ✓</li>
+                                <li>Ask for app name and settings</li>
+                                <li>Create your admin account</li>
+                                <li>Install everything automatically</li>
+                                <li>Open your ERP in the browser</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>That's it!</strong> Your ERP will be ready in 5 minutes.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Windows Instructions -->
+            <div class="os-content" id="windows-content">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Open Command Prompt or PowerShell</h4>
+                            <p>Press <code>Win + R</code>, type "cmd", and press Enter</p>
+                            <p style="margin-top: 0.5rem;">Or use Git Bash if installed</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Navigate to ERP Folder</h4>
+                            <div class="command-box">
+                                cd C:\path\to\erp-ai-microservices
+                                <button class="copy-btn" onclick="copyCommand('cd C:\\path\\to\\erp-ai-microservices')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <small style="color: #666;">Replace with your actual folder path</small>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Run the Setup Script</h4>
+                            <p>If using Git Bash:</p>
+                            <div class="command-box">
+                                ./setup.sh
+                                <button class="copy-btn" onclick="copyCommand('./setup.sh')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <p style="margin-top: 1rem;">If using PowerShell:</p>
+                            <div class="command-box">
+                                bash setup.sh
+                                <button class="copy-btn" onclick="copyCommand('bash setup.sh')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Follow the Wizard</h4>
+                            <p>Answer the questions and wait for installation to complete!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linux Instructions -->
+            <div class="os-content" id="linux-content">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Open Terminal</h4>
+                            <p>Press <code>Ctrl + Alt + T</code> or search for "Terminal"</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Navigate to ERP Folder</h4>
+                            <div class="command-box">
+                                cd /path/to/erp-ai-microservices
+                                <button class="copy-btn" onclick="copyCommand('cd /path/to/erp-ai-microservices')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Make Script Executable (if needed)</h4>
+                            <div class="command-box">
+                                chmod +x setup.sh
+                                <button class="copy-btn" onclick="copyCommand('chmod +x setup.sh')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Run the Setup Wizard</h4>
+                            <div class="command-box">
+                                ./setup.sh
+                                <button class="copy-btn" onclick="copyCommand('./setup.sh')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Need Docker?</strong> Install Docker Desktop first: 
+                    <a href="https://docs.docker.com/get-docker/" target="_blank" style="color: #1e40af; font-weight: 600;">
+                        Get Docker <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Automated Instructions -->
+    <div class="modal" id="autoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-bolt"></i> Automated Installation</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <p style="margin-bottom: 2rem; color: #666;">
+                Fastest installation with zero interaction. Uses smart defaults.
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Open Terminal</h4>
+                        <p>Navigate to the erp-ai-microservices folder</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Run This Command</h4>
+                        <div class="command-box">
+                            ./install.sh
+                            <button class="copy-btn" onclick="copyCommand('./install.sh')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Wait for Completion</h4>
+                        <p>The script will automatically:</p>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem; color: #666;">
+                            <li>Check system requirements</li>
+                            <li>Generate secure passwords</li>
+                            <li>Start all services</li>
+                            <li>Create admin account</li>
+                            <li>Load demo data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-user"></i>
+                <div>
+                    <strong>Default Credentials:</strong><br>
+                    Email: admin@example.com<br>
+                    Password: admin123<br>
+                    <small>⚠️ Change these after first login!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Manual Instructions -->
+    <div class="modal" id="manualModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-book"></i> Manual Installation</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <p style="margin-bottom: 2rem; color: #666;">
+                For advanced users who want full control.
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Create Configuration</h4>
+                        <div class="command-box">
+                            cp .env.example .env
+                            <button class="copy-btn" onclick="copyCommand('cp .env.example .env')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p style="margin-top: 0.5rem;">Then edit .env with your settings</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Start Docker Containers</h4>
+                        <div class="command-box">
+                            docker-compose up -d
+                            <button class="copy-btn" onclick="copyCommand('docker-compose up -d')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Access Your ERP</h4>
+                        <p>Open browser to: <strong>http://localhost:5173</strong></p>
+                        <p style="margin-top: 0.5rem;">Login with default credentials (see documentation)</p>
+                    </div>
+                </div>
+            </div>
+
+            <p style="margin-top: 2rem; color: #666;">
+                <strong>For complete manual instructions:</strong> See <code>docs/INSTALLATION.md</code>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function showInstructions(method) {
+            if (method === 'terminal') {
+                document.getElementById('terminalModal').classList.add('active');
+            } else if (method === 'auto') {
+                document.getElementById('autoModal').classList.add('active');
+            } else if (method === 'manual') {
+                document.getElementById('manualModal').classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('active');
+            });
+        }
+
+        function switchOS(os) {
+            // Update tabs
+            document.querySelectorAll('.os-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.os-tab').classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.os-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(os + '-content').classList.add('active');
+        }
+
+        function copyCommand(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    event.target.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                }, 2000);
+            });
+        }
+
+        // Close modal on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        });
+
+        // Close modal on Esc key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
+
