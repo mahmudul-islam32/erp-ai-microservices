@@ -4,15 +4,55 @@ import { AppDispatch, RootState } from '../../../app/store';
 import { fetchRolePermissions } from '../store/usersSlice';
 import { UserRole, Permission } from '../types';
 import { PermissionsEditor } from '../components/PermissionsEditor';
+import { usersApi } from '../services/usersApi';
+import { toast } from 'sonner';
 
 export const RolesPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { rolePermissions } = useSelector((state: RootState) => state.users);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedPermissions, setEditedPermissions] = useState<Permission[]>([]);
+  const [saving, setSaving] = useState(false);
+  
+  const isSuperAdmin = user?.role === UserRole.SUPER_ADMIN;
 
   useEffect(() => {
     dispatch(fetchRolePermissions());
   }, [dispatch]);
+
+  const handleEditRole = (role: UserRole) => {
+    setSelectedRole(role);
+    setEditedPermissions(rolePermissions?.[role] || []);
+    setEditMode(true);
+  };
+
+  const handleSavePermissions = async () => {
+    if (!selectedRole) return;
+    
+    try {
+      setSaving(true);
+      await usersApi.updateRolePermissions(selectedRole, editedPermissions);
+      
+      // Refresh role permissions
+      await dispatch(fetchRolePermissions());
+      
+      toast.success(`Permissions updated for ${selectedRole.replace('_', ' ')}`);
+      setEditMode(false);
+      setSelectedRole(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'Failed to update permissions');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    setSelectedRole(null);
+    setEditedPermissions([]);
+  };
 
   const getRoleDescription = (role: UserRole): string => {
     const descriptions = {
@@ -100,8 +140,7 @@ export const RolesPage: React.FC = () => {
           return (
             <div
               key={role}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => setSelectedRole(role)}
+              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -122,10 +161,36 @@ export const RolesPage: React.FC = () => {
                 </p>
                 
                 <div className="border-t pt-4">
-                  <p className="text-xs text-gray-500 mb-2">Permissions</p>
-                  <p className="text-2xl font-bold text-indigo-600">
-                    {permissions.length}
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-gray-500">Permissions</p>
+                    <p className="text-2xl font-bold text-indigo-600">
+                      {permissions.length}
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => setSelectedRole(role)}
+                      className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                    >
+                      <svg className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View
+                    </button>
+                    {isSuperAdmin && (
+                      <button
+                        onClick={() => handleEditRole(role)}
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-indigo-600 shadow-sm text-xs font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 transition-colors"
+                      >
+                        <svg className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -133,55 +198,142 @@ export const RolesPage: React.FC = () => {
         })}
       </div>
 
-      {/* Role Details Modal */}
+      {/* Role Details/Edit Modal */}
       {selectedRole && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center p-4">
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
-              onClick={() => setSelectedRole(null)}
+              className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+              onClick={() => !editMode && setSelectedRole(null)}
             />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {selectedRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {getRoleDescription(selectedRole)}
-                  </p>
+            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${getRoleBadgeColor(selectedRole)}`}>
+                      {getRoleIcon(selectedRole)}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {selectedRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </h2>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {getRoleDescription(selectedRole)}
+                      </p>
+                    </div>
+                    {editMode && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        Editing
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={editMode ? handleCancelEdit : () => setSelectedRole(null)}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  onClick={() => setSelectedRole(null)}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
 
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Assigned Permissions ({rolePermissions?.[selectedRole]?.length || 0})
-                </h3>
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Permissions ({editMode ? editedPermissions.length : rolePermissions?.[selectedRole]?.length || 0})
+                  </h3>
+                  {!editMode && isSuperAdmin && selectedRole !== UserRole.SUPER_ADMIN && (
+                    <button
+                      onClick={() => {
+                        setEditMode(true);
+                        setEditedPermissions(rolePermissions?.[selectedRole] || []);
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50"
+                    >
+                      <svg className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit Permissions
+                    </button>
+                  )}
+                </div>
+
+                {selectedRole === UserRole.SUPER_ADMIN && (
+                  <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex">
+                      <svg className="h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-purple-800">Protected Role</h3>
+                        <p className="mt-1 text-sm text-purple-700">
+                          Super Admin permissions cannot be modified to prevent system lockout.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <PermissionsEditor
-                  selectedPermissions={rolePermissions?.[selectedRole] || []}
-                  onChange={() => {}}
-                  readOnly={true}
+                  selectedPermissions={editMode ? editedPermissions : (rolePermissions?.[selectedRole] || [])}
+                  onChange={setEditedPermissions}
+                  readOnly={!editMode}
                 />
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setSelectedRole(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Close
-                </button>
+              {/* Footer */}
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div className="flex justify-end space-x-3">
+                  {editMode ? (
+                    <>
+                      <button
+                        onClick={handleCancelEdit}
+                        disabled={saving}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSavePermissions}
+                        disabled={saving}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                      >
+                        {saving ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save Changes
+                          </>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedRole(null)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      Close
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -103,9 +103,9 @@ class SalesOrderResponse(BaseModel):
     customer_id: str
     customer_name: str
     customer_email: str
-    order_date: date
-    expected_delivery_date: Optional[date] = None
-    actual_delivery_date: Optional[date] = None
+    order_date: datetime  # Changed from date to datetime to match DB storage
+    expected_delivery_date: Optional[datetime] = None  # Changed from date to datetime
+    actual_delivery_date: Optional[datetime] = None  # Changed from date to datetime
     shipping_method: ShippingMethod
     shipping_address: Dict[str, str]
     priority: OrderPriority
@@ -138,15 +138,7 @@ class SalesOrderResponse(BaseModel):
             return str(v)
         return v
 
-    @field_validator('order_date', 'expected_delivery_date', 'actual_delivery_date', mode='before')
-    @classmethod
-    def convert_date_to_string(cls, v):
-        """Convert date objects to ISO format strings for MongoDB storage"""
-        if v is None:
-            return v
-        if isinstance(v, date):
-            return v.isoformat()
-        return v
+    # Removed date validation - accept datetime directly from database
 
     class Config:
         populate_by_name = True
@@ -158,9 +150,9 @@ class SalesOrderInDB(BaseModel):
     customer_id: str
     customer_name: str
     customer_email: str
-    order_date: date
-    expected_delivery_date: Optional[date] = None
-    actual_delivery_date: Optional[date] = None
+    order_date: datetime  # Changed from date to datetime
+    expected_delivery_date: Optional[datetime] = None  # Changed from date to datetime
+    actual_delivery_date: Optional[datetime] = None  # Changed from date to datetime
     shipping_method: ShippingMethod
     shipping_address: Dict[str, str]
     priority: OrderPriority
@@ -193,15 +185,7 @@ class SalesOrderInDB(BaseModel):
             return v
         return str(v)
 
-    @field_validator('order_date', 'expected_delivery_date', 'actual_delivery_date', mode='before')
-    @classmethod
-    def convert_date_to_string(cls, v):
-        """Convert date objects to ISO format strings for MongoDB storage"""
-        if v is None:
-            return v
-        if isinstance(v, date):
-            return v.isoformat()
-        return v
+    # Removed date validation - accept datetime directly from database
 
     class Config:
         populate_by_name = True

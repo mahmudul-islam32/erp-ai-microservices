@@ -1,350 +1,190 @@
-# ✅ Deployment Checklist - Before First Deploy
+# ✅ Production Deployment Checklist
 
-Before pushing to GitHub for automated deployment, ensure these steps are completed.
+Use this checklist to ensure a smooth production deployment.
 
-## 🔧 On EC2 Instance (One-Time Setup)
+## 🎯 Pre-Deployment
 
-### 1. **Create .env File** ⚠️ CRITICAL
+### AWS EC2 Setup
+- [ ] Launch EC2 instance (t3.medium or higher)
+- [ ] Configure Security Groups (ports 22, 80, 443, 8001-8003, 8080)
+- [ ] Allocate and associate Elastic IP
+- [ ] Generate or import SSH key pair
+- [ ] Save SSH key securely (you'll need it for GitHub Secrets)
 
-```bash
-# SSH to EC2
-ssh -i your-key.pem ubuntu@YOUR_EC2_IP
+### Server Setup
+- [ ] SSH into EC2 instance
+- [ ] Install Docker and Docker Compose
+- [ ] Add user to docker group
+- [ ] Configure UFW firewall
+- [ ] Create `~/erp` directory
 
-# Create app directory
-mkdir -p ~/erp
-cd ~/erp
+### Environment Configuration
+- [ ] Copy `env.production.example` to EC2 `~/erp/.env`
+- [ ] Generate JWT secret: `openssl rand -base64 64`
+- [ ] Set `MONGODB_PASSWORD` (strong password)
+- [ ] Set `JWT_SECRET_KEY` (from openssl)
+- [ ] Configure Stripe keys (if using payments)
+- [ ] Update `IMAGE_PREFIX` with your GitHub username
 
-# Create .env file
-nano .env
-```
+### GitHub Repository Setup
+- [ ] Fork or clone repository
+- [ ] Update `.github/workflows/deploy.yml` if needed
+- [ ] Add GitHub Secrets:
+  - [ ] `EC2_SSH_KEY` (private key content)
+  - [ ] `EC2_HOST` (EC2 public IP)
+  - [ ] `EC2_USER` (usually "ubuntu")
+  - [ ] `VITE_AUTH_SERVICE_URL` (http://YOUR_IP:8001)
+  - [ ] `VITE_INVENTORY_SERVICE_URL` (http://YOUR_IP:8002)
+  - [ ] `VITE_SALES_SERVICE_URL` (http://YOUR_IP:8003)
+  - [ ] `STRIPE_PUBLISHABLE_KEY` (optional)
 
-**Paste this configuration (update YOUR_* values):**
+## 🚀 Deployment
 
-```bash
-# GitHub Container Registry
-GITHUB_USERNAME=mahmudul-islam32
+### GitHub Actions (Automated)
+- [ ] Push code to `main` or `master` branch
+- [ ] Monitor GitHub Actions workflow
+- [ ] Check for build errors
+- [ ] Verify all services are green
 
-# MongoDB Configuration
-MONGODB_URL=mongodb+srv://erp_admin:YOUR_PASSWORD@cluster.xxxxx.mongodb.net/?retryWrites=true&w=majority
+### Manual Verification on EC2
+- [ ] SSH into EC2
+- [ ] Check container status: `docker compose ps`
+- [ ] Verify all containers are running
+- [ ] Check logs: `docker compose logs`
 
-# JWT Configuration
-JWT_SECRET_KEY=your-super-secret-jwt-key-min-32-characters-long
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
+## 🔧 Post-Deployment
 
-# Service Configuration
-ENVIRONMENT=production
-LOG_LEVEL=INFO
+### Application Setup
+- [ ] Create admin user (see DEPLOYMENT.md)
+- [ ] Change default admin password
+- [ ] Load demo data (optional)
+- [ ] Test login functionality
 
-# Sales Configuration
-DEFAULT_TAX_RATE=0.08
-DEFAULT_CURRENCY=USD
+### Service Health Checks
+- [ ] Auth service: `curl http://localhost:8001/health`
+- [ ] Inventory service: `curl http://localhost:8002/health`
+- [ ] Sales service: `curl http://localhost:8003/health`
+- [ ] Frontend: `curl http://localhost:8080`
 
-# Stripe Payment Configuration
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
-STRIPE_API_VERSION=2023-10-16
+### Browser Testing
+- [ ] Access frontend: `http://YOUR_EC2_IP:8080`
+- [ ] Test login with admin credentials
+- [ ] Navigate through all modules:
+  - [ ] Dashboard
+  - [ ] Inventory (Products, Categories, Stock)
+  - [ ] Sales (Orders, Customers, Invoices)
+  - [ ] User Management
+- [ ] Test API endpoints: `http://YOUR_EC2_IP:8001/docs`
 
-# MongoDB (if using local instead of Atlas)
-MONGO_USERNAME=admin
-MONGO_PASSWORD=password123
-```
+### Security Configuration
+- [ ] Change all default passwords
+- [ ] Verify MongoDB password is strong
+- [ ] Verify JWT secret is secure
+- [ ] Check firewall rules (UFW status)
+- [ ] Review Security Group settings
+- [ ] Disable mongo-express in production
 
-**Save**: Press `Ctrl+X`, then `Y`, then `Enter`
+## 🌐 Optional - Domain & SSL
 
-### 2. **Verify .env File Exists**
+### Domain Setup (Optional)
+- [ ] Point domain DNS to EC2 Elastic IP
+- [ ] Wait for DNS propagation (can take 24-48 hours)
+- [ ] Test domain resolution: `ping your-domain.com`
 
-```bash
-# Check file exists
-ls -la ~/erp/.env
+### SSL Certificate (Recommended)
+- [ ] Install Nginx: `sudo apt install nginx`
+- [ ] Configure Nginx reverse proxy
+- [ ] Install Certbot: `sudo apt install certbot python3-certbot-nginx`
+- [ ] Get SSL certificate: `sudo certbot --nginx -d your-domain.com`
+- [ ] Test HTTPS: `https://your-domain.com`
+- [ ] Set up auto-renewal: `sudo certbot renew --dry-run`
 
-# Should show:
-# -rw-r--r-- 1 ubuntu ubuntu XXX Oct 9 XX:XX .env
-```
+## 📊 Monitoring & Backups
 
----
+### Monitoring Setup
+- [ ] Set up CloudWatch logs (AWS)
+- [ ] Configure Docker log rotation
+- [ ] Set up uptime monitoring (e.g., UptimeRobot)
+- [ ] Configure error alerting
 
-## 🔑 On GitHub (One-Time Setup)
+### Backup Configuration
+- [ ] Test MongoDB backup script
+- [ ] Schedule daily backups (cron job)
+- [ ] Verify backup restoration process
+- [ ] Store backups in separate location (S3)
 
-### Configure GitHub Secrets
+## 🎉 Go Live
 
-Go to: `https://github.com/mahmudul-islam32/erp-ai-microservices/settings/secrets/actions`
+### Final Checks
+- [ ] All services are healthy
+- [ ] Admin account created and tested
+- [ ] Default passwords changed
+- [ ] SSL certificate active (if applicable)
+- [ ] Backups configured and tested
+- [ ] Monitoring configured
+- [ ] Documentation updated with production URLs
 
-Click **"New repository secret"** and add each of these:
-
-| Secret Name | Value | Required |
-|-------------|-------|----------|
-| `EC2_HOST` | Your EC2 public IP (e.g., `3.85.123.45`) | ✅ YES |
-| `EC2_USER` | `ubuntu` | ✅ YES |
-| `EC2_SSH_KEY` | Full content of your `.pem` file | ✅ YES |
-| `MONGODB_URL` | MongoDB connection string | ✅ YES |
-| `JWT_SECRET_KEY` | Your JWT secret (32+ chars) | ✅ YES |
-| `STRIPE_SECRET_KEY` | Your Stripe secret key | ✅ YES |
-| `STRIPE_PUBLISHABLE_KEY` | Your Stripe public key | ✅ YES |
-| `VITE_AUTH_SERVICE_URL` | `http://YOUR_EC2_IP:8001` | ✅ YES |
-| `VITE_INVENTORY_SERVICE_URL` | `http://YOUR_EC2_IP:8002` | ✅ YES |
-| `VITE_SALES_SERVICE_URL` | `http://YOUR_EC2_IP:8003` | ✅ YES |
-| `STRIPE_WEBHOOK_SECRET` | Your webhook secret | ⚠️ Optional |
-
-### How to Get EC2_SSH_KEY Value
-
-```bash
-# On Mac
-cat ~/Downloads/your-key.pem | pbcopy
-
-# On Linux/Windows
-cat ~/Downloads/your-key.pem
-# Then copy the entire output including:
-# -----BEGIN RSA PRIVATE KEY-----
-# ... all the content ...
-# -----END RSA PRIVATE KEY-----
-```
-
----
-
-## 🐳 On EC2 - Docker Setup (One-Time)
-
-### Ensure Docker is Installed
-
-```bash
-# SSH to EC2
-ssh -i your-key.pem ubuntu@YOUR_EC2_IP
-
-# Check Docker
-docker --version
-docker compose version
-
-# If not installed, run:
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker ubuntu
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Logout and login again
-exit
-```
-
----
-
-## 📋 Pre-Deploy Checklist
-
-Before running `git push origin main`:
-
-### EC2 Setup
-- [ ] EC2 instance is running
-- [ ] Can SSH to EC2: `ssh -i key.pem ubuntu@IP`
-- [ ] Docker installed: `docker --version`
-- [ ] Docker Compose installed: `docker compose version`
-- [ ] User in docker group: `groups | grep docker`
-- [ ] Directory exists: `~/erp/`
-- [ ] `.env` file created in `~/erp/.env`
-- [ ] `.env` has all required variables
-- [ ] Can login to GHCR (optional, for private images)
-
-### GitHub Setup
-- [ ] Repository exists: `https://github.com/mahmudul-islam32/erp-ai-microservices`
-- [ ] All 10 GitHub Secrets configured
-- [ ] `EC2_SSH_KEY` has complete .pem file content
-- [ ] EC2_HOST has correct public IP
-- [ ] Workflow file exists: `.github/workflows/deploy.yml`
-
-### Local Setup
-- [ ] All code changes committed
-- [ ] Frontend Dockerfile fixed (npm install)
-- [ ] package-lock.json regenerated
-- [ ] Tested build locally (optional)
-- [ ] Ready to push to main
-
-### MongoDB Setup
-- [ ] MongoDB Atlas cluster created (or local MongoDB)
-- [ ] Database user created
-- [ ] Connection string obtained
-- [ ] Network access configured (0.0.0.0/0 or EC2 IP)
-- [ ] Connection string added to GitHub Secrets and EC2 .env
+### Communication
+- [ ] Notify team of deployment
+- [ ] Share production URLs
+- [ ] Share admin credentials securely
+- [ ] Document any issues encountered
+- [ ] Update project status
 
 ---
 
-## 🚀 Deploy Now
-
-Once all checkboxes are ✅, deploy:
+## 📝 Common Commands Reference
 
 ```bash
-# On your local machine
-cd ~/Desktop/erp-ai-microservices
-
-# Add all changes
-git add .
-
-# Commit
-git commit -m "Ready for deployment"
-
-# Push to trigger auto-deploy
-git push origin main
-```
-
----
-
-## 📊 Monitor Deployment
-
-### 1. Watch GitHub Actions
-```
-https://github.com/mahmudul-islam32/erp-ai-microservices/actions
-```
-
-**Expected stages:**
-- ✅ Build and push images (3-5 min)
-- ✅ Deploy to EC2 (1-2 min)
-- ✅ Health checks
-- ✅ Success!
-
-### 2. Check EC2
-```bash
-# SSH to EC2
-ssh -i your-key.pem ubuntu@YOUR_EC2_IP
-
-# Check containers
-cd ~/erp
+# Check container status
 docker compose ps
 
-# Should show:
-# erp-mongodb           Up
-# erp-redis             Up
-# erp-auth-service      Up
-# erp-inventory-service Up
-# erp-sales-service     Up
-# erp-frontend          Up
-
-# Check logs
+# View logs
 docker compose logs -f
-```
 
-### 3. Test Application
-```bash
-# Health checks
-curl http://YOUR_EC2_IP:8001/health
-curl http://YOUR_EC2_IP:8002/health
-curl http://YOUR_EC2_IP:8003/health
+# Restart a service
+docker compose restart auth-service
 
-# Frontend
-curl http://YOUR_EC2_IP
+# Pull and update images
+docker compose pull && docker compose up -d
 
-# Or open in browser:
-# http://YOUR_EC2_IP
-```
+# Check disk space
+df -h
 
----
+# Clean Docker
+docker system prune -af
 
-## 🐛 Common Issues & Fixes
+# Backup MongoDB
+docker compose exec mongodb mongodump --out=/backup
 
-### Issue: "Permission denied (publickey)"
-**Fix:**
-```bash
-# Verify EC2_SSH_KEY secret has complete .pem content
-# Check security group allows SSH from GitHub IPs
-```
-
-### Issue: ".env file not found" on EC2
-**Fix:**
-```bash
-ssh -i key.pem ubuntu@YOUR_EC2_IP
-cd ~/erp
-nano .env
-# Create the file with your configuration
-```
-
-### Issue: "Cannot connect to MongoDB"
-**Fix:**
-```bash
-# Verify MongoDB URL in both:
-# 1. GitHub Secrets (MONGODB_URL)
-# 2. EC2 .env file (MONGODB_URL)
-# 3. MongoDB Atlas network access allows EC2 IP
-```
-
-### Issue: Images not pulling
-**Fix:**
-```bash
-# Make packages public on GitHub:
-# https://github.com/mahmudul-islam32?tab=packages
-# Or login to GHCR on EC2:
-echo TOKEN | docker login ghcr.io -u mahmudul-islam32 --password-stdin
-```
-
-### Issue: Deployment fails at health check
-**Fix:**
-```bash
-# SSH to EC2 and check logs
-docker compose logs
-# Check .env has all required variables
-# Restart services: docker compose restart
+# Monitor resources
+docker stats
 ```
 
 ---
 
-## ✅ Success Indicators
+## 🆘 Troubleshooting
 
-After successful deployment:
+If something goes wrong:
 
-```
-✅ GitHub Actions: All green checkmarks
-✅ EC2: All containers "Up" status
-✅ Health checks: All return 200 OK
-✅ Frontend accessible in browser
-✅ Can create user account
-✅ All features working
-```
-
----
-
-## 🔄 Future Deployments
-
-After initial setup, deploying is simple:
-
-```bash
-# Make changes
-git add .
-git commit -m "Your changes"
-git push origin main
-
-# Automatically deploys! ✨
-```
+1. **Check logs first**: `docker compose logs`
+2. **Verify .env file**: Make sure all required variables are set
+3. **Check container health**: `docker compose ps`
+4. **Review security groups**: Ensure ports are open
+5. **Test connectivity**: `curl http://localhost:PORT/health`
+6. **Restart services**: `docker compose restart`
+7. **Check GitHub Actions logs**: Review build/deployment errors
+8. **Verify SSH key**: Make sure EC2_SSH_KEY secret is correct
 
 ---
 
-## 📚 Related Documentation
+## 📞 Support
 
-- [AWS Deployment Guide](AWS_DEPLOYMENT_GUIDE.md) - Complete setup guide
-- [Quick Deploy](QUICK_DEPLOY.md) - Fast deployment in 5 steps
-- [Fix Deployment Errors](FIX_DEPLOYMENT_ERROR.md) - Troubleshooting
-- [GitHub Actions Info](GITHUB_ACTIONS_CONFIGURED.md) - CI/CD details
-
----
-
-## 🆘 Need Help?
-
-If deployment fails:
-
-1. **Check GitHub Actions logs** - Shows build/deploy errors
-2. **SSH to EC2 and check logs** - `docker compose logs`
-3. **Verify all secrets** - GitHub Settings → Secrets
-4. **Check .env on EC2** - `cat ~/erp/.env`
-5. **Review this checklist** - Ensure all steps completed
+- 📖 Full Guide: [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- 🚀 Quick Start: [QUICK_START.md](docs/QUICK_START.md)
+- 📚 User Manual: [USER_MANUAL.md](docs/USER_MANUAL.md)
 
 ---
 
-## 🎉 Ready to Deploy!
-
-All checkboxes checked? Let's go:
-
-```bash
-git push origin main
-```
-
-Watch it deploy at: https://github.com/mahmudul-islam32/erp-ai-microservices/actions
-
-**Good luck! 🚀**
+**Status:** Ready for Production ✅
 
