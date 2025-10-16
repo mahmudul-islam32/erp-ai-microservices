@@ -46,6 +46,7 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
+      // Select only users on current page
       const allIds = users.map(u => u.id || u._id || '');
       onSelectionChange?.(allIds);
     } else {
@@ -225,8 +226,14 @@ export const UserTable: React.FC<UserTableProps> = ({
         </tbody>
       </table>
       {users.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No users found
+        <div className="text-center py-12">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Try adjusting your filters or search criteria
+          </p>
         </div>
       )}
     </div>
