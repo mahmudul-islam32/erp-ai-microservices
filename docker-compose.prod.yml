@@ -94,10 +94,10 @@ services:
       - erp-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      retries: 5
-      start_period: 60s
+      retries: 10
+      start_period: 90s
 
   # Sales Service
   sales-service:
