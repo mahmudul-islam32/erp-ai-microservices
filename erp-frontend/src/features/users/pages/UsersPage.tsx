@@ -12,6 +12,7 @@ import {
 import { UserTable } from '../components/UserTable';
 import { UserFilters } from '../components/UserFilters';
 import { DeleteUserModal } from '../components/DeleteUserModal';
+import { Pagination } from '../../../shared/components/ui/Pagination';
 import { User, UserStatus } from '../types';
 import { usersApi } from '../services/usersApi';
 import { toast } from 'sonner';
@@ -25,6 +26,8 @@ export const UsersPage: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState<User[]>(users);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     dispatch(fetchUsers(filters));
@@ -52,7 +55,26 @@ export const UsersPage: React.FC = () => {
     }
 
     setFilteredUsers(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
   }, [users, filters.search, filters.department]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedUsers([]); // Clear selections when changing pages
+  };
+
+  const handleItemsPerPageChange = (perPage: number) => {
+    setItemsPerPage(perPage);
+    setCurrentPage(1); // Reset to first page
+    setSelectedUsers([]); // Clear selections
+  };
 
   const handleEdit = (user: User) => {
     navigate(`/dashboard/users/${user.id || user._id}/edit`);
@@ -295,20 +317,34 @@ export const UsersPage: React.FC = () => {
       )}
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         ) : (
-          <UserTable
-            users={filteredUsers}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onView={handleView}
-            selectedUsers={selectedUsers}
-            onSelectionChange={setSelectedUsers}
-          />
+          <>
+            <UserTable
+              users={paginatedUsers}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onView={handleView}
+              selectedUsers={selectedUsers}
+              onSelectionChange={setSelectedUsers}
+            />
+            
+            {/* Pagination */}
+            {filteredUsers.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredUsers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            )}
+          </>
         )}
       </div>
 

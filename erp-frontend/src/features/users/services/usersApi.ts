@@ -84,6 +84,13 @@ export const usersApi = {
     return response.data;
   },
 
+  /**
+   * Update role permissions (Super Admin only)
+   */
+  updateRolePermissions: async (role: string, permissions: Permission[]): Promise<void> => {
+    await authApi.put(`/api/v1/users/roles/${role}/permissions`, permissions);
+  },
+
   // ==================== Password Management ====================
 
   /**
@@ -301,8 +308,8 @@ export const accessControlApi = {
    * Get all access control entries
    */
   getAll: async (): Promise<AccessControlEntry[]> => {
-    // Mock data for now - implement backend endpoint
-    return [];
+    const response = await authApi.get('/api/v1/users/access-control/');
+    return response.data;
   },
 
   /**
@@ -312,28 +319,24 @@ export const accessControlApi = {
     userId: string,
     resource: string,
     permissions: Permission[],
-    expiresAt?: string
+    expiresAt?: string,
+    notes?: string
   ): Promise<AccessControlEntry> => {
-    // Mock data for now - implement backend endpoint
-    const entry: AccessControlEntry = {
-      id: Date.now().toString(),
+    const response = await authApi.post('/api/v1/users/access-control/', {
       user_id: userId,
-      user_email: '',
-      resource,
-      permissions,
-      granted_by: 'current_user',
-      granted_at: new Date().toISOString(),
-      expires_at: expiresAt,
-    };
-    return entry;
+      resource: resource,
+      permissions: permissions,
+      expires_at: expiresAt || null,
+      notes: notes || null
+    });
+    return response.data;
   },
 
   /**
    * Revoke access from user
    */
   revokeAccess: async (entryId: string): Promise<void> => {
-    // Mock data for now - implement backend endpoint
-    console.log('Revoking access:', entryId);
+    await authApi.delete(`/api/v1/users/access-control/${entryId}`);
   },
 };
 

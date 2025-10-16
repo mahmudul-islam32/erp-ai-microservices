@@ -8,6 +8,9 @@ import secrets
 
 
 class SecurityService:
+    # Class variable to store custom role permissions (in-memory for now)
+    _custom_role_permissions: dict = {}
+    
     @staticmethod
     def _truncate_password(password: str) -> str:
         """Truncate password to 72 bytes for bcrypt"""
@@ -108,8 +111,18 @@ class SecurityService:
         return secrets.token_urlsafe(32)
 
     @staticmethod
+    def set_role_permissions(role: UserRole, permissions: List[Permission]) -> None:
+        """Set custom permissions for a role (Super Admin only)"""
+        SecurityService._custom_role_permissions[role.value] = permissions
+    
+    @staticmethod
     def get_role_permissions(role: UserRole) -> List[Permission]:
-        """Get default permissions for a role"""
+        """Get permissions for a role (returns custom if set, otherwise default)"""
+        # Check if custom permissions are set
+        if role.value in SecurityService._custom_role_permissions:
+            return SecurityService._custom_role_permissions[role.value]
+        
+        # Otherwise return default permissions
         role_permissions = {
             UserRole.SUPER_ADMIN: [p for p in Permission],  # All permissions
             UserRole.ADMIN: [
