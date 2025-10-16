@@ -87,6 +87,8 @@ jobs:
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
         run: |
           echo "$PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -96,7 +98,7 @@ jobs:
             docker-compose.prod.yml $USER@$HOST:~/erp/docker-compose.yml
           
           # Deploy on EC2
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOSSH'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST bash -s << EOSSH
             set -e
             
             # Create directory if it doesn't exist
@@ -116,11 +118,11 @@ jobs:
             
             # Set image variables from GitHub
             export IMAGE_REGISTRY=ghcr.io
-            export IMAGE_PREFIX=${{ env.IMAGE_PREFIX }}
+            export IMAGE_PREFIX="${IMAGE_PREFIX}"
             export IMAGE_TAG=latest
             
             # Login to GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
             
             # Pull latest images
             echo "Pulling latest images..."
