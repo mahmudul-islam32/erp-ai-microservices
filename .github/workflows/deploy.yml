@@ -98,14 +98,38 @@ jobs:
           # Deploy on EC2
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOSSH'
             set -e
+            
+            # Create directory if it doesn't exist
+            mkdir -p ~/erp
             cd ~/erp
             
             # Check if .env exists
             if [ ! -f .env ]; then
-              echo "ERROR: .env file not found in ~/erp/"
-              echo "Please create .env file with required variables"
+              echo "❌ ERROR: .env file not found in ~/erp/"
+              echo "Please create ~/erp/.env file with required variables"
+              echo ""
+              echo "Example:"
+              echo "MONGODB_USERNAME=admin"
+              echo "MONGODB_PASSWORD=your_password"
+              echo "JWT_SECRET_KEY=your_jwt_secret"
+              echo "IMAGE_REGISTRY=ghcr.io"
+              echo "IMAGE_PREFIX=mahmudul-islam32/erp"
+              echo "IMAGE_TAG=latest"
               exit 1
             fi
+            
+            # Verify required variables are set
+            echo "📋 Checking environment variables..."
+            source .env
+            if [ -z "$MONGODB_PASSWORD" ]; then
+              echo "❌ ERROR: MONGODB_PASSWORD is not set in .env"
+              exit 1
+            fi
+            if [ -z "$JWT_SECRET_KEY" ]; then
+              echo "❌ ERROR: JWT_SECRET_KEY is not set in .env"
+              exit 1
+            fi
+            echo "✅ Environment variables verified"
             
             # Set image variables from GitHub
             export IMAGE_REGISTRY=ghcr.io
