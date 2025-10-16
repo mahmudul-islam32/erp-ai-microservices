@@ -1,18 +1,17 @@
 services:
-  # MongoDB - You can use MongoDB Atlas free tier instead
+  # MongoDB Database
   mongodb:
     image: mongo:7.0
     container_name: erp-mongodb
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password123}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
       MONGO_INITDB_DATABASE: erp_auth
     volumes:
       - mongodb_data:/data/db
-      - ./scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     networks:
       - erp-network
     healthcheck:
@@ -21,11 +20,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis
+  # Redis for caching
   redis:
     image: redis:7.2-alpine
     container_name: erp-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
@@ -40,14 +39,14 @@ services:
 
   # Auth Service
   auth-service:
-    image: ghcr.io/mahmudul-islam32/erp-auth-service:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-mahmudul-islam32/erp}-auth-service:${IMAGE_TAG:-latest}
     container_name: erp-auth-service
-    restart: always
+    restart: unless-stopped
     ports:
       - "8001:8001"
     environment:
-      ENVIRONMENT: production
-      MONGODB_URL: ${MONGODB_URL:-mongodb://admin:password123@mongodb:27017/erp_auth?authSource=admin}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      MONGODB_URL: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD}@mongodb:27017/erp_auth?authSource=admin
       DATABASE_NAME: erp_auth
       SECRET_KEY: ${JWT_SECRET_KEY}
       ALGORITHM: HS256
@@ -67,18 +66,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   # Inventory Service
   inventory-service:
-    image: ghcr.io/mahmudul-islam32/erp-inventory-service:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-mahmudul-islam32/erp}-inventory-service:${IMAGE_TAG:-latest}
     container_name: erp-inventory-service
-    restart: always
+    restart: unless-stopped
     ports:
       - "8002:8002"
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 8002
-      MONGODB_URI: ${MONGODB_URL:-mongodb://admin:password123@mongodb:27017/erp_inventory?authSource=admin}
+      MONGODB_URI: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD}@mongodb:27017/erp_inventory?authSource=admin
       AUTH_SERVICE_URL: http://auth-service:8001
       JWT_SECRET: ${JWT_SECRET_KEY}
     depends_on:
@@ -95,17 +95,18 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   # Sales Service
   sales-service:
-    image: ghcr.io/mahmudul-islam32/erp-sales-service:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-mahmudul-islam32/erp}-sales-service:${IMAGE_TAG:-latest}
     container_name: erp-sales-service
-    restart: always
+    restart: unless-stopped
     ports:
       - "8003:8003"
     environment:
-      ENVIRONMENT: production
-      MONGODB_URL: ${MONGODB_URL:-mongodb://admin:password123@mongodb:27017/erp_sales?authSource=admin}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      MONGODB_URL: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD}@mongodb:27017/erp_sales?authSource=admin
       DATABASE_NAME: erp_sales
       AUTH_SERVICE_URL: http://auth-service:8001
       INVENTORY_SERVICE_URL: http://inventory-service:8002
@@ -115,7 +116,7 @@ services:
       SERVICE_PORT: 8003
       SERVICE_HOST: 0.0.0.0
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      DEBUG: "false"
+      DEBUG: ${DEBUG:-false}
       DEFAULT_TAX_RATE: ${DEFAULT_TAX_RATE:-0.08}
       DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-USD}
       REDIS_URL: redis://redis:6379
@@ -124,7 +125,7 @@ services:
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_API_VERSION: "2023-10-16"
-      STRIPE_CURRENCY: usd
+      STRIPE_CURRENCY: ${STRIPE_CURRENCY:-usd}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -141,15 +142,15 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
-  # Frontend
+  # Frontend React Application (Production)
   frontend:
-    image: ghcr.io/mahmudul-islam32/erp-frontend:latest
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-mahmudul-islam32/erp}-frontend:${IMAGE_TAG:-latest}
     container_name: erp-frontend
-    restart: always
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
     depends_on:
       - auth-service
       - inventory-service
@@ -161,14 +162,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
 volumes:
   mongodb_data:
-    driver: local
   redis_data:
-    driver: local
   inventory_uploads:
-    driver: local
 
 networks:
   erp-network:

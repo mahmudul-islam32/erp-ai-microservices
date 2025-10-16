@@ -91,12 +91,12 @@ jobs:
           echo "$PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
           
-          # Copy docker-compose file to EC2
+          # Copy production docker-compose file to EC2
           scp -o StrictHostKeyChecking=no -i private_key.pem \
-            docker-compose.simple.yml $USER@$HOST:~/erp/docker-compose.yml
+            docker-compose.prod.yml $USER@$HOST:~/erp/docker-compose.yml
           
           # Deploy on EC2
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOSSH'
             set -e
             cd ~/erp
             
@@ -107,8 +107,13 @@ jobs:
               exit 1
             fi
             
+            # Set image variables from GitHub
+            export IMAGE_REGISTRY=ghcr.io
+            export IMAGE_PREFIX=${{ env.IMAGE_PREFIX }}
+            export IMAGE_TAG=latest
+            
             # Login to GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             # Pull latest images
             echo "Pulling latest images..."
@@ -124,11 +129,24 @@ jobs:
             
             # Wait for services to start
             echo "Waiting for services to start..."
-            sleep 30
+            sleep 45
             
             # Check container status
             echo "Container status:"
             docker compose ps
+            
+            # Health check
+            echo "Checking service health..."
+            max_retries=5
+            for i in $(seq 1 $max_retries); do
+              if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+                echo "✅ Auth service is healthy"
+                break
+              else
+                echo "⏳ Waiting for auth service (attempt $i/$max_retries)..."
+                sleep 10
+              fi
+            done
             
             # Check logs for errors
             echo "Recent logs:"
@@ -138,8 +156,8 @@ jobs:
             echo "Cleaning up old images..."
             docker image prune -af --filter "until=24h" || true
             
-            echo "Deployment completed!"
-          EOF
+            echo "✅ Deployment completed successfully!"
+          EOSSH
           
           rm -f private_key.pem
 

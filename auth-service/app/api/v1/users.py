@@ -3,10 +3,13 @@ from app.models import (
     UserCreate, UserUpdate, UserResponse, UserRole, UserStatus, Permission
 )
 from app.services import user_service
+from app.database import get_database
 from app.api.dependencies import (
     get_current_active_user, require_permissions, require_any_permission
 )
 from typing import List, Optional
+from datetime import datetime
+from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)
@@ -235,6 +238,163 @@ async def get_role_permissions(
 
     except Exception as e:
         logger.error(f"Get role permissions error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+
+@router.put("/roles/{role}/permissions")
+async def update_role_permissions(
+    role: UserRole,
+    permissions: List[Permission],
+    current_user=Depends(require_permissions([Permission.USER_UPDATE]))
+):
+    """Update permissions for a specific role (Super Admin only)"""
+    try:
+        # current_user is a UserInDB object, not a dict
+        user_role = getattr(current_user, 'role', None)
+        user_email = getattr(current_user, 'email', 'unknown')
+        
+        # Verify current user is super admin
+        if user_role != UserRole.SUPER_ADMIN.value:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only Super Admin can update role permissions"
+            )
+        
+        from app.services.security import SecurityService
+        security_service = SecurityService()
+        
+        # Update role permissions in security service
+        security_service.set_role_permissions(role, permissions)
+        
+        return {
+            "role": role.value,
+            "permissions": [p.value for p in permissions],
+            "updated_by": user_email,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update role permissions error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+
+# ==================== Access Control Endpoints ====================
+
+@router.get("/access-control/")
+async def get_access_control_entries(
+    current_user=Depends(require_permissions([Permission.USER_READ]))
+):
+    """Get all access control entries"""
+    try:
+        db = get_database()
+        entries = await db.access_control.find().to_list(length=1000)
+        
+        # Convert ObjectId to string
+        for entry in entries:
+            entry['id'] = str(entry.pop('_id'))
+        
+        return entries
+    except Exception as e:
+        logger.error(f"Get access control error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+
+from pydantic import BaseModel
+
+class GrantAccessRequest(BaseModel):
+    user_id: str
+    resource: str
+    permissions: List[str]
+    expires_at: Optional[str] = None
+    notes: Optional[str] = None
+
+@router.post("/access-control/")
+async def grant_access(
+    request: GrantAccessRequest,
+    current_user=Depends(require_permissions([Permission.USER_UPDATE]))
+):
+    """Grant resource access to a user"""
+    try:
+        db = get_database()
+        
+        # Get user email
+        from app.services.user_service import UserService
+        user_service = UserService()
+        target_user = await user_service.get_user_by_id(request.user_id)
+        
+        if not target_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Create access control entry
+        entry = {
+            "user_id": request.user_id,
+            "user_email": target_user.email,
+            "resource": request.resource,
+            "permissions": request.permissions,
+            "granted_by": str(getattr(current_user, 'id', '')),
+            "granted_by_email": getattr(current_user, 'email', 'unknown'),
+            "granted_at": datetime.utcnow(),
+            "expires_at": datetime.fromisoformat(request.expires_at.replace('Z', '+00:00')) if request.expires_at else None,
+            "notes": request.notes,
+            "is_active": True
+        }
+        
+        result = await db.access_control.insert_one(entry)
+        entry['id'] = str(result.inserted_id)
+        entry.pop('_id', None)
+        
+        return entry
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Grant access error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+
+@router.delete("/access-control/{entry_id}")
+async def revoke_access(
+    entry_id: str,
+    current_user=Depends(require_permissions([Permission.USER_UPDATE]))
+):
+    """Revoke access control entry"""
+    try:
+        db = get_database()
+        from bson import ObjectId
+        
+        result = await db.access_control.delete_one({"_id": ObjectId(entry_id)})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Access entry not found"
+            )
+        
+        return {"message": "Access revoked successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Revoke access error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
