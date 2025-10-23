@@ -4,6 +4,7 @@ from decimal import Decimal
 import logging
 import uuid
 import asyncio
+import os
 from bson import ObjectId
 
 from app.database.connection import get_database
@@ -16,6 +17,12 @@ from app.models.payment import (
 from app.models.sales_order import SalesOrderCreate, OrderLineItemCreate
 from app.services.sales_order_service import SalesOrderService
 from app.services.customer_service import CustomerService
+from app.services.notification_client import NotificationClient
+from app.services.notification_helper import (
+    get_notification_recipients_for_sales_action,
+    get_user_info,
+    send_notification_to_supervisors
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +34,9 @@ class PaymentService:
         self.refunds_collection = None
         self.sales_order_service = SalesOrderService()
         self.customer_service = CustomerService()
+        # Initialize notification client
+        notification_url = os.getenv("NOTIFICATION_SERVICE_URL", "http://notification-service:8004")
+        self.notification_client = NotificationClient(notification_url)
 
     def _get_db(self):
         if self.db is None:
@@ -135,6 +145,52 @@ class PaymentService:
                             logger.info(f"✅ Order {payment_data.order_id} status updated to 'confirmed'")
                     except Exception as status_error:
                         logger.error(f"Failed to update order status: {status_error}")
+                    
+                    # Send payment received notification to supervisors
+                    try:
+                        # Get cashier's information
+                        from app.services.external_services import auth_service
+                        cashier_info = await auth_service.get_user_by_id(user_id, token)
+                        cashier_name = "A cashier"
+                        if cashier_info:
+                            first_name = cashier_info.get('first_name', '')
+                            last_name = cashier_info.get('last_name', '')
+                            cashier_name = f"{first_name} {last_name}".strip() or cashier_info.get('email', 'A cashier')
+                        
+                        # Get recipients (notify admins and managers about payments)
+                        recipients = await get_notification_recipients_for_sales_action(
+                            performer_id=user_id,
+                            token=token,
+                            include_managers=True,
+                            include_sales_team=False,  # Don't notify all sales team for every payment
+                            exclude_performer=True
+                        )
+                        
+                        if recipients:
+                            await send_notification_to_supervisors(
+                                notification_client=self.notification_client,
+                                performer_id=user_id,
+                                performer_name=cashier_name,
+                                title=f"Payment Received by {cashier_name}",
+                                message=f"{cashier_name} processed cash payment of ${payment_data.amount:.2f} for order {payment_data.order_id}",
+                                notification_type="payment_received",
+                                priority="medium",
+                                metadata={
+                                    "payment_id": payment_db.id,
+                                    "payment_number": payment_number,
+                                    "order_id": payment_data.order_id,
+                                    "amount": float(payment_data.amount),
+                                    "payment_method": "cash",
+                                    "change_given": float(change_given),
+                                    "processed_by_name": cashier_name
+                                },
+                                action_url=f"/sales/orders/{payment_data.order_id}",
+                                action_label="View Order",
+                                token=token,
+                                recipients=recipients
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to send payment notification: {e}")
                     
                     # Now fulfill the stock for the order (reduce inventory)
                     if token:  # Only if we have a token

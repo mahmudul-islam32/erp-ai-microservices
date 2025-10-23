@@ -5,19 +5,28 @@ from app.models import (
 )
 from app.services.customer_service import customer_service
 from app.services.external_services import inventory_service, auth_service
+from app.services.notification_client import NotificationClient
+from app.services.notification_helper import (
+    get_notification_recipients_for_sales_action,
+    get_user_info,
+    send_notification_to_supervisors
+)
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 from bson import ObjectId
 from app.config import settings
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 
 class SalesOrderService:
     def __init__(self):
-        pass
+        # Initialize notification client
+        notification_url = os.getenv("NOTIFICATION_SERVICE_URL", "http://notification-service:8004")
+        self.notification_client = NotificationClient(notification_url)
 
     async def create_order(self, order_data: SalesOrderCreate, user_id: str, token: str) -> SalesOrderResponse:
         """Create a new sales order"""
@@ -131,14 +140,20 @@ class SalesOrderService:
                 else:
                     shipping_address = customer.billing_address.dict()
 
+            # Convert date to datetime for storage
+            order_datetime = datetime.combine(order_data.order_date, datetime.min.time()) if isinstance(order_data.order_date, date) else order_data.order_date
+            expected_delivery_datetime = None
+            if order_data.expected_delivery_date:
+                expected_delivery_datetime = datetime.combine(order_data.expected_delivery_date, datetime.min.time()) if isinstance(order_data.expected_delivery_date, date) else order_data.expected_delivery_date
+
             # Create order document
             order_doc = SalesOrderInDB(
                 order_number=order_number,
                 customer_id=str(customer.id),  # Use string ID instead of the original input
                 customer_name=f"{customer.first_name} {customer.last_name}".strip(),
                 customer_email=customer.email,
-                order_date=order_data.order_date.isoformat() if isinstance(order_data.order_date, date) else order_data.order_date,
-                expected_delivery_date=order_data.expected_delivery_date.isoformat() if order_data.expected_delivery_date and isinstance(order_data.expected_delivery_date, date) else order_data.expected_delivery_date,
+                order_date=order_datetime,
+                expected_delivery_date=expected_delivery_datetime,
                 shipping_method=order_data.shipping_method,
                 shipping_address=shipping_address,
                 priority=order_data.priority,
@@ -163,15 +178,6 @@ class SalesOrderService:
 
             # Insert order
             order_dict = order_doc.dict(by_alias=True, exclude={"id"})
-            
-            # Convert date objects to ISO format strings for MongoDB storage
-            if 'order_date' in order_dict and isinstance(order_dict['order_date'], date):
-                order_dict['order_date'] = order_dict['order_date'].isoformat()
-            if 'expected_delivery_date' in order_dict and isinstance(order_dict['expected_delivery_date'], date):
-                order_dict['expected_delivery_date'] = order_dict['expected_delivery_date'].isoformat()
-            if 'actual_delivery_date' in order_dict and isinstance(order_dict['actual_delivery_date'], date):
-                order_dict['actual_delivery_date'] = order_dict['actual_delivery_date'].isoformat()
-            
             result = await orders_collection.insert_one(order_dict)
             
             # Fetch created order
@@ -180,6 +186,63 @@ class SalesOrderService:
                 # Convert ObjectId to string for response
                 if "_id" in created_order:
                     created_order["_id"] = str(created_order["_id"])
+                
+                # Send notification to supervisors and team (NOT the creator)
+                try:
+                    # DEBUG: Log token info
+                    token_preview = f"{token[:20]}..." if token and len(token) > 20 else str(token)
+                    logger.info(f"🔐 Notification flow starting - Token: {token_preview}, User ID: {user_id}")
+                    
+                    # Get creator's information to include in notification
+                    creator_info = await get_user_info(user_id, token)
+                    creator_name = "A user"
+                    if creator_info:
+                        first_name = creator_info.get('first_name', '')
+                        last_name = creator_info.get('last_name', '')
+                        creator_name = f"{first_name} {last_name}".strip() or creator_info.get('email', 'A user')
+                    
+                    # Get recipients (supervisors, admins, managers - NOT the creator)
+                    logger.info(f"📋 About to fetch notification recipients with token: {token_preview}")
+                    recipients = await get_notification_recipients_for_sales_action(
+                        performer_id=user_id,
+                        token=token,
+                        include_managers=True,
+                        include_sales_team=True,
+                        exclude_performer=True  # Don't notify creator
+                    )
+                    
+                    if recipients:
+                        # Determine priority based on order value
+                        priority = "high" if order_total >= 5000 else "medium"
+                        
+                        # Send notification to all supervisors
+                        await send_notification_to_supervisors(
+                            notification_client=self.notification_client,
+                            performer_id=user_id,
+                            performer_name=creator_name,
+                            title=f"New Order Created by {creator_name}",
+                            message=f"{creator_name} created Order {order_number} for {created_order['customer_name']}. Total: ${order_total:.2f}",
+                            notification_type="order_created",
+                            priority=priority,
+                            metadata={
+                                "order_id": str(created_order["_id"]),
+                                "order_number": order_number,
+                                "customer_name": created_order['customer_name'],
+                                "total_amount": order_total,
+                                "created_by_name": creator_name
+                            },
+                            action_url=f"/sales/orders/{created_order['_id']}",
+                            action_label="View Order",
+                            token=token,
+                            recipients=recipients
+                        )
+                        logger.info(f"Order notification sent to {len(recipients)} supervisors")
+                    else:
+                        logger.warning("No recipients found for order notification")
+                        
+                except Exception as e:
+                    logger.warning(f"Failed to send notification for new order: {e}")
+                
                 return SalesOrderResponse(**created_order)
             
             return None
@@ -262,7 +325,7 @@ class SalesOrderService:
             logger.error(f"Error updating order: {e}")
             return None
 
-    async def update_order_status(self, order_id: str, new_status: str, user_id: str) -> bool:
+    async def update_order_status(self, order_id: str, new_status: str, user_id: str, token: str = None) -> bool:
         """Update order status only"""
         try:
             db = get_database()
@@ -280,6 +343,10 @@ class SalesOrderService:
                 "updated_by": user_id
             }
 
+            # Get order before update to check if status changed
+            existing_order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+            old_status = existing_order.get("status") if existing_order else None
+            
             # Update order
             result = await orders_collection.update_one(
                 {"_id": ObjectId(order_id)},
@@ -288,6 +355,59 @@ class SalesOrderService:
 
             if result.modified_count > 0:
                 logger.info(f"Order {order_id} status updated to '{new_status}'")
+                
+                # Send notification about status change to supervisors
+                if old_status != new_status and existing_order:
+                    try:
+                        # Get updater's information
+                        updater_info = await auth_service.get_user_by_id(user_id, token)
+                        updater_name = "A user"
+                        if updater_info:
+                            first_name = updater_info.get('first_name', '')
+                            last_name = updater_info.get('last_name', '')
+                            updater_name = f"{first_name} {last_name}".strip() or updater_info.get('email', 'A user')
+                        
+                        # Determine priority based on status
+                        priority = "medium"
+                        if new_status in ["cancelled", "returned"]:
+                            priority = "high"
+                        elif new_status in ["delivered", "shipped"]:
+                            priority = "medium"
+                        
+                        # Get recipients (exclude the updater)
+                        recipients = await get_notification_recipients_for_sales_action(
+                            performer_id=user_id,
+                            token=token,
+                            include_managers=True,
+                            include_sales_team=True,
+                            exclude_performer=True
+                        )
+                        
+                        if recipients:
+                            await send_notification_to_supervisors(
+                                notification_client=self.notification_client,
+                                performer_id=user_id,
+                                performer_name=updater_name,
+                                title=f"Order Status Updated by {updater_name}",
+                                message=f"{updater_name} changed Order {existing_order.get('order_number')} status from {old_status} to {new_status}",
+                                notification_type="order_updated",
+                                priority=priority,
+                                metadata={
+                                    "order_id": order_id,
+                                    "order_number": existing_order.get('order_number'),
+                                    "old_status": old_status,
+                                    "new_status": new_status,
+                                    "customer_name": existing_order.get('customer_name'),
+                                    "updated_by_name": updater_name
+                                },
+                                action_url=f"/sales/orders/{order_id}",
+                                action_label="View Order",
+                                token=token,
+                                recipients=recipients
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to send notification for order status update: {e}")
+                
                 return True
             else:
                 logger.warning(f"No order was modified for order_id: {order_id}")
