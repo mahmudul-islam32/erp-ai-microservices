@@ -44,6 +44,17 @@ import { OrderDetailPage } from './features/sales/pages/OrderDetailPage';
 import { QuotesPage } from './features/sales/pages/QuotesPage';
 import { InvoicesPage } from './features/sales/pages/InvoicesPage';
 
+// Chat
+import { ChatPage } from './features/chat';
+
+// Finance
+import { 
+  FinanceDashboardPage,
+  ChartOfAccountsPage,
+  JournalEntriesPage,
+  FinancialReportsPage,
+} from './features/finance';
+
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
 
@@ -100,6 +111,15 @@ function App() {
             <Route path="sales/orders/:id/edit" element={<EditOrderPage />} />
             <Route path="sales/quotes" element={<QuotesPage />} />
             <Route path="sales/invoices" element={<InvoicesPage />} />
+
+            {/* Chat */}
+            <Route path="messages" element={<ChatPage />} />
+
+            {/* Finance */}
+            <Route path="finance" element={<FinanceDashboardPage />} />
+            <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
+            <Route path="finance/journal-entries" element={<JournalEntriesPage />} />
+            <Route path="finance/reports" element={<FinancialReportsPage />} />
 
             {/* Settings */}
             <Route path="settings" element={<SettingsPage />} />

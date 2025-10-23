@@ -1,11 +1,14 @@
 from app.database import get_database
 from app.models import UserInDB, UserCreate, UserUpdate, UserResponse, UserRole, UserStatus, Permission
 from app.services.security import SecurityService
+from app.services.notification_client import NotificationClient
+from app.services.notification_helper import send_user_management_notification
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List
 from datetime import datetime, timedelta
 from bson import ObjectId
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +16,13 @@ logger = logging.getLogger(__name__)
 class UserService:
     def __init__(self):
         self.security_service = SecurityService()
+        # Initialize notification client if service URL is available
+        notification_url = os.getenv("NOTIFICATION_SERVICE_URL", "http://notification-service:8004")
+        self.notification_client = NotificationClient(notification_url)
+        self.current_performer_id = None  # Set by API endpoints
+        self.current_performer_name = None
 
-    async def create_user(self, user_data: UserCreate) -> UserResponse:
+    async def create_user(self, user_data: UserCreate, auth_token: str = None) -> UserResponse:
         """Create a new user"""
         try:
             db = get_database()
@@ -51,7 +59,36 @@ class UserService:
             created_user = await users_collection.find_one({"_id": result.inserted_id})
             if created_user:
                 created_user["id"] = str(created_user["_id"])
+                user_id = created_user["id"]
                 del created_user["_id"]  # Remove the original _id field
+                
+                # Send notification to admins (NOT the new user)
+                try:
+                    # Get performer info (admin who created the user)
+                    performer_name = "An administrator"
+                    if self.current_performer_name:
+                        performer_name = self.current_performer_name
+                    elif self.current_performer_id:
+                        performer_info = await self.get_user_by_id(self.current_performer_id)
+                        if performer_info:
+                            performer_name = f"{performer_info.first_name} {performer_info.last_name}".strip()
+                    
+                    # Notify all other admins about new user creation
+                    new_user_name = f"{user_data.first_name} {user_data.last_name}".strip()
+                    await send_user_management_notification(
+                        notification_client=self.notification_client,
+                        performer_id=self.current_performer_id or "system",
+                        performer_name=performer_name,
+                        action="created",
+                        subject_user_name=new_user_name,
+                        subject_user_email=user_data.email,
+                        details=f"Role: {user_data.role.value}, Department: {user_data.department or 'N/A'}",
+                        priority="medium",
+                        auth_token=auth_token  # ✅ FIXED: Pass the authentication token!
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to send notification for new user: {e}")
+                
                 return UserResponse(**created_user)
             
             return None
@@ -137,6 +174,48 @@ class UserService:
             if updated_user:
                 updated_user["id"] = str(updated_user["_id"])
                 del updated_user["_id"]  # Remove the original _id field
+                
+                # Send notification to admins about user update
+                try:
+                    # Get performer info
+                    performer_name = "An administrator"
+                    if self.current_performer_name:
+                        performer_name = self.current_performer_name
+                    elif self.current_performer_id:
+                        performer_info = await self.get_user_by_id(self.current_performer_id)
+                        if performer_info:
+                            performer_name = f"{performer_info.first_name} {performer_info.last_name}".strip()
+                    
+                    # Build change details
+                    changes = []
+                    if "role" in update_data:
+                        changes.append(f"role changed to {update_data['role']}")
+                    if "status" in update_data:
+                        changes.append(f"status changed to {update_data['status']}")
+                    if "department" in update_data:
+                        changes.append(f"department changed to {update_data['department']}")
+                    
+                    changes_text = ", ".join(changes) if changes else "profile information updated"
+                    
+                    # Get updated user name
+                    updated_user_name = f"{updated_user.get('first_name', '')} {updated_user.get('last_name', '')}".strip()
+                    updated_user_email = updated_user.get('email', '')
+                    
+                    # Notify admins (not the performer or the subject user)
+                    await send_user_management_notification(
+                        notification_client=self.notification_client,
+                        performer_id=self.current_performer_id or "system",
+                        performer_name=performer_name,
+                        action="updated",
+                        subject_user_name=updated_user_name,
+                        subject_user_email=updated_user_email,
+                        details=changes_text,
+                        priority="medium",
+                        auth_token=None  # ✅ TODO: Need to pass auth_token through update_user method
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to send notification for user update: {e}")
+                
                 return UserResponse(**updated_user)
             
             return None
@@ -160,6 +239,41 @@ class UserService:
                     }
                 }
             )
+
+            if result.matched_count > 0:
+                # Send notification to admins about user deactivation
+                try:
+                    # Get the deactivated user's info
+                    deactivated_user = await self.get_user_by_id(user_id)
+                    user_name = "Unknown user"
+                    user_email = ""
+                    if deactivated_user:
+                        user_name = f"{deactivated_user.first_name} {deactivated_user.last_name}".strip()
+                        user_email = deactivated_user.email
+                    
+                    # Get performer info
+                    performer_name = "An administrator"
+                    if self.current_performer_name:
+                        performer_name = self.current_performer_name
+                    elif self.current_performer_id:
+                        performer_info = await self.get_user_by_id(self.current_performer_id)
+                        if performer_info:
+                            performer_name = f"{performer_info.first_name} {performer_info.last_name}".strip()
+                    
+                    # Notify admins
+                    await send_user_management_notification(
+                        notification_client=self.notification_client,
+                        performer_id=self.current_performer_id or "system",
+                        performer_name=performer_name,
+                        action="deactivated",
+                        subject_user_name=user_name,
+                        subject_user_email=user_email,
+                        details="User account has been deactivated",
+                        priority="high",
+                        auth_token=None  # ✅ TODO: Need to pass auth_token through delete_user method
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to send notification for user deletion: {e}")
 
             return result.matched_count > 0
 

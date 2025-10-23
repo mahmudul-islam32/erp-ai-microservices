@@ -10,6 +10,7 @@ import {
 } from './schemas/inventory.schema';
 import { Product, ProductDocument } from '../products/schemas/product.schema';
 import { Warehouse, WarehouseDocument } from '../warehouses/schemas/warehouse.schema';
+import { NotificationClientService } from '../common/notification-client.service';
 
 export interface InventoryAdjustmentInput {
   productId: string;
@@ -54,6 +55,7 @@ export class InventoryService {
     @InjectModel(InventoryTransaction.name) private transactionModel: Model<InventoryTransaction>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(Warehouse.name) private warehouseModel: Model<WarehouseDocument>,
+    private readonly notificationClient: NotificationClientService,
   ) {}
 
   async getInventoryByProduct(productId: string): Promise<Inventory[]> {
@@ -245,10 +247,109 @@ export class InventoryService {
     console.log(`🔄 Now updating products table...`);
     await this.recalculateProductTotals(input.productId);
 
+    // Check stock levels and send notifications
+    await this.checkStockLevelsAndNotify(input.productId, product, newQuantity, input.performedBy);
+
     return {
       inventory: savedInventory,
       transaction: savedTransaction,
     };
+  }
+
+  private async checkStockLevelsAndNotify(
+    productId: string,
+    product: any,
+    currentStock: number,
+    userId: string,
+  ): Promise<void> {
+    try {
+      // For inventory notifications, we need to notify warehouse managers and admins
+      // NOT the person who adjusted the stock
+      
+      // TODO: Implement get users by role for TypeScript
+      // For now, we'll use a simplified approach - notify all users with inventory permissions
+      // You can implement a proper role-based system later
+      
+      // Get all warehouse managers and admins
+      // This would require calling the auth service
+      // For now, we'll send to a configurable list or all admins
+      
+      const recipients: string[] = [];
+      // TODO: Fetch actual warehouse managers from auth service
+      // const admins = await this.getAdminUsers();
+      // recipients.push(...admins);
+      
+      // For demonstration, we'll send to the performer but with a message
+      // showing "User X adjusted stock"
+      // In production, replace userId with actual admin/manager IDs
+      
+      const performerName = userId; // TODO: Get actual user name from auth service
+      
+      // Check if stock is at or below reorder point
+      if (currentStock <= product.reorderPoint && currentStock > 0) {
+        await this.notificationClient.sendNotification({
+          user_id: userId, // TODO: Replace with warehouse managers
+          title: `Low Stock Alert - Action by User`,
+          message: `Stock adjusted for "${product.name}" (SKU: ${product.sku}). Now at low level: ${currentStock} (Reorder point: ${product.reorderPoint})`,
+          type: 'inventory_low_stock',
+          priority: 'high',
+          metadata: {
+            product_id: productId,
+            product_name: product.name,
+            sku: product.sku,
+            current_stock: currentStock,
+            reorder_point: product.reorderPoint,
+            reorder_quantity: product.reorderQuantity,
+            adjusted_by_id: userId,
+          },
+          action_url: `/inventory/products/${productId}`,
+          action_label: 'Restock Now',
+        });
+      }
+
+      // Check if out of stock
+      if (currentStock === 0) {
+        await this.notificationClient.sendNotification({
+          user_id: userId, // TODO: Replace with warehouse managers and purchasing team
+          title: `URGENT: Out of Stock`,
+          message: `Product "${product.name}" (SKU: ${product.sku}) is now out of stock! Immediate restocking required.`,
+          type: 'inventory_out_of_stock',
+          priority: 'urgent',
+          metadata: {
+            product_id: productId,
+            product_name: product.name,
+            sku: product.sku,
+            reorder_quantity: product.reorderQuantity,
+            adjusted_by_id: userId,
+          },
+          action_url: `/inventory/products/${productId}`,
+          action_label: 'Restock Now',
+        });
+      }
+
+      // Check if restocked (stock went from below reorder point to above it)
+      if (currentStock > product.reorderPoint && product.currentStock <= product.reorderPoint) {
+        await this.notificationClient.sendNotification({
+          user_id: userId, // TODO: Replace with warehouse managers
+          title: `Product Restocked`,
+          message: `Product "${product.name}" (SKU: ${product.sku}) has been restocked. Current stock: ${currentStock}`,
+          type: 'inventory_restocked',
+          priority: 'low',
+          metadata: {
+            product_id: productId,
+            product_name: product.name,
+            sku: product.sku,
+            current_stock: currentStock,
+            restocked_by_id: userId,
+          },
+          action_url: `/inventory/products/${productId}`,
+          action_label: 'View Product',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send stock notification:', error.message);
+      // Don't throw error - notification failure shouldn't break stock management
+    }
   }
 
   async adjustInventory(input: InventoryAdjustmentInput): Promise<{ inventory: Inventory, transaction: InventoryTransaction }> {

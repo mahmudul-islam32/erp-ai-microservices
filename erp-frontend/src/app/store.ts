@@ -6,6 +6,9 @@ import categoriesReducer from '../features/inventory/store/categoriesSlice';
 import warehousesReducer from '../features/inventory/store/warehousesSlice';
 import customersReducer from '../features/sales/store/customersSlice';
 import ordersReducer from '../features/sales/store/ordersSlice';
+import notificationsReducer from '../features/notifications/notificationsSlice';
+import chatReducer from '../features/chat/store/chatSlice';
+import financeReducer from '../features/finance/store/financeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +19,9 @@ export const store = configureStore({
     warehouses: warehousesReducer,
     customers: customersReducer,
     orders: ordersReducer,
+    notifications: notificationsReducer,
+    chat: chatReducer,
+    finance: financeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

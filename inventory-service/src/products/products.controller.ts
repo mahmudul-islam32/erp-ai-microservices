@@ -12,6 +12,7 @@ import {
   HttpStatus,
   ParseIntPipe,
   DefaultValuePipe,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +23,7 @@ import {
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { ProductsService } from './products.service';
 import { CreateProductInput, UpdateProductInput, ProductFilterInput } from './dto/product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -31,7 +33,7 @@ import { UserRole } from '../auth/guards/roles.guard';
 
 @ApiTags('products')
 @Controller('products')
-// @UseGuards(JwtAuthGuard, RolesGuard) // Temporarily disabled for testing
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('JWT-auth')
 @ApiCookieAuth('access_token')
 export class ProductsController {
@@ -41,9 +43,37 @@ export class ProductsController {
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'Product created successfully' })
   @ApiResponse({ status: 409, description: 'Product with SKU already exists' })
-  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  async createProduct(@Body() createProductInput: CreateProductInput) {
-    return this.productsService.createProduct(createProductInput);
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async createProduct(
+    @Body() createProductInput: CreateProductInput,
+    @Req() request: Request,
+  ) {
+    // User object is attached by JwtAuthGuard after successful authentication
+    const user = (request as any).user;
+    
+    // DEBUG: Log entire user object to see what fields are available
+    console.log(`🔍 DEBUG - Full user object:`, JSON.stringify(user, null, 2));
+    console.log(`🔍 DEBUG - user.id: ${user?.id}`);
+    console.log(`🔍 DEBUG - user.userId: ${user?.userId}`);
+    console.log(`🔍 DEBUG - user.sub: ${user?.sub}`);
+    console.log(`🔍 DEBUG - user._id: ${user?._id}`);
+    
+    // Try all possible field names
+    const userId = user?.id || user?.userId || user?.sub || user?._id;
+    
+    // Extract token from cookies or Authorization header
+    let authToken = (request as any).cookies?.access_token;
+    if (!authToken) {
+      const authHeader = request.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        authToken = authHeader.substring(7);
+      }
+    }
+
+    const tokenPreview = authToken ? `${authToken.substring(0, 20)}...` : 'null';
+    console.log(`🎫 ProductsController - User: ${user?.email} (ID: ${userId}), Role: ${user?.role}, Token: ${tokenPreview}`);
+
+    return this.productsService.createProduct(createProductInput, userId, authToken);
   }
 
   @Get()

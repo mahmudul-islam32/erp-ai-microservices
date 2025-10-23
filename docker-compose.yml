@@ -58,6 +58,7 @@ services:
       PORT: 8002
       MONGODB_URI: mongodb://admin:password123@mongodb:27017/erp_inventory?authSource=admin
       AUTH_SERVICE_URL: http://auth-service:8001
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004
       JWT_SECRET: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
     depends_on:
       - mongodb
@@ -88,6 +89,7 @@ services:
       DATABASE_NAME: erp_sales
       AUTH_SERVICE_URL: http://auth-service:8001
       INVENTORY_SERVICE_URL: http://inventory-service:8002
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
       SERVICE_NAME: Sales Service
       SERVICE_VERSION: 1.0.0
@@ -110,6 +112,100 @@ services:
       - inventory-service
     volumes:
       - ./sales-service:/app
+    networks:
+      - erp-network
+
+  # Notification Service
+  notification-service:
+    build: 
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: erp-notification-service
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    environment:
+      ENVIRONMENT: development
+      MONGODB_URL: mongodb://admin:password123@mongodb:27017/erp_notifications?authSource=admin
+      DATABASE_NAME: erp_notifications
+      AUTH_SERVICE_URL: http://auth-service:8001
+      SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
+      ALGORITHM: HS256
+      SERVICE_NAME: notification-service
+      SERVICE_PORT: 8004
+      SERVICE_HOST: 0.0.0.0
+      LOG_LEVEL: INFO
+      REDIS_URL: redis://redis:6379
+      WEBSOCKET_HEARTBEAT_INTERVAL: 30
+    depends_on:
+      - mongodb
+      - auth-service
+      - redis
+    volumes:
+      - ./notification-service:/app
+    networks:
+      - erp-network
+
+  # Chat Service
+  chat-service:
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    container_name: erp-chat-service
+    restart: unless-stopped
+    ports:
+      - "8005:8005"
+    environment:
+      ENVIRONMENT: development
+      MONGODB_URL: mongodb://admin:password123@mongodb:27017/erp_chat?authSource=admin
+      DATABASE_NAME: erp_chat
+      AUTH_SERVICE_URL: http://auth-service:8001
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
+      JWT_ALGORITHM: HS256
+      SERVICE_NAME: Chat Service
+      SERVICE_VERSION: 1.0.0
+      SERVICE_PORT: 8005
+    depends_on:
+      - mongodb
+      - auth-service
+    volumes:
+      - ./chat-service:/app
+    networks:
+      - erp-network
+
+  # Finance Service
+  finance-service:
+    build:
+      context: ./finance-service
+      dockerfile: Dockerfile
+    container_name: erp-finance-service
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    environment:
+      ENVIRONMENT: development
+      MONGODB_URL: mongodb://admin:password123@mongodb:27017/erp_finance?authSource=admin
+      DATABASE_NAME: erp_finance
+      AUTH_SERVICE_URL: http://auth-service:8001
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004
+      SALES_SERVICE_URL: http://sales-service:8003
+      INVENTORY_SERVICE_URL: http://inventory-service:8002
+      SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
+      ALGORITHM: HS256
+      SERVICE_NAME: Finance Service
+      SERVICE_VERSION: 1.0.0
+      SERVICE_PORT: 8006
+      SERVICE_HOST: 0.0.0.0
+      LOG_LEVEL: INFO
+      DEFAULT_CURRENCY: USD
+      FISCAL_YEAR_START_MONTH: 1
+      DECIMAL_PLACES: 2
+    depends_on:
+      - mongodb
+      - auth-service
+      - notification-service
+    volumes:
+      - ./finance-service:/app
     networks:
       - erp-network
 
@@ -154,6 +250,8 @@ services:
         - VITE_AUTH_SERVICE_URL=http://localhost:8001
         - VITE_INVENTORY_SERVICE_URL=http://localhost:8002
         - VITE_SALES_SERVICE_URL=http://localhost:8003
+        - VITE_NOTIFICATION_SERVICE_URL=http://localhost:8004
+        - VITE_CHAT_SERVICE_URL=http://localhost:8005
         - VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLISHABLE_KEY:-}
     container_name: erp-frontend
     restart: unless-stopped
@@ -163,6 +261,7 @@ services:
       - auth-service
       - inventory-service
       - sales-service
+      - notification-service
     networks:
       - erp-network
       
@@ -179,6 +278,8 @@ services:
       VITE_AUTH_SERVICE_URL: http://localhost:8001
       VITE_INVENTORY_SERVICE_URL: http://localhost:8002
       VITE_SALES_SERVICE_URL: http://localhost:8003
+      VITE_NOTIFICATION_SERVICE_URL: http://localhost:8004
+      VITE_CHAT_SERVICE_URL: http://localhost:8005
       VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
     volumes:
       - ./erp-frontend/src:/app/src
@@ -193,6 +294,7 @@ services:
       - auth-service
       - inventory-service
       - sales-service
+      - notification-service
     networks:
       - erp-network
     profiles:
