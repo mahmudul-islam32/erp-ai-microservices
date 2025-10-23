@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from './schemas/product.schema';
@@ -17,8 +17,25 @@ export class ProductsResolver {
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async createProduct(
     @Args('createProductInput') createProductInput: CreateProductInput,
+    @Context() context: any,
   ): Promise<Product> {
-    return this.productsService.createProduct(createProductInput);
+    // User object is attached by JwtAuthGuard
+    // AuthService.validateToken() returns a User object with field "id" (not userId or sub)
+    const user = context.req?.user;
+    const userId = user?.id;  // ✅ FIXED: Use "id" field from AuthService response
+    
+    // Extract token from cookies or Authorization header
+    let authToken = context.req?.cookies?.access_token;
+    if (!authToken) {
+      const authHeader = context.req?.headers?.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        authToken = authHeader.substring(7);
+      }
+    }
+
+    console.log(`🎫 GraphQL createProduct - User: ${user?.email} (ID: ${userId}), Token present: ${!!authToken}`);
+
+    return this.productsService.createProduct(createProductInput, userId, authToken);
   }
 
   @Query(() => [Product], { name: 'products' })

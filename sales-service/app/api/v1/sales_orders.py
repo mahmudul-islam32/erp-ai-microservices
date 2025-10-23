@@ -56,6 +56,9 @@ async def create_sales_order(
                 )
         
         token = await get_token_from_request(request)
+        token_preview = f"{token[:20]}..." if token and len(token) > 20 else str(token)
+        logger.info(f"🎫 Extracted token from request: {token_preview}")
+        
         # Get user ID, checking both possible keys
         user_id = current_user.get("id") or current_user.get("_id") or str(current_user.get("user_id", ""))
         if not user_id:
@@ -65,6 +68,7 @@ async def create_sales_order(
                 detail="User ID not available"
             )
         
+        logger.info(f"👤 Creating order for user: {user_id}, token preview: {token_preview}")
         order = await sales_order_service.create_order(order_data, user_id, token)
         return order
     except HTTPException:

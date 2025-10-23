@@ -12,6 +12,7 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { WarehousesModule } from './warehouses/warehouses.module';
 import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { UploadModule } from './upload/upload.module';
     }),
 
     // Feature modules
+    CommonModule,
     AuthModule,
     InventoryModule,
     ProductsModule,

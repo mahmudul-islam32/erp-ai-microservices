@@ -15,7 +15,7 @@ services:
     networks:
       - erp-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -160,11 +160,11 @@ services:
     networks:
       - erp-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      test: ["CMD-SHELL", "wget --spider --quiet http://localhost:80 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   mongodb_data:
