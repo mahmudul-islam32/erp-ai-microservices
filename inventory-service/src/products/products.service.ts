@@ -1,16 +1,26 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductInput, UpdateProductInput, ProductFilterInput } from './dto/product.dto';
+import { NotificationClientService } from '../common/notification-client.service';
+import { NotificationHelperService } from '../common/notification-helper.service';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    private notificationClient: NotificationClientService,
+    private notificationHelper: NotificationHelperService,
   ) {}
 
-  async createProduct(createProductInput: CreateProductInput): Promise<Product> {
+  async createProduct(
+    createProductInput: CreateProductInput,
+    performerId?: string,
+    authToken?: string,
+  ): Promise<Product> {
     try {
       // Check if SKU already exists
       const existingProduct = await this.productModel.findOne({ sku: createProductInput.sku });
@@ -32,7 +42,67 @@ export class ProductsService {
       };
 
       const newProduct = new this.productModel(productData);
-      return await newProduct.save();
+      const savedProduct = await newProduct.save();
+
+      // Send notification to supervisors about new product
+      this.logger.log(`🔔 Notification check - performerId: ${performerId}, authToken: ${authToken ? 'present' : 'null'}`);
+      
+      if (performerId && authToken) {
+        try {
+          this.logger.log(`📞 Fetching performer name for ${performerId}...`);
+          const performerName = await this.notificationHelper.getPerformerName(performerId, authToken);
+          this.logger.log(`👤 Performer name: ${performerName}`);
+          
+          this.logger.log(`📋 Fetching notification recipients...`);
+          const recipients = await this.notificationHelper.getInventoryNotificationRecipients(
+            performerId,
+            authToken,
+            true,
+          );
+          this.logger.log(`👥 Found ${recipients?.length || 0} recipients: ${JSON.stringify(recipients?.slice(0, 3))}`);
+
+          if (recipients && recipients.length > 0) {
+            this.logger.log(`📤 Sending product creation notifications to ${recipients.length} users`);
+            
+            let successCount = 0;
+            for (const recipientId of recipients) {
+              this.logger.log(`  → Sending to user ${recipientId}...`);
+              const sent = await this.notificationClient.sendNotification(
+                {
+                  user_id: recipientId,
+                  title: `New Product Created by ${performerName}`,
+                  message: `${performerName} created a new product: ${savedProduct.name} (SKU: ${savedProduct.sku}) at $${savedProduct.price}`,
+                  type: 'product_created',
+                  priority: 'medium',
+                  metadata: {
+                    product_id: savedProduct._id.toString(),
+                    product_name: savedProduct.name,
+                    product_sku: savedProduct.sku,
+                    price: savedProduct.price,
+                    performed_by_id: performerId,
+                    performed_by_name: performerName,
+                  },
+                  action_url: `/inventory/products/${savedProduct._id}`,
+                  action_label: 'View Product',
+                },
+                authToken,
+              );
+              if (sent) successCount++;
+            }
+            this.logger.log(`✅ Product creation notifications sent to ${successCount}/${recipients.length} users`);
+          } else {
+            this.logger.warn('⚠️  No recipients found for product creation notification');
+          }
+        } catch (notificationError) {
+          this.logger.error(`❌ Failed to send product creation notifications: ${notificationError.message}`);
+          this.logger.error(notificationError.stack);
+          // Don't fail the operation if notification fails
+        }
+      } else {
+        this.logger.warn(`⚠️  Skipping notifications - performerId: ${performerId}, authToken: ${authToken ? 'present' : 'null'}`);
+      }
+
+      return savedProduct;
     } catch (error) {
       if (error instanceof ConflictException) {
         throw error;

@@ -15,6 +15,11 @@ import {
   Shield,
   Clock,
   FileSearch,
+  MessageSquare,
+  DollarSign,
+  BookOpen,
+  Receipt,
+  BarChart3,
 } from 'lucide-react';
 
 interface NavItem {
@@ -26,6 +31,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'Messages', path: '/dashboard/messages', icon: MessageSquare },
   {
     name: 'Users & Auth',
     path: '/dashboard/users',
@@ -61,6 +67,17 @@ const navigation: NavItem[] = [
       { name: 'Orders', path: '/dashboard/sales/orders', icon: ShoppingCart },
       { name: 'Quotes', path: '/dashboard/sales/quotes', icon: FileText },
       { name: 'Invoices', path: '/dashboard/sales/invoices', icon: FileText },
+    ],
+  },
+  {
+    name: 'Finance',
+    path: '/dashboard/finance',
+    icon: DollarSign,
+    children: [
+      { name: 'Overview', path: '/dashboard/finance', icon: LayoutDashboard },
+      { name: 'Chart of Accounts', path: '/dashboard/finance/accounts', icon: BookOpen },
+      { name: 'Journal Entries', path: '/dashboard/finance/journal-entries', icon: Receipt },
+      { name: 'Financial Reports', path: '/dashboard/finance/reports', icon: BarChart3 },
     ],
   },
   { name: 'Settings', path: '/dashboard/settings', icon: Settings },

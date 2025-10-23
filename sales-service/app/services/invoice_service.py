@@ -5,19 +5,29 @@ from app.models import (
 )
 from app.services.customer_service import customer_service
 from app.services.sales_order_service import sales_order_service
+from app.services.notification_client import NotificationClient
+from app.services.notification_helper import (
+    get_notification_recipients_for_sales_action,
+    get_user_info,
+    send_notification_to_supervisors
+)
+from app.services.external_services import auth_service
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, timedelta
 from bson import ObjectId
 from app.config import settings
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 
 class InvoiceService:
     def __init__(self):
-        pass
+        # Initialize notification client
+        notification_url = os.getenv("NOTIFICATION_SERVICE_URL", "http://notification-service:8004")
+        self.notification_client = NotificationClient(notification_url)
 
     async def create_invoice(self, invoice_data: InvoiceCreate, user_id: str, token: str) -> InvoiceResponse:
         """Create a new invoice"""
@@ -72,6 +82,50 @@ class InvoiceService:
             # Fetch created invoice
             created_invoice = await invoices_collection.find_one({"_id": result.inserted_id})
             if created_invoice:
+                # Send notification about invoice creation to supervisors
+                try:
+                    # Get creator's information
+                    creator_info = await auth_service.get_user_by_id(user_id, token)
+                    creator_name = "A user"
+                    if creator_info:
+                        first_name = creator_info.get('first_name', '')
+                        last_name = creator_info.get('last_name', '')
+                        creator_name = f"{first_name} {last_name}".strip() or creator_info.get('email', 'A user')
+                    
+                    # Get recipients (notify managers and finance team)
+                    recipients = await get_notification_recipients_for_sales_action(
+                        performer_id=user_id,
+                        token=token,
+                        include_managers=True,
+                        include_sales_team=False,
+                        exclude_performer=True
+                    )
+                    
+                    if recipients:
+                        await send_notification_to_supervisors(
+                            notification_client=self.notification_client,
+                            performer_id=user_id,
+                            performer_name=creator_name,
+                            title=f"Invoice Created by {creator_name}",
+                            message=f"{creator_name} created Invoice {invoice_number} for {created_invoice['customer_name']}. Total: ${total_amount:.2f}",
+                            notification_type="invoice_created",
+                            priority="medium",
+                            metadata={
+                                "invoice_id": str(created_invoice["_id"]),
+                                "invoice_number": invoice_number,
+                                "customer_name": created_invoice['customer_name'],
+                                "total_amount": total_amount,
+                                "due_date": due_date.isoformat() if isinstance(due_date, date) else due_date,
+                                "created_by_name": creator_name
+                            },
+                            action_url=f"/sales/invoices/{created_invoice['_id']}",
+                            action_label="View Invoice",
+                            token=token,
+                            recipients=recipients
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to send notification for invoice creation: {e}")
+                
                 return InvoiceResponse(**created_invoice)
             
             return None

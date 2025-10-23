@@ -36,8 +36,17 @@ export class AuthService {
 
       if (response.status === 200 && response.data) {
         const userData = response.data;
+        
+        // DEBUG: Log the response from auth service
+        console.log('🔍 Auth service /me response:', JSON.stringify(userData, null, 2));
+        
+        // Try to extract ID from different possible field names
+        const userId = userData.id || userData._id;
+        
+        console.log(`🔍 Extracted user ID: ${userId} from userData.id: ${userData.id}, userData._id: ${userData._id}`);
+        
         return {
-          id: userData.id,
+          id: userId,  // ✅ FIXED: Extract id or _id from response
           email: userData.email,
           first_name: userData.first_name,
           last_name: userData.last_name,
@@ -46,8 +55,8 @@ export class AuthService {
           phone: userData.phone,
           status: userData.status,
           permissions: userData.permissions || [],
-          is_active: userData.status === 'ACTIVE',
-          is_superuser: userData.role === 'ADMIN',
+          is_active: userData.status === 'ACTIVE' || userData.status === 'active',
+          is_superuser: userData.role === 'ADMIN' || userData.role === 'super_admin',
         };
       }
 

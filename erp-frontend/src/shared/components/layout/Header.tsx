@@ -1,11 +1,13 @@
 import React from 'react';
-import { Menu, X, LogOut, User, Bell } from 'lucide-react';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Menu as HeadlessMenu, Transition } from '@headlessui/react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { logout } from '../../../features/auth/store/authSlice';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { NotificationBell } from '../../../features/notifications';
+import { ChatButton } from '../../../features/chat';
 
 interface HeaderProps {
   isSidebarOpen: boolean;
@@ -37,11 +39,11 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
 
         {/* Right section */}
         <div className="flex items-center gap-3">
+          {/* Chat */}
+          <ChatButton />
+          
           {/* Notifications */}
-          <button className="relative p-2 rounded-md text-slate-600 hover:bg-slate-100">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-danger-500 rounded-full" />
-          </button>
+          <NotificationBell />
 
           {/* User menu */}
           <HeadlessMenu as="div" className="relative">

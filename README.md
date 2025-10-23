@@ -64,6 +64,25 @@
 - **Refund Support** - Process refunds directly from the system
 - **Test Mode** - Built-in test mode for development
 
+### 💰 Financial Management & Accounting ✨ NEW!
+- **Chart of Accounts** - Hierarchical account management with account types
+- **General Ledger** - Complete double-entry bookkeeping system
+- **Journal Entries** - Full lifecycle with posting and reversals
+- **Accounts Payable** - Vendor invoice and payment management
+- **Accounts Receivable** - Customer invoice and payment tracking
+- **Bank Management** - Bank account and transaction management
+- **Financial Reporting** - P&L, Balance Sheet, Trial Balance
+- **Multi-Currency Support** - Multiple currencies with exchange rates
+- **Aging Reports** - AP/AR aging analysis with multiple buckets
+- **Automated Entries** - Auto-posting from invoices and payments
+
+### 💬 Communication & Collaboration
+- **Real-time Chat** - Internal messaging between users
+- **Notifications** - Real-time system notifications via WebSocket
+- **Message History** - Complete conversation history
+- **Unread Tracking** - Unread message and notification counts
+- **Online Status** - User presence indicators
+
 ### 📊 Dashboard & Analytics
 - **Real-time Statistics** - Sales, inventory, and user metrics
 - **Interactive Charts** - Beautiful charts powered by Recharts

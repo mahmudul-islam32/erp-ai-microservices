@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models import (
     UserCreate, UserUpdate, UserResponse, UserRole, UserStatus, Permission
 )
@@ -19,11 +19,19 @@ router = APIRouter(prefix="/users", tags=["User Management"])
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: UserCreate,
+    request: Request,
     current_user=Depends(require_permissions([Permission.USER_CREATE]))
 ):
     """Create a new user (Admin only)"""
     try:
-        user = await user_service.create_user(user_data)
+        # Extract token from request
+        token = request.cookies.get("access_token")
+        if not token:
+            authorization = request.headers.get("Authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1]
+        
+        user = await user_service.create_user(user_data, auth_token=token)
         return user
     except ValueError as e:
         raise HTTPException(
