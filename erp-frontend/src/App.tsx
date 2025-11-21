@@ -43,6 +43,8 @@ import { EditOrderPage } from './features/sales/pages/EditOrderPage';
 import { OrderDetailPage } from './features/sales/pages/OrderDetailPage';
 import { QuotesPage } from './features/sales/pages/QuotesPage';
 import { InvoicesPage } from './features/sales/pages/InvoicesPage';
+import { CreateInvoicePage } from './features/sales/pages/CreateInvoicePage';
+import { InvoiceDetailPage } from './features/sales/pages/InvoiceDetailPage';
 
 // Chat
 import { ChatPage } from './features/chat';
@@ -54,6 +56,20 @@ import {
   JournalEntriesPage,
   FinancialReportsPage,
 } from './features/finance';
+
+// HRM
+import { 
+  HRMDashboardPage, 
+  EmployeesPage, 
+  PayrollPage, 
+  AttendancePage, 
+  LeavePage, 
+  PerformancePage, 
+  RecruitmentPage, 
+  TrainingPage, 
+  BenefitsPage, 
+  AnalyticsPage 
+} from './features/hrm';
 
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
@@ -111,6 +127,8 @@ function App() {
             <Route path="sales/orders/:id/edit" element={<EditOrderPage />} />
             <Route path="sales/quotes" element={<QuotesPage />} />
             <Route path="sales/invoices" element={<InvoicesPage />} />
+            <Route path="sales/invoices/create" element={<CreateInvoicePage />} />
+            <Route path="sales/invoices/:id" element={<InvoiceDetailPage />} />
 
             {/* Chat */}
             <Route path="messages" element={<ChatPage />} />
@@ -120,6 +138,18 @@ function App() {
             <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
             <Route path="finance/journal-entries" element={<JournalEntriesPage />} />
             <Route path="finance/reports" element={<FinancialReportsPage />} />
+
+            {/* HRM */}
+            <Route path="hrm" element={<HRMDashboardPage />} />
+            <Route path="hrm/employees" element={<EmployeesPage />} />
+            <Route path="hrm/payroll" element={<PayrollPage />} />
+            <Route path="hrm/attendance" element={<AttendancePage />} />
+            <Route path="hrm/leave" element={<LeavePage />} />
+            <Route path="hrm/performance" element={<PerformancePage />} />
+            <Route path="hrm/recruitment" element={<RecruitmentPage />} />
+            <Route path="hrm/training" element={<TrainingPage />} />
+            <Route path="hrm/benefits" element={<BenefitsPage />} />
+            <Route path="hrm/analytics" element={<AnalyticsPage />} />
 
             {/* Settings */}
             <Route path="settings" element={<SettingsPage />} />

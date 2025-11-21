@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Edit, CreditCard, FileText } from 'lucide-react';
+import { Edit, CreditCard, FileText, Receipt } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchOrderById } from '../store/ordersSlice';
+import { invoicesApi } from '../services/invoicesApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
@@ -20,6 +21,7 @@ export const OrderDetailPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { selectedOrder, isLoading } = useAppSelector((state) => state.orders);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -101,6 +103,27 @@ export const OrderDetailPage: React.FC = () => {
     return statusMap[status.toLowerCase()] || 'default';
   };
 
+  const handleCreateInvoice = async () => {
+    if (!order?.id) {
+      toast.error('Order ID is missing');
+      return;
+    }
+
+    setIsCreatingInvoice(true);
+    try {
+      const invoice = await invoicesApi.generateFromOrder(order.id);
+      toast.success('Invoice created successfully!');
+      // Navigate to the invoice detail page
+      navigate(`/dashboard/sales/invoices/${invoice.id}`);
+    } catch (error: any) {
+      console.error('Error creating invoice:', error);
+      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to create invoice';
+      toast.error(errorMessage);
+    } finally {
+      setIsCreatingInvoice(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -114,6 +137,15 @@ export const OrderDetailPage: React.FC = () => {
         ]}
         actions={
           <div className="flex gap-2">
+            <Button
+              variant="primary"
+              leftIcon={<Receipt className="h-4 w-4" />}
+              onClick={handleCreateInvoice}
+              disabled={isCreatingInvoice}
+              isLoading={isCreatingInvoice}
+            >
+              {isCreatingInvoice ? 'Creating...' : 'Create Invoice'}
+            </Button>
             {order.payment_status === 'pending' && order.payment_method && (
               <>
                 {order.payment_method.toLowerCase() === 'stripe' ? (

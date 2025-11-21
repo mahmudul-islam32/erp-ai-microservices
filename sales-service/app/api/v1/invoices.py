@@ -115,7 +115,12 @@ async def get_invoice(
                 detail="Invoice not found"
             )
 
-        return InvoiceResponse(**invoice.dict())
+        # Convert InvoiceInDB to InvoiceResponse
+        invoice_dict = invoice.dict(by_alias=True)
+        # Ensure _id is converted to id for the response
+        if "_id" in invoice_dict:
+            invoice_dict["id"] = invoice_dict.pop("_id")
+        return InvoiceResponse(**invoice_dict)
 
     except HTTPException:
         raise

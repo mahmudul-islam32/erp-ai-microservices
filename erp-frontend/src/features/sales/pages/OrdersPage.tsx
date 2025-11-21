@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, Receipt } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchOrders, deleteOrder } from '../store/ordersSlice';
+import { invoicesApi } from '../services/invoicesApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
@@ -17,6 +18,7 @@ export const OrdersPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { orders, isLoading } = useAppSelector((state) => state.orders);
   const [search, setSearch] = useState('');
+  const [creatingInvoiceIds, setCreatingInvoiceIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     dispatch(fetchOrders());
@@ -61,6 +63,28 @@ export const OrdersPage: React.FC = () => {
     } catch (error) {
       console.error('Delete order error:', error);
       toast.error('Failed to delete order');
+    }
+  };
+
+  const handleCreateInvoice = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click navigation
+    
+    setCreatingInvoiceIds((prev) => new Set(prev).add(orderId));
+    try {
+      const invoice = await invoicesApi.generateFromOrder(orderId);
+      toast.success('Invoice created successfully!');
+      // Navigate to the invoice detail page
+      navigate(`/dashboard/sales/invoices/${invoice.id}`);
+    } catch (error: any) {
+      console.error('Error creating invoice:', error);
+      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to create invoice';
+      toast.error(errorMessage);
+    } finally {
+      setCreatingInvoiceIds((prev) => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
     }
   };
 
@@ -127,7 +151,7 @@ export const OrdersPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '180px',
+      width: '240px',
       render: (order) => (
         <div className="flex gap-2">
           <Button
@@ -140,6 +164,16 @@ export const OrdersPage: React.FC = () => {
             }}
           >
             View
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            leftIcon={<Receipt className="h-3 w-3" />}
+            onClick={(e) => handleCreateInvoice(order.id, e)}
+            disabled={creatingInvoiceIds.has(order.id)}
+            isLoading={creatingInvoiceIds.has(order.id)}
+          >
+            Invoice
           </Button>
           <Button
             size="sm"

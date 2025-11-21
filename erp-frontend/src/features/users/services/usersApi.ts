@@ -193,33 +193,48 @@ export const sessionsApi = {
   /**
    * Get all active sessions
    */
-  getAll: async (): Promise<Session[]> => {
-    // Mock data for now - implement backend endpoint
-    return [];
+  getAll: async (activeOnly?: boolean): Promise<Session[]> => {
+    const params = new URLSearchParams();
+    if (activeOnly !== undefined) params.append('active_only', activeOnly.toString());
+    
+    const response = await authApi.get(`/api/v1/sessions/?${params.toString()}`);
+    return response.data;
+  },
+
+  /**
+   * Get current user's sessions
+   */
+  getMySessions: async (activeOnly?: boolean): Promise<Session[]> => {
+    const params = new URLSearchParams();
+    if (activeOnly !== undefined) params.append('active_only', activeOnly.toString());
+    
+    const response = await authApi.get(`/api/v1/sessions/me?${params.toString()}`);
+    return response.data;
   },
 
   /**
    * Get sessions for specific user
    */
-  getByUserId: async (userId: string): Promise<Session[]> => {
-    // Mock data for now - implement backend endpoint
-    return [];
+  getByUserId: async (userId: string, activeOnly?: boolean): Promise<Session[]> => {
+    const params = new URLSearchParams();
+    if (activeOnly !== undefined) params.append('active_only', activeOnly.toString());
+    
+    const response = await authApi.get(`/api/v1/sessions/user/${userId}?${params.toString()}`);
+    return response.data;
   },
 
   /**
    * Terminate session
    */
   terminate: async (sessionId: string): Promise<void> => {
-    // Mock data for now - implement backend endpoint
-    console.log('Terminating session:', sessionId);
+    await authApi.post(`/api/v1/sessions/${sessionId}/terminate`);
   },
 
   /**
    * Terminate all sessions for a user
    */
   terminateAllForUser: async (userId: string): Promise<void> => {
-    // Mock data for now - implement backend endpoint
-    console.log('Terminating all sessions for user:', userId);
+    await authApi.post(`/api/v1/sessions/user/${userId}/terminate-all`);
   },
 };
 
@@ -232,17 +247,40 @@ export const auditLogsApi = {
    * Get audit logs with filters
    */
   getAll: async (filters?: AuditFilters): Promise<AuditLog[]> => {
-    // Mock data for now - implement backend endpoint
-    const mockLogs: AuditLog[] = [];
-    return mockLogs;
+    const params = new URLSearchParams();
+    if (filters?.user_id) params.append('user_id', filters.user_id);
+    if (filters?.action) params.append('action', filters.action);
+    if (filters?.resource) params.append('resource', filters.resource);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.start_date) params.append('start_date', filters.start_date);
+    if (filters?.end_date) params.append('end_date', filters.end_date);
+    if (filters?.skip !== undefined) params.append('skip', filters.skip.toString());
+    if (filters?.limit !== undefined) params.append('limit', filters.limit.toString());
+    
+    const response = await authApi.get(`/api/v1/audit-logs/?${params.toString()}`);
+    return response.data;
+  },
+
+  /**
+   * Get current user's audit logs
+   */
+  getMyLogs: async (limit?: number): Promise<AuditLog[]> => {
+    const params = new URLSearchParams();
+    if (limit !== undefined) params.append('limit', limit.toString());
+    
+    const response = await authApi.get(`/api/v1/audit-logs/me?${params.toString()}`);
+    return response.data;
   },
 
   /**
    * Get audit logs for specific user
    */
-  getByUserId: async (userId: string): Promise<AuditLog[]> => {
-    // Mock data for now - implement backend endpoint
-    return [];
+  getByUserId: async (userId: string, limit?: number): Promise<AuditLog[]> => {
+    const params = new URLSearchParams();
+    if (limit !== undefined) params.append('limit', limit.toString());
+    
+    const response = await authApi.get(`/api/v1/audit-logs/user/${userId}?${params.toString()}`);
+    return response.data;
   },
 
   /**
