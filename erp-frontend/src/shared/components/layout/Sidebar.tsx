@@ -20,6 +20,13 @@ import {
   BookOpen,
   Receipt,
   BarChart3,
+  UserCheck,
+  Calendar,
+  TrendingUp,
+  Briefcase,
+  GraduationCap,
+  Heart,
+  BarChart,
 } from 'lucide-react';
 
 interface NavItem {
@@ -66,7 +73,7 @@ const navigation: NavItem[] = [
       { name: 'Customers', path: '/dashboard/sales/customers', icon: Users },
       { name: 'Orders', path: '/dashboard/sales/orders', icon: ShoppingCart },
       { name: 'Quotes', path: '/dashboard/sales/quotes', icon: FileText },
-      { name: 'Invoices', path: '/dashboard/sales/invoices', icon: FileText },
+      { name: 'Invoices', path: '/dashboard/sales/invoices', icon: Receipt },
     ],
   },
   {
@@ -78,6 +85,23 @@ const navigation: NavItem[] = [
       { name: 'Chart of Accounts', path: '/dashboard/finance/accounts', icon: BookOpen },
       { name: 'Journal Entries', path: '/dashboard/finance/journal-entries', icon: Receipt },
       { name: 'Financial Reports', path: '/dashboard/finance/reports', icon: BarChart3 },
+    ],
+  },
+  {
+    name: 'HRM',
+    path: '/dashboard/hrm',
+    icon: UserCheck,
+    children: [
+      { name: 'Overview', path: '/dashboard/hrm', icon: LayoutDashboard },
+      { name: 'Employees', path: '/dashboard/hrm/employees', icon: Users },
+      { name: 'Payroll', path: '/dashboard/hrm/payroll', icon: DollarSign },
+      { name: 'Attendance', path: '/dashboard/hrm/attendance', icon: Clock },
+      { name: 'Leave Management', path: '/dashboard/hrm/leave', icon: Calendar },
+      { name: 'Performance', path: '/dashboard/hrm/performance', icon: TrendingUp },
+      { name: 'Recruitment', path: '/dashboard/hrm/recruitment', icon: Briefcase },
+      { name: 'Training', path: '/dashboard/hrm/training', icon: GraduationCap },
+      { name: 'Benefits', path: '/dashboard/hrm/benefits', icon: Heart },
+      { name: 'Analytics', path: '/dashboard/hrm/analytics', icon: BarChart },
     ],
   },
   { name: 'Settings', path: '/dashboard/settings', icon: Settings },

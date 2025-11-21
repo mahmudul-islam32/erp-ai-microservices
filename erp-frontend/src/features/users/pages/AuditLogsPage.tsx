@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useAppSelector } from '../../../app/hooks';
 import { auditLogsApi } from '../services/usersApi';
 import { AuditLog, AuditFilters } from '../types';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 export const AuditLogsPage: React.FC = () => {
+  const { user } = useAppSelector((state) => state.auth);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<AuditFilters>({
@@ -12,17 +14,39 @@ export const AuditLogsPage: React.FC = () => {
     limit: 50,
   });
 
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+
   useEffect(() => {
-    loadLogs();
-  }, [filters]);
+    if (user) {
+      loadLogs();
+    }
+  }, [filters, user]);
 
   const loadLogs = async () => {
+    if (!user) return;
+    
     setLoading(true);
     try {
-      const data = await auditLogsApi.getAll(filters);
+      // Admins can see all audit logs, regular users only their own
+      const data = isAdmin 
+        ? await auditLogsApi.getAll(filters)
+        : await auditLogsApi.getMyLogs(filters.limit || 50);
+      
       setLogs(data);
-    } catch (error) {
-      toast.error('Failed to load audit logs');
+    } catch (error: any) {
+      console.error('Failed to load audit logs:', error);
+      const errorMessage = error?.response?.data?.detail || 'Failed to load audit logs';
+      toast.error(errorMessage);
+      
+      // If non-admin tries to access all logs, fallback to own logs
+      if (error?.response?.status === 403 && isAdmin) {
+        try {
+          const myLogs = await auditLogsApi.getMyLogs(filters.limit || 50);
+          setLogs(myLogs);
+        } catch (e) {
+          // Ignore fallback error
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -58,9 +82,13 @@ export const AuditLogsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isAdmin ? 'Audit Logs' : 'My Activity Log'}
+          </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Track all user activities and system events
+            {isAdmin 
+              ? 'Track all user activities and system events'
+              : 'View your activity history'}
           </p>
         </div>
         <button

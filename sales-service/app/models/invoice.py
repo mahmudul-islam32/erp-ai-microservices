@@ -36,11 +36,31 @@ class PaymentStatus(str, Enum):
     REFUNDED = "refunded"
 
 
+# Invoice Line Item (similar to OrderLineItem)
+class InvoiceLineItem(BaseModel):
+    product_id: str
+    product_name: Optional[str] = None
+    product_sku: Optional[str] = None
+    quantity: int = Field(..., gt=0)
+    unit_price: float = Field(..., ge=0)
+    discount_percent: float = Field(0, ge=0, le=100)
+    discount_amount: float = Field(0, ge=0)
+    tax_rate: float = Field(0, ge=0, le=1)
+    tax_amount: float = Field(0, ge=0)
+    line_total: Optional[float] = None
+    notes: Optional[str] = None
+
+
 # Invoice Models
 class InvoiceCreate(BaseModel):
-    order_id: str
+    # Support both order-based and direct invoice creation
+    order_id: Optional[str] = None  # Optional - can create invoice directly without order
+    sales_order_id: Optional[str] = None  # Alias for order_id
+    customer_id: Optional[str] = None  # Required if order_id is not provided
+    line_items: Optional[List[InvoiceLineItem]] = None  # Required if order_id is not provided
     invoice_date: Optional[date] = Field(default_factory=date.today)
-    due_date: date
+    due_date: Optional[date] = None  # Optional - will be calculated if not provided
+    shipping_cost: Optional[float] = Field(0, ge=0)
     payment_terms: Optional[str] = None
     notes: Optional[str] = None
     late_fee_rate: Optional[float] = Field(None, ge=0, le=1)
@@ -67,6 +87,7 @@ class InvoiceResponse(BaseModel):
     invoice_date: date
     due_date: date
     payment_terms: Optional[str] = None
+    line_items: Optional[List[Any]] = None  # Line items for the invoice
     subtotal: float
     tax_amount: float
     total_amount: float
@@ -76,6 +97,7 @@ class InvoiceResponse(BaseModel):
     late_fee_rate: Optional[float] = None
     notes: Optional[str] = None
     status: InvoiceStatus
+    payment_status: Optional[PaymentStatus] = None  # Payment status
     sent_at: Optional[datetime] = None
     viewed_at: Optional[datetime] = None
     paid_at: Optional[datetime] = None
@@ -108,6 +130,7 @@ class InvoiceInDB(BaseModel):
     invoice_date: date
     due_date: date
     payment_terms: Optional[str] = None
+    line_items: Optional[List[Any]] = None  # Line items for the invoice
     subtotal: float
     tax_amount: float
     total_amount: float
@@ -117,6 +140,7 @@ class InvoiceInDB(BaseModel):
     late_fee_rate: Optional[float] = None
     notes: Optional[str] = None
     status: InvoiceStatus = InvoiceStatus.DRAFT
+    payment_status: Optional[PaymentStatus] = None  # Payment status
     sent_at: Optional[datetime] = None
     viewed_at: Optional[datetime] = None
     paid_at: Optional[datetime] = None
