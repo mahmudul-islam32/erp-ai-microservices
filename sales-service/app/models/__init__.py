@@ -13,6 +13,7 @@ from .quote import (
 )
 from .invoice import (
     InvoiceCreate, InvoiceUpdate, InvoiceResponse, InvoiceInDB,
+    InvoiceLineItem,
     PaymentCreate as InvoicePaymentCreate, PaymentUpdate as InvoicePaymentUpdate, 
     PaymentResponse as InvoicePaymentResponse, PaymentInDB as InvoicePaymentInDB,
     InvoiceStatus, PaymentMethod as InvoicePaymentMethod, PaymentStatus as PaymentStatusInvoice

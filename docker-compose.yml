@@ -209,6 +209,54 @@ services:
     networks:
       - erp-network
 
+  # HRM Service
+  hrm-service:
+    build:
+      context: ./hrm-service
+      dockerfile: Dockerfile
+    container_name: erp-hrm-service
+    restart: unless-stopped
+    ports:
+      - "8007:8007"
+    environment:
+      ENVIRONMENT: development
+      MONGODB_URL: mongodb://admin:password123@mongodb:27017/erp_hrm?authSource=admin
+      DATABASE_NAME: erp_hrm
+      AUTH_SERVICE_URL: http://auth-service:8001
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004
+      SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
+      ALGORITHM: HS256
+      SERVICE_NAME: HRM Service
+      SERVICE_VERSION: 1.0.0
+      SERVICE_PORT: 8007
+      SERVICE_HOST: 0.0.0.0
+      LOG_LEVEL: INFO
+      DEFAULT_CURRENCY: USD
+      DEFAULT_TIMEZONE: UTC
+      MAX_LEAVE_DAYS_PER_YEAR: 30
+      DEFAULT_WORKING_HOURS_PER_DAY: 8.0
+      OVERTIME_THRESHOLD_HOURS: 40.0
+      OVERTIME_MULTIPLIER: 1.5
+      DEFAULT_TAX_RATE: 0.20
+      SOCIAL_SECURITY_RATE: 0.062
+      MEDICARE_RATE: 0.0145
+      REVIEW_PERIOD_MONTHS: 12
+      RATING_SCALE_MAX: 5
+      APPLICATION_EXPIRY_DAYS: 30
+      INTERVIEW_SLOTS_PER_DAY: 8
+      CERTIFICATION_VALIDITY_YEARS: 2
+      MANDATORY_TRAINING_HOURS: 40
+      HEALTH_INSURANCE_CONTRIBUTION: 0.20
+      RETIREMENT_MATCH_PERCENTAGE: 0.05
+    depends_on:
+      - mongodb
+      - auth-service
+      - notification-service
+    volumes:
+      - ./hrm-service:/app
+    networks:
+      - erp-network
+
   # Redis for caching and background tasks
   redis:
     image: redis:7.2-alpine
@@ -252,6 +300,7 @@ services:
         - VITE_SALES_SERVICE_URL=http://localhost:8003
         - VITE_NOTIFICATION_SERVICE_URL=http://localhost:8004
         - VITE_CHAT_SERVICE_URL=http://localhost:8005
+        - VITE_HRM_SERVICE_URL=http://localhost:8007
         - VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLISHABLE_KEY:-}
     container_name: erp-frontend
     restart: unless-stopped
@@ -280,6 +329,7 @@ services:
       VITE_SALES_SERVICE_URL: http://localhost:8003
       VITE_NOTIFICATION_SERVICE_URL: http://localhost:8004
       VITE_CHAT_SERVICE_URL: http://localhost:8005
+      VITE_HRM_SERVICE_URL: http://localhost:8007
       VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
     volumes:
       - ./erp-frontend/src:/app/src

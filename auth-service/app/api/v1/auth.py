@@ -6,6 +6,8 @@ from app.models import (
     ResetPasswordRequest, ResetPasswordConfirm
 )
 from app.services import user_service, SecurityService
+from app.services.session_service import SessionService
+from app.services.audit_log_service import AuditLogService
 from app.api.dependencies import get_current_active_user
 from datetime import timedelta
 from app.config import settings
@@ -36,8 +38,15 @@ async def register(user_data: UserCreate):
 
 
 @router.post("/login", response_model=Token)
-async def login(user_credentials: UserLogin, response: Response):
+async def login(user_credentials: UserLogin, response: Response, request: Request):
     """Login user and return access tokens"""
+    session_service = SessionService()
+    audit_log_service = AuditLogService()
+    
+    # Get client IP and user agent
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
     try:
         # Authenticate user
         user = await user_service.authenticate_user(
@@ -46,6 +55,18 @@ async def login(user_credentials: UserLogin, response: Response):
         )
         
         if not user:
+            # Log failed login attempt
+            await audit_log_service.create_audit_log(
+                user_id="unknown",
+                user_email=user_credentials.email,
+                action="login_failed",
+                resource="auth",
+                ip_address=client_ip,
+                user_agent=user_agent,
+                status="failure",
+                details={"reason": "Invalid credentials"}
+            )
+            
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
@@ -70,6 +91,27 @@ async def login(user_credentials: UserLogin, response: Response):
                 "sub": str(user.id),
                 "email": user.email
             }
+        )
+        
+        # Create session
+        session_expires_minutes = 7 * 24 * 60  # 7 days
+        await session_service.create_session(
+            user_id=str(user.id),
+            user_email=user.email,
+            ip_address=client_ip,
+            user_agent=user_agent,
+            expires_in_minutes=session_expires_minutes
+        )
+        
+        # Log successful login
+        await audit_log_service.create_audit_log(
+            user_id=str(user.id),
+            user_email=user.email,
+            action="login",
+            resource="auth",
+            ip_address=client_ip,
+            user_agent=user_agent,
+            status="success"
         )
         
         # Set HTTP-only secure cookies
@@ -290,9 +332,16 @@ async def get_current_user_info(current_user=Depends(get_current_active_user)):
 @router.post("/change-password")
 async def change_password(
     password_data: ChangePasswordRequest,
+    request: Request,
     current_user=Depends(get_current_active_user)
 ):
     """Change user password"""
+    audit_log_service = AuditLogService()
+    
+    # Get client IP and user agent
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
     try:
         success = await user_service.change_password(
             str(current_user.id),
@@ -301,10 +350,35 @@ async def change_password(
         )
         
         if not success:
+            # Log failed password change
+            await audit_log_service.create_audit_log(
+                user_id=str(current_user.id),
+                user_email=current_user.email,
+                action="password_change",
+                resource="user",
+                resource_id=str(current_user.id),
+                ip_address=client_ip,
+                user_agent=user_agent,
+                status="failure",
+                details={"reason": "Invalid current password"}
+            )
+            
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid current password"
             )
+        
+        # Log successful password change
+        await audit_log_service.create_audit_log(
+            user_id=str(current_user.id),
+            user_email=current_user.email,
+            action="password_change",
+            resource="user",
+            resource_id=str(current_user.id),
+            ip_address=client_ip,
+            user_agent=user_agent,
+            status="success"
+        )
         
         return {"message": "Password changed successfully"}
 
@@ -357,13 +431,29 @@ async def reset_password(request: ResetPasswordConfirm):
 
 
 @router.post("/logout")
-async def logout(response: Response, current_user=Depends(get_current_active_user)):
+async def logout(response: Response, request: Request, current_user=Depends(get_current_active_user)):
     """Logout user (token invalidation would be handled by client or token blacklist)"""
+    session_service = SessionService()
+    audit_log_service = AuditLogService()
+    
+    # Get client IP and user agent
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    
     try:
-        # In a real implementation, you might:
-        # 1. Add token to blacklist
-        # 2. Clear session data
-        # 3. Update last activity
+        # Terminate all active sessions for the user
+        await session_service.terminate_all_user_sessions(str(current_user.id))
+        
+        # Log logout event
+        await audit_log_service.create_audit_log(
+            user_id=str(current_user.id),
+            user_email=current_user.email,
+            action="logout",
+            resource="auth",
+            ip_address=client_ip,
+            user_agent=user_agent,
+            status="success"
+        )
         
         # Clear cookies
         response.delete_cookie(key="access_token", path="/")
