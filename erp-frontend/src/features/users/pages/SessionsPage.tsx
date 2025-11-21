@@ -1,25 +1,53 @@
 import React, { useEffect, useState } from 'react';
+import { useAppSelector } from '../../../app/hooks';
 import { sessionsApi } from '../services/usersApi';
 import { Session } from '../types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 export const SessionsPage: React.FC = () => {
+  const { user } = useAppSelector((state) => state.auth);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
 
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+
   useEffect(() => {
-    loadSessions();
-  }, []);
+    if (user) {
+      loadSessions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, filterActive]);
 
   const loadSessions = async () => {
+    if (!user) return;
+    
     setLoading(true);
     try {
-      const data = await sessionsApi.getAll();
+      // Determine active filter
+      const activeOnly = filterActive === true ? true : filterActive === false ? false : undefined;
+      
+      // Admins can see all sessions, regular users only their own
+      const data = isAdmin 
+        ? await sessionsApi.getAll(activeOnly)
+        : await sessionsApi.getMySessions(activeOnly);
+      
       setSessions(data);
-    } catch (error) {
-      toast.error('Failed to load sessions');
+    } catch (error: any) {
+      console.error('Failed to load sessions:', error);
+      const errorMessage = error?.response?.data?.detail || 'Failed to load sessions';
+      toast.error(errorMessage);
+      
+      // If non-admin tries to access all sessions, redirect to own sessions
+      if (error?.response?.status === 403 && isAdmin) {
+        try {
+          const mySessions = await sessionsApi.getMySessions(filterActive === true ? true : filterActive === false ? false : undefined);
+          setSessions(mySessions);
+        } catch (e) {
+          // Ignore fallback error
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -61,9 +89,13 @@ export const SessionsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Active Sessions</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {isAdmin ? 'Active Sessions' : 'My Sessions'}
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Monitor and manage active user sessions
+          {isAdmin 
+            ? 'Monitor and manage active user sessions' 
+            : 'View and manage your active sessions'}
         </p>
       </div>
 

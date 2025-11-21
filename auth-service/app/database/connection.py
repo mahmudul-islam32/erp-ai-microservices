@@ -60,6 +60,23 @@ async def create_indexes():
         # Compound index for common queries
         await users_collection.create_index([("role", 1), ("status", 1)])
         
+        # Sessions collection indexes
+        sessions_collection = database.database.sessions
+        await sessions_collection.create_index("user_id")
+        await sessions_collection.create_index("is_active")
+        await sessions_collection.create_index("expires_at")
+        await sessions_collection.create_index([("user_id", 1), ("is_active", 1)])
+        
+        # Audit logs collection indexes
+        audit_logs_collection = database.database.audit_logs
+        await audit_logs_collection.create_index("user_id")
+        await audit_logs_collection.create_index("action")
+        await audit_logs_collection.create_index("resource")
+        await audit_logs_collection.create_index("status")
+        await audit_logs_collection.create_index("timestamp")
+        await audit_logs_collection.create_index([("user_id", 1), ("timestamp", -1)])
+        await audit_logs_collection.create_index([("action", 1), ("timestamp", -1)])
+        
         logger.info("Database indexes created successfully")
         
     except Exception as e:
