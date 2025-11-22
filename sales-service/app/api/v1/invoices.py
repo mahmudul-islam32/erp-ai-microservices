@@ -24,7 +24,10 @@ async def create_invoice(
     """Create a new invoice"""
     try:
         token = await get_token_from_request(request)
-        invoice = await invoice_service.create_invoice(invoice_data, current_user["id"], token)
+        user_id = current_user.get("id") or current_user.get("_id") or current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID not found")
+        invoice = await invoice_service.create_invoice(invoice_data, str(user_id), token)
         return invoice
     except ValueError as e:
         raise HTTPException(
@@ -140,7 +143,10 @@ async def update_invoice(
 ):
     """Update invoice"""
     try:
-        invoice = await invoice_service.update_invoice(invoice_id, invoice_update, current_user["id"])
+        user_id = current_user.get("id") or current_user.get("_id") or current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID not found")
+        invoice = await invoice_service.update_invoice(invoice_id, invoice_update, str(user_id))
         if not invoice:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -166,7 +172,10 @@ async def send_invoice(
 ):
     """Send invoice to customer via email"""
     try:
-        success = await invoice_service.send_invoice(invoice_id, current_user["id"])
+        user_id = current_user.get("id") or current_user.get("_id") or current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID not found")
+        success = await invoice_service.send_invoice(invoice_id, str(user_id))
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -196,8 +205,11 @@ async def record_payment(
 ):
     """Record a payment for an invoice"""
     try:
+        user_id = current_user.get("id") or current_user.get("_id") or current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID not found")
         success = await invoice_service.record_payment(
-            invoice_id, amount, payment_method, reference, notes, current_user["id"]
+            invoice_id, amount, payment_method, reference, notes, str(user_id)
         )
         if not success:
             raise HTTPException(
@@ -252,7 +264,14 @@ async def create_invoice_from_order(
     """Create invoice from sales order"""
     try:
         token = await get_token_from_request(request)
-        invoice = await invoice_service.create_invoice_from_order(order_id, current_user["id"], token)
+        # Safely get user ID - handle both 'id' and '_id' keys
+        user_id = current_user.get("id") or current_user.get("_id") or current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User ID not found in authentication data"
+            )
+        invoice = await invoice_service.create_invoice_from_order(order_id, str(user_id), token)
         if not invoice:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -332,7 +351,10 @@ async def void_invoice(
 ):
     """Void an invoice"""
     try:
-        success = await invoice_service.void_invoice(invoice_id, current_user["id"], reason)
+        user_id = current_user.get("id") or current_user.get("_id") or current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID not found")
+        success = await invoice_service.void_invoice(invoice_id, str(user_id), reason)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

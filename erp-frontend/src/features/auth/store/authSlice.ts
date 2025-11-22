@@ -112,7 +112,12 @@ const authSlice = createSlice({
     });
     builder.addCase(login.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.user = action.payload.user;
+      const user = action.payload.user;
+      // Compute full_name if not present
+      if (user && !user.full_name) {
+        user.full_name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User';
+      }
+      state.user = user;
       state.accessToken = action.payload.access_token;
       state.refreshToken = action.payload.refresh_token;
       state.isAuthenticated = true;
@@ -128,7 +133,12 @@ const authSlice = createSlice({
     });
     builder.addCase(getCurrentUser.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.user = action.payload;
+      const user = action.payload;
+      // Compute full_name if not present
+      if (user && !user.full_name) {
+        user.full_name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User';
+      }
+      state.user = user;
     });
     builder.addCase(getCurrentUser.rejected, (state, action) => {
       state.isLoading = false;

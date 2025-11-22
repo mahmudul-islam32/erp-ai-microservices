@@ -45,9 +45,42 @@ class InvoiceService:
                 order = await sales_order_service.get_order_by_id(order_id)
                 if not order:
                     raise ValueError("Sales order not found")
-                customer_id = order.customer_id
-                line_items = order.line_items
-                shipping_cost = invoice_data.shipping_cost or order.shipping_cost
+                
+                # Safely access order attributes
+                customer_id = getattr(order, 'customer_id', None)
+                if not customer_id:
+                    raise ValueError("Order missing customer_id")
+                
+                line_items = getattr(order, 'line_items', None)
+                if not line_items:
+                    raise ValueError("Order missing line_items")
+                
+                # Convert line_items to InvoiceLineItem format if needed
+                # Handle both dict and object formats
+                converted_line_items = []
+                for item in line_items:
+                    if isinstance(item, dict):
+                        # Convert dict to InvoiceLineItem
+                        from app.models.invoice import InvoiceLineItem
+                        converted_line_items.append(InvoiceLineItem(
+                            product_id=str(item.get('product_id', '')),
+                            product_name=item.get('product_name'),
+                            product_sku=item.get('product_sku'),
+                            quantity=item.get('quantity', 0),
+                            unit_price=item.get('unit_price', 0.0),
+                            discount_percent=item.get('discount_percent', 0.0),
+                            discount_amount=item.get('discount_amount', 0.0),
+                            tax_rate=item.get('tax_rate', 0.0),
+                            tax_amount=item.get('tax_amount', 0.0),
+                            line_total=item.get('line_total'),
+                            notes=item.get('notes')
+                        ))
+                    else:
+                        # Already an object, use as is
+                        converted_line_items.append(item)
+                
+                line_items = converted_line_items
+                shipping_cost = invoice_data.shipping_cost or getattr(order, 'shipping_cost', 0)
             else:
                 # Direct invoice creation - validate required fields
                 if not customer_id:
@@ -57,14 +90,34 @@ class InvoiceService:
                 shipping_cost = invoice_data.shipping_cost or 0
 
             # Validate customer
+            logger.info(f"Getting customer by ID: {customer_id}")
             customer = await customer_service.get_customer_by_id(customer_id)
             if not customer:
                 raise ValueError("Customer not found")
+            
+            # Safely get customer ID
+            customer_id_str = getattr(customer, 'id', None) or getattr(customer, '_id', None) or customer_id
+            logger.info(f"Customer found: {customer.first_name} {customer.last_name}, ID: {customer_id_str}")
 
             # Calculate due date
             due_date = invoice_data.due_date
             if not due_date:
-                payment_terms_days = customer.payment_terms.net_days if customer.payment_terms else 30
+                # Convert PaymentTerms enum to days
+                payment_terms_days = 30  # default
+                if customer.payment_terms:
+                    payment_terms_map = {
+                        "net_15": 15,
+                        "net_30": 30,
+                        "net_45": 45,
+                        "net_60": 60,
+                        "net_90": 90,
+                        "cod": 0,
+                        "cash_on_delivery": 0,
+                        "prepaid": 0,
+                        "immediate": 0
+                    }
+                    payment_terms_value = customer.payment_terms.value if hasattr(customer.payment_terms, 'value') else str(customer.payment_terms)
+                    payment_terms_days = payment_terms_map.get(payment_terms_value, 30)
                 due_date = (invoice_data.invoice_date or date.today()) + timedelta(days=payment_terms_days)
 
             # Calculate totals from line items
@@ -75,14 +128,24 @@ class InvoiceService:
             # Generate invoice number
             invoice_number = await self._generate_invoice_number()
 
+            # Convert date to datetime for MongoDB storage
+            invoice_date_value = invoice_data.invoice_date or date.today()
+            due_date_value = due_date
+            
+            # Convert date objects to datetime for MongoDB
+            if isinstance(invoice_date_value, date) and not isinstance(invoice_date_value, datetime):
+                invoice_date_value = datetime.combine(invoice_date_value, datetime.min.time())
+            if isinstance(due_date_value, date) and not isinstance(due_date_value, datetime):
+                due_date_value = datetime.combine(due_date_value, datetime.min.time())
+            
             # Create invoice document
             invoice_doc = InvoiceInDB(
                 invoice_number=invoice_number,
                 customer_id=customer_id,
                 customer_name=f"{customer.first_name} {customer.last_name}".strip(),
                 customer_email=customer.email,
-                invoice_date=invoice_data.invoice_date or date.today(),
-                due_date=due_date,
+                invoice_date=invoice_date_value,
+                due_date=due_date_value,
                 order_id=order_id,
                 line_items=line_items,
                 subtotal=subtotal,
@@ -97,8 +160,17 @@ class InvoiceService:
                 created_by=user_id
             )
 
+            # Convert to dict and ensure dates are datetime for MongoDB
+            invoice_dict = invoice_doc.dict(by_alias=True, exclude={"id"})
+            
+            # Ensure invoice_date and due_date are datetime objects for MongoDB
+            if "invoice_date" in invoice_dict and isinstance(invoice_dict["invoice_date"], date):
+                invoice_dict["invoice_date"] = datetime.combine(invoice_dict["invoice_date"], datetime.min.time())
+            if "due_date" in invoice_dict and isinstance(invoice_dict["due_date"], date):
+                invoice_dict["due_date"] = datetime.combine(invoice_dict["due_date"], datetime.min.time())
+            
             # Insert invoice
-            result = await invoices_collection.insert_one(invoice_doc.dict(by_alias=True, exclude={"id"}))
+            result = await invoices_collection.insert_one(invoice_dict)
             
             # Fetch created invoice
             created_invoice = await invoices_collection.find_one({"_id": result.inserted_id})
@@ -147,7 +219,29 @@ class InvoiceService:
                 except Exception as e:
                     logger.warning(f"Failed to send notification for invoice creation: {e}")
                 
-                return InvoiceResponse(**created_invoice)
+                # Convert MongoDB document to dict and ensure id field is set
+                invoice_dict = dict(created_invoice)
+                
+                # Convert _id ObjectId to string and set as id
+                if "_id" in invoice_dict:
+                    invoice_dict["id"] = str(invoice_dict["_id"])
+                    # Also keep _id for backward compatibility if needed
+                    invoice_dict["_id"] = str(invoice_dict["_id"])
+                
+                # Convert datetime to date for invoice_date and due_date if needed
+                if "invoice_date" in invoice_dict and isinstance(invoice_dict["invoice_date"], datetime):
+                    invoice_dict["invoice_date"] = invoice_dict["invoice_date"].date()
+                if "due_date" in invoice_dict and isinstance(invoice_dict["due_date"], datetime):
+                    invoice_dict["due_date"] = invoice_dict["due_date"].date()
+                
+                # Convert ObjectId fields in line_items if present
+                if "line_items" in invoice_dict and invoice_dict["line_items"]:
+                    for item in invoice_dict["line_items"]:
+                        if isinstance(item, dict):
+                            if "product_id" in item and isinstance(item["product_id"], ObjectId):
+                                item["product_id"] = str(item["product_id"])
+                
+                return InvoiceResponse(**invoice_dict)
             
             return None
 
@@ -592,18 +686,28 @@ class InvoiceService:
             payments_collection = db.payments
 
             # Create payment record
+            payment_date_value = date.today()
+            # Convert date to datetime for MongoDB
+            if isinstance(payment_date_value, date) and not isinstance(payment_date_value, datetime):
+                payment_date_value = datetime.combine(payment_date_value, datetime.min.time())
+            
             payment_doc = PaymentInDB(
                 invoice_id=invoice_id,
                 amount=amount,
                 payment_method=payment_method,
                 reference=reference,
                 notes=notes,
-                payment_date=date.today(),
+                payment_date=payment_date_value,
                 created_by=user_id
             )
 
+            # Convert to dict and ensure payment_date is datetime for MongoDB
+            payment_dict = payment_doc.dict(by_alias=True, exclude={"id"})
+            if "payment_date" in payment_dict and isinstance(payment_dict["payment_date"], date):
+                payment_dict["payment_date"] = datetime.combine(payment_dict["payment_date"], datetime.min.time())
+            
             # Insert payment
-            payment_result = await payments_collection.insert_one(payment_doc.dict(by_alias=True, exclude={"id"}))
+            payment_result = await payments_collection.insert_one(payment_dict)
 
             # Update invoice payment status
             new_paid_amount = invoice.paid_amount + amount
@@ -637,24 +741,39 @@ class InvoiceService:
     async def create_invoice_from_order(self, order_id: str, user_id: str, token: str) -> Optional[InvoiceResponse]:
         """Create invoice from sales order"""
         try:
+            logger.info(f"Creating invoice from order: {order_id}")
             # Get sales order
             order = await sales_order_service.get_order_by_id(order_id)
             if not order:
+                logger.error(f"Order not found: {order_id}")
                 return None
 
+            logger.info(f"Order found: {order.order_number if hasattr(order, 'order_number') else 'N/A'}")
+            # Get order number safely
+            order_number = getattr(order, 'order_number', None) or f"Order-{order_id[:8]}"
+            
             # Create invoice data from order
             invoice_data = InvoiceCreate(
-                order_id=order_id,
+                sales_order_id=order_id,  # Use sales_order_id instead of order_id
                 invoice_date=date.today(),
-                notes=f"Invoice for order: {order.order_number}"
+                notes=f"Invoice for order: {order_number}"
             )
 
+            logger.info(f"Calling create_invoice with order_id: {order_id}")
             # Create invoice
             invoice = await self.create_invoice(invoice_data, user_id, token)
+            logger.info(f"Invoice created successfully: {invoice.invoice_number if invoice else 'None'}")
             return invoice
 
+        except KeyError as e:
+            logger.error(f"KeyError creating invoice from order - missing key: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return None
         except Exception as e:
             logger.error(f"Error creating invoice from order: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return None
 
     async def generate_invoice_pdf(self, invoice_id: str) -> Optional[bytes]:
@@ -706,35 +825,24 @@ class InvoiceService:
             # Title
             title = Paragraph("INVOICE", title_style)
             elements.append(title)
-            elements.append(Spacer(1, 0.2*inch))
-            
-            # Invoice number and dates
-            invoice_info_data = [
-                ['Invoice Number:', invoice.invoice_number],
-                ['Invoice Date:', invoice.invoice_date.strftime('%B %d, %Y') if isinstance(invoice.invoice_date, date) else invoice.invoice_date.strftime('%B %d, %Y') if hasattr(invoice.invoice_date, 'strftime') else str(invoice.invoice_date)],
-                ['Due Date:', invoice.due_date.strftime('%B %d, %Y') if isinstance(invoice.due_date, date) else invoice.due_date.strftime('%B %d, %Y') if hasattr(invoice.due_date, 'strftime') else str(invoice.due_date)],
-            ]
-            
-            if invoice.order_number:
-                invoice_info_data.insert(0, ['Order Number:', invoice.order_number])
-            
-            invoice_info_table = Table(invoice_info_data, colWidths=[2*inch, 3*inch])
-            invoice_info_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ]))
-            elements.append(invoice_info_table)
             elements.append(Spacer(1, 0.3*inch))
             
-            # Customer information
-            customer_data = [
-                ['Bill To:', ''],
-                ['', invoice.customer_name],
-                ['', invoice.customer_email],
-            ]
+            # Prepare invoice information (left side)
+            invoice_info_rows = []
+            if invoice.order_number:
+                invoice_info_rows.append(['Order Number:', invoice.order_number])
+            invoice_info_rows.append(['Invoice Number:', invoice.invoice_number])
+            invoice_info_rows.append(['Invoice Date:', invoice.invoice_date.strftime('%B %d, %Y') if isinstance(invoice.invoice_date, date) else invoice.invoice_date.strftime('%B %d, %Y') if hasattr(invoice.invoice_date, 'strftime') else str(invoice.invoice_date)])
+            invoice_info_rows.append(['Due Date:', invoice.due_date.strftime('%B %d, %Y') if isinstance(invoice.due_date, date) else invoice.due_date.strftime('%B %d, %Y') if hasattr(invoice.due_date, 'strftime') else str(invoice.due_date)])
+            
+            # Prepare customer information (right side)
+            # Build customer info rows - "Bill To:" aligned with customer name
+            customer_info_rows = []
+            # First row: "Bill To:" label and customer name on same row
+            customer_info_rows.append(['Bill To:', invoice.customer_name])
+            # Email on next row
+            if invoice.customer_email:
+                customer_info_rows.append(['', invoice.customer_email])
             
             # Add billing address if available
             if invoice.billing_address:
@@ -754,18 +862,47 @@ class InvoiceService:
                         address_lines.append(addr['country'])
                     
                     for line in address_lines:
-                        customer_data.append(['', line])
+                        customer_info_rows.append(['', line])
             
-            customer_table = Table(customer_data, colWidths=[2*inch, 4*inch])
-            customer_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-                ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-                ('TOPPADDING', (0, 0), (-1, -1), 4),
+            # Calculate max rows for alignment
+            max_rows = max(len(invoice_info_rows), len(customer_info_rows))
+            
+            # Pad shorter list with empty rows
+            while len(invoice_info_rows) < max_rows:
+                invoice_info_rows.append(['', ''])
+            while len(customer_info_rows) < max_rows:
+                customer_info_rows.append(['', ''])
+            
+            # Create combined data for side-by-side table
+            combined_data = []
+            for i in range(max_rows):
+                combined_data.append([
+                    invoice_info_rows[i][0],  # Left label
+                    invoice_info_rows[i][1],  # Left value
+                    customer_info_rows[i][0],  # Right label
+                    customer_info_rows[i][1]   # Right value
+                ])
+            
+            # Create side-by-side table
+            info_table = Table(combined_data, colWidths=[1.2*inch, 2.3*inch, 1*inch, 2.5*inch])
+            info_table.setStyle(TableStyle([
+                # Left column (Invoice info)
+                ('ALIGN', (0, 0), (1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (1, -1), 6),
+                ('TOPPADDING', (0, 0), (1, -1), 6),
+                # Right column (Bill To)
+                ('ALIGN', (2, 0), (3, -1), 'LEFT'),
+                ('FONTNAME', (2, 0), (2, 0), 'Helvetica-Bold'),  # "Bill To:" label
+                ('FONTNAME', (2, 1), (3, -1), 'Helvetica'),  # Customer name and details
+                ('FONTSIZE', (2, 0), (3, -1), 10),
+                ('BOTTOMPADDING', (2, 0), (3, -1), 6),
+                ('TOPPADDING', (2, 0), (3, -1), 6),
+                # Spacing between columns
+                ('LEFTPADDING', (2, 0), (2, -1), 20),
             ]))
-            elements.append(customer_table)
+            elements.append(info_table)
             elements.append(Spacer(1, 0.4*inch))
             
             # Line items table
@@ -787,19 +924,50 @@ class InvoiceService:
                 except:
                     pass
             
-            for item in line_items:
-                product_name = getattr(item, 'product_name', None) or getattr(item, 'name', 'N/A')
-                quantity = getattr(item, 'quantity', 0)
-                unit_price = getattr(item, 'unit_price', 0)
-                line_total = getattr(item, 'line_total', None) or (quantity * unit_price)
-                
-                line_items_data.append([
-                    getattr(item, 'product_sku', 'N/A') or getattr(item, 'sku', 'N/A'),
-                    product_name,
-                    str(quantity),
-                    f"${unit_price:,.2f}",
-                    f"${line_total:,.2f}",
-                ])
+            # Helper function to safely get value from dict or object
+            def get_item_value(item, key, default=None):
+                """Get value from item whether it's a dict or object"""
+                if isinstance(item, dict):
+                    return item.get(key, default)
+                else:
+                    return getattr(item, key, default)
+            
+            # Process line items
+            if not line_items:
+                # If no line items, add a placeholder
+                line_items_data.append(['N/A', 'No items found', '0', '$0.00', '$0.00'])
+            else:
+                for item in line_items:
+                    # Handle both dict and object access
+                    product_sku = get_item_value(item, 'product_sku') or get_item_value(item, 'sku') or 'N/A'
+                    product_name = get_item_value(item, 'product_name') or get_item_value(item, 'name') or 'N/A'
+                    quantity = get_item_value(item, 'quantity', 0)
+                    unit_price = get_item_value(item, 'unit_price', 0)
+                    
+                    # Calculate line total if not provided
+                    line_total = get_item_value(item, 'line_total')
+                    if line_total is None:
+                        # Calculate: (unit_price * quantity) - discount
+                        discount_amount = get_item_value(item, 'discount_amount', 0)
+                        line_total = (unit_price * quantity) - discount_amount
+                    
+                    # Ensure numeric values
+                    try:
+                        quantity = int(quantity) if quantity else 0
+                        unit_price = float(unit_price) if unit_price else 0.0
+                        line_total = float(line_total) if line_total else 0.0
+                    except (ValueError, TypeError):
+                        quantity = 0
+                        unit_price = 0.0
+                        line_total = 0.0
+                    
+                    line_items_data.append([
+                        str(product_sku),
+                        str(product_name),
+                        str(quantity),
+                        f"${unit_price:,.2f}",
+                        f"${line_total:,.2f}",
+                    ])
             
             line_items_table = Table(line_items_data, colWidths=[1*inch, 2.5*inch, 0.7*inch, 1*inch, 1*inch])
             line_items_table.setStyle(TableStyle([

@@ -79,6 +79,7 @@ class UserUpdate(BaseModel):
     department: Optional[str] = None
     phone: Optional[str] = None
     status: Optional[UserStatus] = None
+    profile_image: Optional[str] = None  # URL or base64 encoded image
 
 
 class UserResponse(BaseModel):
@@ -91,6 +92,7 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     status: UserStatus
     permissions: List[Permission]
+    profile_image: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     last_login: Optional[datetime] = None
@@ -143,6 +145,7 @@ class UserInDB(BaseModel):
     phone: Optional[str] = None
     status: UserStatus = UserStatus.ACTIVE
     permissions: List[Permission] = []
+    profile_image: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None

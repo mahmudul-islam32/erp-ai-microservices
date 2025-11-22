@@ -73,6 +73,8 @@ import {
 
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
+// Profile
+import { ProfileSettingsPage } from './features/auth/pages/ProfileSettingsPage';
 
 function App() {
   return (
@@ -153,6 +155,9 @@ function App() {
 
             {/* Settings */}
             <Route path="settings" element={<SettingsPage />} />
+            
+            {/* Profile */}
+            <Route path="profile" element={<ProfileSettingsPage />} />
           </Route>
 
           {/* Default redirect */}

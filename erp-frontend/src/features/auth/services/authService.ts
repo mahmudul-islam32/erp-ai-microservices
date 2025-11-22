@@ -15,6 +15,18 @@ export const authService = {
     return response.data;
   },
 
+  updateProfile: async (data: Partial<User>): Promise<User> => {
+    const response = await authApi.put('/api/v1/auth/me', data);
+    return response.data;
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    await authApi.post('/api/v1/auth/change-password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+  },
+
   logout: async (): Promise<void> => {
     await authApi.post('/api/v1/auth/logout');
   },

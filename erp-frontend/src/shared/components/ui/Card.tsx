@@ -31,7 +31,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       className={clsx(
-        'bg-white rounded-lg border border-slate-200',
+        'bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700',
         paddings[padding],
         shadows[shadow],
         className
@@ -64,10 +64,10 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
     >
       <div className="flex-1">
         {title && (
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         )}
         {subtitle && (
-          <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subtitle}</p>
         )}
         {children}
       </div>
@@ -110,7 +110,7 @@ export const CardFooter: React.FC<CardFooterProps> = ({
   return (
     <div
       className={clsx(
-        'flex items-center mt-4 pt-4 border-t border-slate-200',
+        'flex items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-700',
         alignments[align],
         className
       )}
