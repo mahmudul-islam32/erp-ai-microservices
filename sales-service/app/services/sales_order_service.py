@@ -263,11 +263,29 @@ class SalesOrderService:
                 "deleted": {"$ne": True}
             })
             if order:
-                return SalesOrderInDB(**order)
+                # Convert MongoDB document to dict and ensure proper field conversion
+                order_dict = dict(order)
+                
+                # Convert _id ObjectId to string
+                if "_id" in order_dict and isinstance(order_dict["_id"], ObjectId):
+                    order_dict["_id"] = str(order_dict["_id"])
+                    # Also set id field for Pydantic
+                    order_dict["id"] = str(order_dict["_id"])
+                
+                # Convert ObjectId fields in line_items if present
+                if "line_items" in order_dict and order_dict["line_items"]:
+                    for item in order_dict["line_items"]:
+                        if isinstance(item, dict) and "product_id" in item:
+                            if isinstance(item["product_id"], ObjectId):
+                                item["product_id"] = str(item["product_id"])
+                
+                return SalesOrderInDB(**order_dict)
             return None
 
         except Exception as e:
             logger.error(f"Error getting order by ID: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return None
 
     async def get_order_by_number(self, order_number: str) -> Optional[SalesOrderInDB]:

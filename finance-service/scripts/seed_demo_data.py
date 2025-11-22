@@ -10,7 +10,10 @@ from datetime import datetime, date, timedelta
 from bson import ObjectId
 
 # Database configuration
-MONGODB_URL = "mongodb://admin:password123@localhost:27017/erp_finance?authSource=admin"
+# Use mongodb service name when running in Docker, localhost when running locally
+import os
+MONGODB_HOST = os.getenv("MONGODB_HOST", "mongodb")  # Default to service name for Docker
+MONGODB_URL = f"mongodb://admin:password123@{MONGODB_HOST}:27017/erp_finance?authSource=admin"
 DATABASE_NAME = "erp_finance"
 
 
@@ -84,7 +87,7 @@ async def seed_demo_data():
     journal_entries = [
         {
             "entry_number": "JE-2024-000001",
-            "entry_date": date(2024, 1, 15),
+            "entry_date": datetime(2024, 1, 15),
             "description": "Cash sale to customer",
             "reference": "SALE-001",
             "total_debit": 5000.00,
@@ -116,7 +119,7 @@ async def seed_demo_data():
         },
         {
             "entry_number": "JE-2024-000002",
-            "entry_date": date(2024, 2, 1),
+            "entry_date": datetime(2024, 2, 1),
             "description": "Monthly rent payment",
             "reference": "RENT-FEB",
             "total_debit": 5000.00,
@@ -148,7 +151,7 @@ async def seed_demo_data():
         },
         {
             "entry_number": "JE-2024-000003",
-            "entry_date": date(2024, 3, 15),
+            "entry_date": datetime(2024, 3, 15),
             "description": "Purchase of inventory",
             "reference": "PO-001",
             "total_debit": 15000.00,
@@ -180,7 +183,7 @@ async def seed_demo_data():
         },
         {
             "entry_number": "JE-2024-000004",
-            "entry_date": date.today() - timedelta(days=5),
+            "entry_date": datetime.combine(date.today() - timedelta(days=5), datetime.min.time()),
             "description": "Payment received from customer",
             "reference": "INV-2024-001",
             "total_debit": 10000.00,
@@ -212,7 +215,7 @@ async def seed_demo_data():
         },
         {
             "entry_number": "JE-2024-000005",
-            "entry_date": date.today() - timedelta(days=1),
+            "entry_date": datetime.combine(date.today() - timedelta(days=1), datetime.min.time()),
             "description": "Employee salary payment",
             "reference": "PAY-OCT",
             "total_debit": 15000.00,
@@ -259,8 +262,8 @@ async def seed_demo_data():
             "invoice_number": "INV-2024-001",
             "customer_id": "CUST-001",
             "customer_name": "Acme Corporation",
-            "invoice_date": date.today() - timedelta(days=30),
-            "due_date": date.today() - timedelta(days=0),
+            "invoice_date": datetime.combine(date.today() - timedelta(days=30), datetime.min.time()),
+            "due_date": datetime.combine(date.today() - timedelta(days=0), datetime.min.time()),
             "sales_order_id": None,
             "line_items": [
                 {
@@ -297,8 +300,8 @@ async def seed_demo_data():
             "invoice_number": "INV-2024-002",
             "customer_id": "CUST-002",
             "customer_name": "Tech Solutions Inc",
-            "invoice_date": date.today() - timedelta(days=15),
-            "due_date": date.today() + timedelta(days=15),
+            "invoice_date": datetime.combine(date.today() - timedelta(days=15), datetime.min.time()),
+            "due_date": datetime.combine(date.today() + timedelta(days=15), datetime.min.time()),
             "sales_order_id": None,
             "line_items": [
                 {
@@ -327,8 +330,8 @@ async def seed_demo_data():
             "invoice_number": "INV-2024-003",
             "customer_id": "CUST-003",
             "customer_name": "Global Enterprises",
-            "invoice_date": date.today() - timedelta(days=45),
-            "due_date": date.today() - timedelta(days=15),
+            "invoice_date": datetime.combine(date.today() - timedelta(days=45), datetime.min.time()),
+            "due_date": datetime.combine(date.today() - timedelta(days=15), datetime.min.time()),
             "sales_order_id": None,
             "line_items": [
                 {
@@ -378,8 +381,8 @@ async def seed_demo_data():
             "invoice_number": "VINV-2024-001",
             "vendor_id": "VEND-001",
             "vendor_name": "Office Supplies Co",
-            "invoice_date": date.today() - timedelta(days=20),
-            "due_date": date.today() + timedelta(days=10),
+            "invoice_date": datetime.combine(date.today() - timedelta(days=20), datetime.min.time()),
+            "due_date": datetime.combine(date.today() + timedelta(days=10), datetime.min.time()),
             "line_items": [
                 {
                     "description": "Office supplies - Monthly",
@@ -407,8 +410,8 @@ async def seed_demo_data():
             "invoice_number": "VINV-2024-002",
             "vendor_id": "VEND-002",
             "vendor_name": "Equipment Rental LLC",
-            "invoice_date": date.today() - timedelta(days=10),
-            "due_date": date.today() + timedelta(days=20),
+            "invoice_date": datetime.combine(date.today() - timedelta(days=10), datetime.min.time()),
+            "due_date": datetime.combine(date.today() + timedelta(days=20), datetime.min.time()),
             "line_items": [
                 {
                     "description": "Equipment rental - Q4",

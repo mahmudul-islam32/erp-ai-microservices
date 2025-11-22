@@ -102,6 +102,7 @@ async def get_user(
             phone=user.phone,
             status=user.status,
             permissions=user.permissions,
+            profile_image=getattr(user, 'profile_image', None),
             created_at=user.created_at,
             updated_at=user.updated_at,
             last_login=user.last_login

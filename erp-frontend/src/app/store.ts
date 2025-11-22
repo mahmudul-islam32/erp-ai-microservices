@@ -10,6 +10,7 @@ import notificationsReducer from '../features/notifications/notificationsSlice';
 import chatReducer from '../features/chat/store/chatSlice';
 import financeReducer from '../features/finance/store/financeSlice';
 import hrmReducer from '../features/hrm/store/hrmSlice';
+import themeReducer from '../features/theme/store/themeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     chat: chatReducer,
     finance: financeReducer,
     hrm: hrmReducer,
+    theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

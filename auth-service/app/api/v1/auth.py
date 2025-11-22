@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from app.models import (
-    UserLogin, UserCreate, UserResponse, Token, 
+    UserLogin, UserCreate, UserUpdate, UserResponse, Token, 
     RefreshTokenRequest, ChangePasswordRequest,
     ResetPasswordRequest, ResetPasswordConfirm
 )
@@ -323,10 +323,46 @@ async def get_current_user_info(current_user=Depends(get_current_active_user)):
         phone=current_user.phone,
         status=current_user.status,
         permissions=current_user.permissions,
+        profile_image=getattr(current_user, 'profile_image', None),
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         last_login=current_user.last_login
     )
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_profile(
+    user_update: UserUpdate,
+    current_user=Depends(get_current_active_user)
+):
+    """Update current user's profile"""
+    try:
+        # Users can only update their own profile with limited fields
+        # Restrict role and status updates
+        if user_update.role is not None or user_update.status is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot update role or status for own profile"
+            )
+        
+        # Update user profile
+        updated_user = await user_service.update_user(str(current_user.id), user_update)
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        return updated_user
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update profile error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
 
 
 @router.post("/change-password")
