@@ -10,6 +10,8 @@ export enum SettingsCategory {
   NOTIFICATIONS = 'notifications',
   INTEGRATIONS = 'integrations',
   GENERAL = 'general',
+  SECURITY = 'security',
+  APPEARANCE = 'appearance',
 }
 
 export interface Address {
@@ -92,6 +94,55 @@ export interface GeneralSettings {
   items_per_page: number;
 }
 
+export interface SecuritySettings {
+  password_min_length: number;
+  password_require_uppercase: boolean;
+  password_require_lowercase: boolean;
+  password_require_numbers: boolean;
+  password_require_special_chars: boolean;
+  password_expiration_days?: number;
+  require_password_change_on_first_login: boolean;
+  max_login_attempts: number;
+  account_lockout_duration_minutes: number;
+  session_timeout_minutes: number;
+  enable_two_factor_auth: boolean;
+  require_two_factor_auth: boolean;
+  token_refresh_enabled: boolean;
+  refresh_token_expire_days: number;
+}
+
+export interface AppearanceSettings {
+  // Font Settings
+  font_family: string;
+  font_size_base: string;
+  font_size_small: string;
+  font_size_large: string;
+  font_weight_normal: number;
+  font_weight_medium: number;
+  font_weight_bold: number;
+  
+  // Color Settings
+  primary_color: string;
+  primary_color_dark: string;
+  secondary_color: string;
+  accent_color: string;
+  success_color: string;
+  warning_color: string;
+  danger_color: string;
+  background_color: string;
+  background_color_dark: string;
+  text_color: string;
+  text_color_dark: string;
+  
+  // UI Settings
+  border_radius: string;
+  border_radius_large: string;
+  spacing_unit: string;
+  
+  // Additional CSS
+  custom_css?: string;
+}
+
 export interface Settings {
   id: string;
   category: SettingsCategory;
@@ -103,6 +154,8 @@ export interface Settings {
   notifications?: NotificationSettings;
   integrations?: IntegrationSettings;
   general?: GeneralSettings;
+  security?: SecuritySettings;
+  appearance?: AppearanceSettings;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -118,6 +171,8 @@ export interface SettingsUpdate {
   notifications?: NotificationSettings;
   integrations?: IntegrationSettings;
   general?: GeneralSettings;
+  security?: SecuritySettings;
+  appearance?: AppearanceSettings;
 }
 
 export const settingsApi = {
