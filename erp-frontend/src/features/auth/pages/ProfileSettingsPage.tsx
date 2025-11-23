@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardFooter } from '../../../shared/compo
 import { Input } from '../../../shared/components/ui/Input';
 import { Button } from '../../../shared/components/ui/Button';
 import { authService } from '../services/authService';
+import { settingsApi, SettingsCategory, SecuritySettings } from '../../settings/services/settingsApi';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { getCurrentUser } from '../store/authSlice';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ export const ProfileSettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings | null>(null);
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -44,6 +46,21 @@ export const ProfileSettingsPage: React.FC = () => {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    const loadSecuritySettings = async () => {
+      try {
+        const settings = await settingsApi.getByCategory(SettingsCategory.SECURITY);
+        if (settings.security) {
+          setSecuritySettings(settings.security);
+        }
+      } catch (error) {
+        console.error('Error loading security settings:', error);
+        // Use defaults if settings can't be loaded
+      }
+    };
+    loadSecuritySettings();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -92,14 +109,72 @@ export const ProfileSettingsPage: React.FC = () => {
     }
   };
 
+  const validatePassword = (password: string): string | null => {
+    if (!securitySettings) {
+      // Default validation
+      if (password.length < 8) {
+        return 'Password must be at least 8 characters long';
+      }
+      return null;
+    }
+
+    const minLength = securitySettings.password_min_length || 8;
+    if (password.length < minLength) {
+      return `Password must be at least ${minLength} characters long`;
+    }
+
+    if (securitySettings.password_require_uppercase && !/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+
+    if (securitySettings.password_require_lowercase && !/[a-z]/.test(password)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+
+    if (securitySettings.password_require_numbers && !/\d/.test(password)) {
+      return 'Password must contain at least one number';
+    }
+
+    if (securitySettings.password_require_special_chars && !/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
+      return 'Password must contain at least one special character';
+    }
+
+    return null;
+  };
+
+  const getPasswordHelperText = (): string => {
+    if (!securitySettings) {
+      return 'Password must be at least 8 characters long';
+    }
+
+    const requirements: string[] = [];
+    requirements.push(`at least ${securitySettings.password_min_length} characters`);
+    
+    if (securitySettings.password_require_uppercase) {
+      requirements.push('one uppercase letter');
+    }
+    if (securitySettings.password_require_lowercase) {
+      requirements.push('one lowercase letter');
+    }
+    if (securitySettings.password_require_numbers) {
+      requirements.push('one number');
+    }
+    if (securitySettings.password_require_special_chars) {
+      requirements.push('one special character');
+    }
+
+    return `Password must contain ${requirements.join(', ')}`;
+  };
+
   const handleChangePassword = async () => {
     if (passwordData.new_password !== passwordData.confirm_password) {
       toast.error('New passwords do not match');
       return;
     }
 
-    if (passwordData.new_password.length < 8) {
-      toast.error('Password must be at least 8 characters long');
+    const validationError = validatePassword(passwordData.new_password);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
@@ -254,7 +329,7 @@ export const ProfileSettingsPage: React.FC = () => {
                   type="password"
                   value={passwordData.new_password}
                   onChange={(e) => handlePasswordChange('new_password', e.target.value)}
-                  helperText="Password must be at least 8 characters long"
+                  helperText={getPasswordHelperText()}
                 />
                 <Input
                   label="Confirm New Password"

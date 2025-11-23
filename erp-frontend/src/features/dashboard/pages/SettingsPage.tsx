@@ -8,9 +8,6 @@ import { settingsApi, SettingsCategory, Settings, SettingsUpdate } from '../../s
 import { toast } from 'sonner';
 import { 
   Building2, 
-  DollarSign, 
-  ShoppingCart, 
-  Package, 
   Mail, 
   Bell, 
   Plug, 
@@ -23,9 +20,6 @@ type TabType = SettingsCategory | 'all';
 
 const tabConfig = [
   { id: SettingsCategory.COMPANY, label: 'Company', icon: Building2 },
-  { id: SettingsCategory.FINANCIAL, label: 'Financial', icon: DollarSign },
-  { id: SettingsCategory.SALES, label: 'Sales', icon: ShoppingCart },
-  { id: SettingsCategory.INVENTORY, label: 'Inventory', icon: Package },
   { id: SettingsCategory.EMAIL, label: 'Email', icon: Mail },
   { id: SettingsCategory.NOTIFICATIONS, label: 'Notifications', icon: Bell },
   { id: SettingsCategory.INTEGRATIONS, label: 'Integrations', icon: Plug },
@@ -44,6 +38,7 @@ export const SettingsPage: React.FC = () => {
     [SettingsCategory.NOTIFICATIONS]: null,
     [SettingsCategory.INTEGRATIONS]: null,
     [SettingsCategory.GENERAL]: null,
+    [SettingsCategory.SECURITY]: null,
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,6 +52,7 @@ export const SettingsPage: React.FC = () => {
     [SettingsCategory.NOTIFICATIONS]: {},
     [SettingsCategory.INTEGRATIONS]: {},
     [SettingsCategory.GENERAL]: {},
+    [SettingsCategory.SECURITY]: {},
   });
 
   useEffect(() => {
@@ -77,12 +73,12 @@ export const SettingsPage: React.FC = () => {
         [SettingsCategory.NOTIFICATIONS]: null,
         [SettingsCategory.INTEGRATIONS]: null,
         [SettingsCategory.GENERAL]: null,
+        [SettingsCategory.SECURITY]: null,
       };
 
       allSettings.forEach((setting) => {
         if (setting.category in settingsMap) {
           settingsMap[setting.category as SettingsCategory] = setting;
-          // Initialize form data with existing settings
           // Initialize form data with existing settings
           const categoryData: SettingsUpdate = {};
           if (setting.company_info) categoryData.company_info = setting.company_info;
@@ -93,6 +89,31 @@ export const SettingsPage: React.FC = () => {
           if (setting.notifications) categoryData.notifications = setting.notifications;
           if (setting.integrations) categoryData.integrations = setting.integrations;
           if (setting.general) categoryData.general = setting.general;
+          if (setting.security) {
+            // CRITICAL: Use actual boolean values from response, not === true conversion
+            // The backend returns a dict with actual boolean values (true/false)
+            categoryData.security = {
+              password_min_length: setting.security.password_min_length ?? 8,
+              // Use ?? operator: if value is false, keep false. If undefined, default to false
+              password_require_uppercase: setting.security.password_require_uppercase ?? false,
+              password_require_lowercase: setting.security.password_require_lowercase ?? false,
+              password_require_numbers: setting.security.password_require_numbers ?? false,
+              password_require_special_chars: setting.security.password_require_special_chars ?? false,
+              require_password_change_on_first_login: setting.security.require_password_change_on_first_login ?? false,
+              max_login_attempts: setting.security.max_login_attempts ?? 5,
+              account_lockout_duration_minutes: setting.security.account_lockout_duration_minutes ?? 30,
+              session_timeout_minutes: setting.security.session_timeout_minutes ?? 30,
+              enable_two_factor_auth: setting.security.enable_two_factor_auth ?? false,
+              require_two_factor_auth: setting.security.require_two_factor_auth ?? false,
+              token_refresh_enabled: setting.security.token_refresh_enabled ?? false,
+              refresh_token_expire_days: setting.security.refresh_token_expire_days ?? 7,
+            };
+            console.log('Loaded security settings from DB:', categoryData.security);
+            console.log('Boolean values:', {
+              password_require_numbers: categoryData.security.password_require_numbers,
+              password_require_special_chars: categoryData.security.password_require_special_chars,
+            });
+          }
           
           setFormData((prev) => ({
             ...prev,
@@ -113,12 +134,137 @@ export const SettingsPage: React.FC = () => {
   const handleSave = async (category: SettingsCategory) => {
     setSaving(true);
     try {
-      const data = formData[category];
+      let data = formData[category];
+      
+      // For security settings, ensure ALL fields are explicitly included with their current values
+      if (category === SettingsCategory.SECURITY) {
+        // Get the current formData value (most recent user input)
+        const formSecurity = formData[SettingsCategory.SECURITY]?.security || {};
+        // Get saved settings as fallback
+        const savedSecurity = settings[SettingsCategory.SECURITY]?.security || {};
+        
+        console.log('🔍 BEFORE MERGE - formSecurity:', JSON.stringify(formSecurity, null, 2));
+        console.log('🔍 BEFORE MERGE - savedSecurity:', JSON.stringify(savedSecurity, null, 2));
+        
+        // CRITICAL FIX: Start with savedSecurity, but ONLY use formSecurity values that were explicitly set
+        // The key is: if a field exists in formSecurity (even if false), it means user changed it
+        const currentSecurity: any = {};
+        
+        // First, copy all saved values
+        Object.keys(savedSecurity).forEach(key => {
+          currentSecurity[key] = savedSecurity[key];
+        });
+        
+        // Then, override with formSecurity values - this ensures user's changes (including false) take precedence
+        Object.keys(formSecurity).forEach(key => {
+          // If key exists in formSecurity, use it (even if false) - this is the user's explicit choice
+          currentSecurity[key] = formSecurity[key];
+        });
+        
+        // Also handle password_require_special vs password_require_special_chars
+        if ('password_require_special' in formSecurity) {
+          currentSecurity.password_require_special_chars = formSecurity.password_require_special;
+        } else if ('password_require_special_chars' in formSecurity) {
+          currentSecurity.password_require_special_chars = formSecurity.password_require_special_chars;
+        }
+        
+        console.log('🔍 AFTER MERGE - currentSecurity:', JSON.stringify(currentSecurity, null, 2));
+        
+        // Build securityData - use currentSecurity values, defaulting to false for booleans if not set
+        const securityData: any = {
+          password_min_length: currentSecurity.password_min_length ?? 8,
+          // Use currentSecurity value if it exists, otherwise default to false
+          password_require_uppercase: currentSecurity.password_require_uppercase !== undefined ? currentSecurity.password_require_uppercase : false,
+          password_require_lowercase: currentSecurity.password_require_lowercase !== undefined ? currentSecurity.password_require_lowercase : false,
+          password_require_numbers: currentSecurity.password_require_numbers !== undefined ? currentSecurity.password_require_numbers : false,
+          password_require_special_chars: (currentSecurity.password_require_special_chars !== undefined || currentSecurity.password_require_special !== undefined)
+            ? (currentSecurity.password_require_special_chars ?? currentSecurity.password_require_special)
+            : false,
+          max_login_attempts: currentSecurity.max_login_attempts ?? 5,
+          account_lockout_duration_minutes: currentSecurity.account_lockout_duration_minutes ?? 30,
+          session_timeout_minutes: currentSecurity.session_timeout_minutes ?? 30,
+          enable_two_factor_auth: currentSecurity.enable_two_factor_auth !== undefined ? currentSecurity.enable_two_factor_auth : false,
+          require_two_factor_auth: currentSecurity.require_two_factor_auth !== undefined ? currentSecurity.require_two_factor_auth : false,
+          token_refresh_enabled: currentSecurity.token_refresh_enabled !== undefined ? currentSecurity.token_refresh_enabled : false,
+          refresh_token_expire_days: currentSecurity.refresh_token_expire_days ?? 7,
+        };
+        
+        console.log('✅ Sending security data to backend:', JSON.stringify(securityData, null, 2));
+        console.log('✅ CRITICAL VALUES:', {
+          password_require_numbers: securityData.password_require_numbers,
+          password_require_special_chars: securityData.password_require_special_chars,
+          'formSecurity has password_require_numbers': 'password_require_numbers' in formSecurity,
+          'formSecurity.password_require_numbers value': formSecurity.password_require_numbers,
+        });
+        
+        data = {
+          ...data,
+          security: securityData,
+        };
+      }
+      
+      console.log('Saving security settings:', JSON.stringify(data, null, 2));
       const updated = await settingsApi.update(category, data);
-      setSettings((prev) => ({
-        ...prev,
-        [category]: updated,
-      }));
+      console.log('Received updated settings:', JSON.stringify(updated, null, 2));
+      console.log('Security values from response:', {
+        password_require_uppercase: updated.security?.password_require_uppercase,
+        password_require_lowercase: updated.security?.password_require_lowercase,
+        password_require_numbers: updated.security?.password_require_numbers,
+        password_require_special_chars: updated.security?.password_require_special_chars,
+      });
+      
+      // Update both formData and settings state with the response
+      // This ensures UI reflects saved values immediately without reload
+      if (updated.security) {
+        // CRITICAL: Use the actual values from the response as-is
+        // The backend returns a dict with actual boolean values (true/false)
+        const updatedSecurity = {
+          ...updated.security,
+        };
+        
+        // Ensure all boolean fields are explicitly set (not undefined)
+        updatedSecurity.password_require_uppercase = updated.security.password_require_uppercase ?? false;
+        updatedSecurity.password_require_lowercase = updated.security.password_require_lowercase ?? false;
+        updatedSecurity.password_require_numbers = updated.security.password_require_numbers ?? false;
+        updatedSecurity.password_require_special_chars = updated.security.password_require_special_chars ?? false;
+        updatedSecurity.enable_two_factor_auth = updated.security.enable_two_factor_auth ?? false;
+        updatedSecurity.require_two_factor_auth = updated.security.require_two_factor_auth ?? false;
+        updatedSecurity.token_refresh_enabled = updated.security.token_refresh_enabled ?? false;
+        
+        console.log('Updating formData with saved security:', updatedSecurity);
+        console.log('CRITICAL - Boolean values from backend:', {
+          password_require_uppercase: updatedSecurity.password_require_uppercase,
+          password_require_lowercase: updatedSecurity.password_require_lowercase,
+          password_require_numbers: updatedSecurity.password_require_numbers,
+          password_require_special_chars: updatedSecurity.password_require_special_chars,
+        });
+        
+        setFormData((prev) => ({
+          ...prev,
+          [category]: {
+            security: updatedSecurity,
+          },
+        }));
+        
+        // Also update settings state
+        setSettings((prev) => ({
+          ...prev,
+          [category]: {
+            ...updated,
+            security: updatedSecurity,
+          },
+        }));
+      } else {
+        // Update settings state even if no security field
+        setSettings((prev) => ({
+          ...prev,
+          [category]: updated,
+        }));
+      }
+      
+      // Don't reload settings - we already have the updated values
+      // await loadSettings(); // Commented out to prevent overwriting with defaults
+      
       toast.success(`${tabConfig.find(t => t.id === category)?.label || category} settings saved successfully`);
     } catch (error: any) {
       console.error('Error saving settings:', error);
@@ -133,7 +279,7 @@ export const SettingsPage: React.FC = () => {
       const categoryData = prev[category] || {};
       const newData = { ...categoryData };
       
-      // Handle nested fields (e.g., company_info.company_name)
+      // Handle nested fields (e.g., security.password_require_uppercase)
       if (field.includes('.')) {
         const parts = field.split('.');
         if (parts.length === 2) {
@@ -143,6 +289,18 @@ export const SettingsPage: React.FC = () => {
             ...parentData,
             [child]: value,
           } as any;
+          
+          // Debug log for security settings
+          if (category === SettingsCategory.SECURITY && parent === 'security') {
+            console.log(`Updating security.${child} to:`, value, 'Type:', typeof value);
+            console.log(`FormData after update:`, {
+              ...newData,
+              [parent]: {
+                ...parentData,
+                [child]: value,
+              },
+            });
+          }
         } else if (parts.length === 3) {
           // Handle deeper nesting like address.street
           const [parent, nested, child] = parts;
@@ -158,6 +316,11 @@ export const SettingsPage: React.FC = () => {
         }
       } else {
         (newData as any)[field] = value;
+      }
+      
+      // Debug: log the updated formData for security category
+      if (category === SettingsCategory.SECURITY) {
+        console.log('Updated formData.security:', newData.security);
       }
       
       return {
@@ -256,186 +419,6 @@ export const SettingsPage: React.FC = () => {
                 country: e.target.value,
               })}
             />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderFinancialSettings = () => {
-    const data = formData[SettingsCategory.FINANCIAL].financial || settings[SettingsCategory.FINANCIAL]?.financial;
-    
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Input
-            label="Default Currency"
-            value={data?.default_currency || 'USD'}
-            onChange={(e) => updateFormData(SettingsCategory.FINANCIAL, 'financial.default_currency', e.target.value)}
-            maxLength={3}
-          />
-          <Input
-            label="Fiscal Year Start Month"
-            type="number"
-            value={data?.fiscal_year_start_month || 1}
-            onChange={(e) => updateFormData(SettingsCategory.FINANCIAL, 'financial.fiscal_year_start_month', parseInt(e.target.value))}
-            min={1}
-            max={12}
-          />
-          <Input
-            label="Default Tax Rate (%)"
-            type="number"
-            step="0.01"
-            value={(data?.tax_rate || 0) * 100}
-            onChange={(e) => updateFormData(SettingsCategory.FINANCIAL, 'financial.tax_rate', parseFloat(e.target.value) / 100)}
-            min={0}
-            max={100}
-          />
-          <Input
-            label="Decimal Places"
-            type="number"
-            value={data?.decimal_places || 2}
-            onChange={(e) => updateFormData(SettingsCategory.FINANCIAL, 'financial.decimal_places', parseInt(e.target.value))}
-            min={0}
-            max={4}
-          />
-          <Input
-            label="Invoice Prefix"
-            value={data?.invoice_prefix || ''}
-            onChange={(e) => updateFormData(SettingsCategory.FINANCIAL, 'financial.invoice_prefix', e.target.value)}
-            maxLength={10}
-          />
-          <Input
-            label="Invoice Number Format"
-            value={data?.invoice_number_format || ''}
-            onChange={(e) => updateFormData(SettingsCategory.FINANCIAL, 'financial.invoice_number_format', e.target.value)}
-            placeholder="e.g., INV-{year}-{number}"
-          />
-        </div>
-      </div>
-    );
-  };
-
-  const renderSalesSettings = () => {
-    const data = formData[SettingsCategory.SALES].sales || settings[SettingsCategory.SALES]?.sales;
-    
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Select
-            label="Default Payment Terms"
-            value={data?.default_payment_terms || 'net_30'}
-            onChange={(e) => updateFormData(SettingsCategory.SALES, 'sales.default_payment_terms', e.target.value)}
-            options={[
-              { value: 'net_15', label: 'Net 15' },
-              { value: 'net_30', label: 'Net 30' },
-              { value: 'net_45', label: 'Net 45' },
-              { value: 'net_60', label: 'Net 60' },
-              { value: 'cod', label: 'Cash on Delivery' },
-              { value: 'prepaid', label: 'Prepaid' },
-            ]}
-          />
-          <Input
-            label="Default Shipping Method"
-            value={data?.default_shipping_method || ''}
-            onChange={(e) => updateFormData(SettingsCategory.SALES, 'sales.default_shipping_method', e.target.value)}
-          />
-          <Input
-            label="Default Tax Rate (%)"
-            type="number"
-            step="0.01"
-            value={(data?.default_tax_rate || 0) * 100}
-            onChange={(e) => updateFormData(SettingsCategory.SALES, 'sales.default_tax_rate', parseFloat(e.target.value) / 100)}
-            min={0}
-            max={100}
-          />
-          <Input
-            label="Quote Validity (Days)"
-            type="number"
-            value={data?.quote_validity_days || 30}
-            onChange={(e) => updateFormData(SettingsCategory.SALES, 'sales.quote_validity_days', parseInt(e.target.value))}
-            min={1}
-            max={365}
-          />
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="auto_generate_invoice"
-              checked={data?.auto_generate_invoice || false}
-              onChange={(e) => updateFormData(SettingsCategory.SALES, 'sales.auto_generate_invoice', e.target.checked)}
-              className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-            />
-            <label htmlFor="auto_generate_invoice" className="text-sm font-medium text-slate-700">
-              Auto-generate invoice from order
-            </label>
-          </div>
-          <Input
-            label="Invoice Due Days"
-            type="number"
-            value={data?.invoice_due_days || 30}
-            onChange={(e) => updateFormData(SettingsCategory.SALES, 'sales.invoice_due_days', parseInt(e.target.value))}
-            min={1}
-            max={365}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  const renderInventorySettings = () => {
-    const data = formData[SettingsCategory.INVENTORY].inventory || settings[SettingsCategory.INVENTORY]?.inventory;
-    
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Input
-            label="Low Stock Threshold"
-            type="number"
-            step="0.1"
-            value={data?.low_stock_threshold || 10}
-            onChange={(e) => updateFormData(SettingsCategory.INVENTORY, 'inventory.low_stock_threshold', parseFloat(e.target.value))}
-            min={0}
-          />
-          <Input
-            label="Default Warehouse"
-            value={data?.default_warehouse || ''}
-            onChange={(e) => updateFormData(SettingsCategory.INVENTORY, 'inventory.default_warehouse', e.target.value)}
-          />
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="auto_reorder"
-              checked={data?.auto_reorder || false}
-              onChange={(e) => updateFormData(SettingsCategory.INVENTORY, 'inventory.auto_reorder', e.target.checked)}
-              className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-            />
-            <label htmlFor="auto_reorder" className="text-sm font-medium text-slate-700">
-              Enable auto-reorder
-            </label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="track_serial_numbers"
-              checked={data?.track_serial_numbers || false}
-              onChange={(e) => updateFormData(SettingsCategory.INVENTORY, 'inventory.track_serial_numbers', e.target.checked)}
-              className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-            />
-            <label htmlFor="track_serial_numbers" className="text-sm font-medium text-slate-700">
-              Track serial numbers
-            </label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="track_batch_numbers"
-              checked={data?.track_batch_numbers || false}
-              onChange={(e) => updateFormData(SettingsCategory.INVENTORY, 'inventory.track_batch_numbers', e.target.checked)}
-              className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-            />
-            <label htmlFor="track_batch_numbers" className="text-sm font-medium text-slate-700">
-              Track batch numbers
-            </label>
           </div>
         </div>
       </div>
@@ -688,6 +671,7 @@ export const SettingsPage: React.FC = () => {
     );
   };
 
+
   const renderTabContent = () => {
     if (loading) {
       return (
@@ -707,45 +691,6 @@ export const SettingsPage: React.FC = () => {
             <CardContent>{renderCompanySettings()}</CardContent>
             <CardFooter>
               <Button onClick={() => handleSave(SettingsCategory.COMPANY)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
-          </Card>
-        );
-      case SettingsCategory.FINANCIAL:
-        return (
-          <Card padding="lg">
-            <CardHeader title="Financial Settings" subtitle="Configure financial and accounting preferences" />
-            <CardContent>{renderFinancialSettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.FINANCIAL)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
-          </Card>
-        );
-      case SettingsCategory.SALES:
-        return (
-          <Card padding="lg">
-            <CardHeader title="Sales Settings" subtitle="Configure sales and order preferences" />
-            <CardContent>{renderSalesSettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.SALES)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
-          </Card>
-        );
-      case SettingsCategory.INVENTORY:
-        return (
-          <Card padding="lg">
-            <CardHeader title="Inventory Settings" subtitle="Configure inventory management preferences" />
-            <CardContent>{renderInventorySettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.INVENTORY)} disabled={saving}>
                 {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                 Save Changes
               </Button>

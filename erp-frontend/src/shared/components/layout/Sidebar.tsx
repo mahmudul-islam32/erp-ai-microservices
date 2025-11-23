@@ -27,6 +27,7 @@ import {
   GraduationCap,
   Heart,
   BarChart,
+  Palette,
 } from 'lucide-react';
 
 interface NavItem {
@@ -62,6 +63,7 @@ const navigation: NavItem[] = [
       { name: 'Categories', path: '/dashboard/inventory/categories', icon: Tag },
       { name: 'Warehouses', path: '/dashboard/inventory/warehouses', icon: Warehouse },
       { name: 'Stock', path: '/dashboard/inventory/stock', icon: Package },
+      { name: 'Settings', path: '/dashboard/inventory/settings', icon: Settings },
     ],
   },
   {
@@ -74,6 +76,7 @@ const navigation: NavItem[] = [
       { name: 'Orders', path: '/dashboard/sales/orders', icon: ShoppingCart },
       { name: 'Quotes', path: '/dashboard/sales/quotes', icon: FileText },
       { name: 'Invoices', path: '/dashboard/sales/invoices', icon: Receipt },
+      { name: 'Settings', path: '/dashboard/sales/settings', icon: Settings },
     ],
   },
   {
@@ -85,6 +88,7 @@ const navigation: NavItem[] = [
       { name: 'Chart of Accounts', path: '/dashboard/finance/accounts', icon: BookOpen },
       { name: 'Journal Entries', path: '/dashboard/finance/journal-entries', icon: Receipt },
       { name: 'Financial Reports', path: '/dashboard/finance/reports', icon: BarChart3 },
+      { name: 'Settings', path: '/dashboard/finance/settings', icon: Settings },
     ],
   },
   {
@@ -104,7 +108,15 @@ const navigation: NavItem[] = [
       { name: 'Analytics', path: '/dashboard/hrm/analytics', icon: BarChart },
     ],
   },
-  { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+  { 
+    name: 'Settings', 
+    path: '/dashboard/settings', 
+    icon: Settings,
+    children: [
+      { name: 'General', path: '/dashboard/settings', icon: Settings },
+      { name: 'Appearance', path: '/dashboard/settings/appearance', icon: Palette },
+    ],
+  },
 ];
 
 interface SidebarProps {
