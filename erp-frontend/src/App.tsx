@@ -6,6 +6,7 @@ import { store } from './app/store';
 import { LoginPage } from './features/auth/pages/LoginPage';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
 import { MainLayout } from './shared/components/layout/MainLayout';
+import { AppearanceLoader } from './shared/components/AppearanceLoader';
 
 
 import { DashboardPage } from './features/dashboard/pages/DashboardPage';
@@ -30,6 +31,7 @@ import { ProductDetailPage } from './features/inventory/pages/ProductDetailPage'
 import { CategoriesPage } from './features/inventory/pages/CategoriesPage';
 import { WarehousesPage } from './features/inventory/pages/WarehousesPage';
 import { StockManagementPage } from './features/inventory/pages/StockManagementPage';
+import { InventorySettingsPage } from './features/inventory/pages/InventorySettingsPage';
 
 // Sales
 import { SalesDashboardPage } from './features/sales/pages/SalesDashboardPage';
@@ -45,6 +47,7 @@ import { QuotesPage } from './features/sales/pages/QuotesPage';
 import { InvoicesPage } from './features/sales/pages/InvoicesPage';
 import { CreateInvoicePage } from './features/sales/pages/CreateInvoicePage';
 import { InvoiceDetailPage } from './features/sales/pages/InvoiceDetailPage';
+import { SalesSettingsPage } from './features/sales/pages/SalesSettingsPage';
 
 // Chat
 import { ChatPage } from './features/chat';
@@ -55,6 +58,7 @@ import {
   ChartOfAccountsPage,
   JournalEntriesPage,
   FinancialReportsPage,
+  FinancialSettingsPage,
 } from './features/finance';
 
 // HRM
@@ -73,6 +77,7 @@ import {
 
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
+import { AppearanceSettingsPage } from './features/dashboard/pages/AppearanceSettingsPage';
 // Profile
 import { ProfileSettingsPage } from './features/auth/pages/ProfileSettingsPage';
 
@@ -116,6 +121,7 @@ function App() {
             <Route path="inventory/categories" element={<CategoriesPage />} />
             <Route path="inventory/warehouses" element={<WarehousesPage />} />
             <Route path="inventory/stock" element={<StockManagementPage />} />
+            <Route path="inventory/settings" element={<InventorySettingsPage />} />
 
             {/* Sales */}
             <Route path="sales" element={<SalesDashboardPage />} />
@@ -131,6 +137,7 @@ function App() {
             <Route path="sales/invoices" element={<InvoicesPage />} />
             <Route path="sales/invoices/create" element={<CreateInvoicePage />} />
             <Route path="sales/invoices/:id" element={<InvoiceDetailPage />} />
+            <Route path="sales/settings" element={<SalesSettingsPage />} />
 
             {/* Chat */}
             <Route path="messages" element={<ChatPage />} />
@@ -140,6 +147,7 @@ function App() {
             <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
             <Route path="finance/journal-entries" element={<JournalEntriesPage />} />
             <Route path="finance/reports" element={<FinancialReportsPage />} />
+            <Route path="finance/settings" element={<FinancialSettingsPage />} />
 
             {/* HRM */}
             <Route path="hrm" element={<HRMDashboardPage />} />
@@ -155,6 +163,7 @@ function App() {
 
             {/* Settings */}
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/appearance" element={<AppearanceSettingsPage />} />
             
             {/* Profile */}
             <Route path="profile" element={<ProfileSettingsPage />} />

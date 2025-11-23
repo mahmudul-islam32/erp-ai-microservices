@@ -379,7 +379,7 @@ async def change_password(
     user_agent = request.headers.get("user-agent", "unknown")
     
     try:
-        success = await user_service.change_password(
+        success, error_message = await user_service.change_password(
             str(current_user.id),
             password_data.current_password,
             password_data.new_password
@@ -396,12 +396,12 @@ async def change_password(
                 ip_address=client_ip,
                 user_agent=user_agent,
                 status="failure",
-                details={"reason": "Invalid current password"}
+                details={"reason": error_message or "Invalid current password"}
             )
             
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid current password"
+                detail=error_message or "Invalid current password"
             )
         
         # Log successful password change
