@@ -1,12 +1,64 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Default CSS variables - can be overridden by appearance settings */
+    --font-family: Inter, system-ui, -apple-system, sans-serif;
+    --font-size-base: 14px;
+    --font-size-small: 12px;
+    --font-size-large: 16px;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+    
+    --color-primary: #3b82f6;
+    --color-primary-dark: #2563eb;
+    --color-secondary: #64748b;
+    --color-accent: #8b5cf6;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-background: #ffffff;
+    --color-background-dark: #0f172a;
+    --color-text: #1e293b;
+    --color-text-dark: #f1f5f9;
+    
+    --border-radius: 0.375rem;
+    --border-radius-large: 0.5rem;
+    --spacing-unit: 0.25rem;
+  }
+
+  * {
+    font-family: var(--font-family);
+  }
+
   body {
-    @apply bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans;
+    @apply bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-bold);
+  }
+
+  button, input, textarea, select {
+    font-family: var(--font-family);
   }
 }
 
@@ -27,5 +79,68 @@
   
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     @apply bg-slate-400 dark:bg-slate-500;
+  }
+}
+
+@layer utilities {
+  /* Ensure CSS variables are used for dynamic colors */
+  .bg-primary-500 {
+    background-color: var(--color-primary);
+  }
+  
+  .bg-primary-600 {
+    background-color: var(--color-primary-dark);
+  }
+  
+  .text-primary-500 {
+    color: var(--color-primary);
+  }
+  
+  .text-primary-600 {
+    color: var(--color-primary-dark);
+  }
+  
+  .border-primary-500 {
+    border-color: var(--color-primary);
+  }
+  
+  .ring-primary-500 {
+    --tw-ring-color: var(--color-primary);
+  }
+  
+  .bg-success-500 {
+    background-color: var(--color-success);
+  }
+  
+  .text-success-500 {
+    color: var(--color-success);
+  }
+  
+  .bg-warning-500 {
+    background-color: var(--color-warning);
+  }
+  
+  .text-warning-500 {
+    color: var(--color-warning);
+  }
+  
+  .bg-danger-500 {
+    background-color: var(--color-danger);
+  }
+  
+  .bg-danger-600 {
+    background-color: var(--color-danger);
+  }
+  
+  .text-danger-500 {
+    color: var(--color-danger);
+  }
+  
+  .border-danger-500 {
+    border-color: var(--color-danger);
+  }
+  
+  .ring-danger-500 {
+    --tw-ring-color: var(--color-danger);
   }
 }

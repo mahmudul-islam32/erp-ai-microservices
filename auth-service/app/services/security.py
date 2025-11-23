@@ -172,3 +172,51 @@ class SecurityService:
     def check_all_permissions(user_permissions: List[Permission], required_permissions: List[Permission]) -> bool:
         """Check if user has all required permissions"""
         return all(perm in user_permissions for perm in required_permissions)
+
+    @staticmethod
+    def validate_password(password: str, security_settings: Optional[dict] = None) -> tuple:
+        """
+        Validate password against security settings.
+        Returns (is_valid, error_message)
+        """
+        # If no settings provided, use strict defaults
+        if not security_settings:
+            security_settings = {
+                "password_min_length": 8,
+                "password_require_uppercase": True,
+                "password_require_lowercase": True,
+                "password_require_numbers": True,
+                "password_require_special_chars": False
+            }
+
+        # Get settings - ensure boolean values are properly handled
+        min_length = security_settings.get("password_min_length", 8)
+        # Explicitly check for True/False, not just truthy/falsy
+        require_uppercase = security_settings.get("password_require_uppercase") is True
+        require_lowercase = security_settings.get("password_require_lowercase") is True
+        require_numbers = security_settings.get("password_require_numbers") is True
+        require_special_chars = security_settings.get("password_require_special_chars") is True
+
+        # Check minimum length
+        if len(password) < min_length:
+            return False, f"Password must be at least {min_length} characters long"
+
+        # Check for uppercase
+        if require_uppercase and not any(c.isupper() for c in password):
+            return False, "Password must contain at least one uppercase letter"
+
+        # Check for lowercase
+        if require_lowercase and not any(c.islower() for c in password):
+            return False, "Password must contain at least one lowercase letter"
+
+        # Check for numbers
+        if require_numbers and not any(c.isdigit() for c in password):
+            return False, "Password must contain at least one number"
+
+        # Check for special characters
+        if require_special_chars:
+            special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+            if not any(c in special_chars for c in password):
+                return False, "Password must contain at least one special character (!@#$%^&*)"
+
+        return True, None

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { AppearanceLoader } from '../AppearanceLoader';
 
 export const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,17 +12,20 @@ export const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <Sidebar isOpen={isSidebarOpen} />
-      
-      <div className="lg:pl-64">
-        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
+    <>
+      <AppearanceLoader />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <Sidebar isOpen={isSidebarOpen} />
         
-        <main className="p-4 lg:p-6">
-          <Outlet />
-        </main>
+        <div className="lg:pl-64">
+          <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
+          
+          <main className="p-4 lg:p-6">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

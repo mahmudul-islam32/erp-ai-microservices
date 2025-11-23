@@ -1,6 +1,8 @@
 from app.database import get_database
 from app.models import UserInDB, UserCreate, UserUpdate, UserResponse, UserRole, UserStatus, Permission
+from app.models.settings import SettingsCategory
 from app.services.security import SecurityService
+from app.services.settings_service import settings_service
 from app.services.notification_client import NotificationClient
 from app.services.notification_helper import send_user_management_notification
 from pymongo.errors import DuplicateKeyError
@@ -32,6 +34,47 @@ class UserService:
             existing_user = await users_collection.find_one({"email": user_data.email})
             if existing_user:
                 raise ValueError("User with this email already exists")
+
+            # Get security settings - MUST exist for password validation
+            security_settings = None
+            try:
+                security_setting = await settings_service.get_settings_by_category(SettingsCategory.SECURITY)
+                if security_setting and security_setting.security:
+                    # Convert Pydantic model to dict, ensuring boolean values are preserved
+                    security_settings = security_setting.security.dict()
+                    logger.info(f"Using security settings for user creation:")
+                    logger.info(f"  - min_length: {security_settings.get('password_min_length')}")
+                    logger.info(f"  - require_uppercase: {security_settings.get('password_require_uppercase')}")
+                    logger.info(f"  - require_lowercase: {security_settings.get('password_require_lowercase')}")
+                    logger.info(f"  - require_numbers: {security_settings.get('password_require_numbers')}")
+                    logger.info(f"  - require_special_chars: {security_settings.get('password_require_special_chars')}")
+                else:
+                    logger.warning("Security settings not found in database. Using strict defaults.")
+                    # Use strict defaults if no settings found
+                    security_settings = {
+                        "password_min_length": 8,
+                        "password_require_uppercase": True,
+                        "password_require_lowercase": True,
+                        "password_require_numbers": True,
+                        "password_require_special_chars": False
+                    }
+            except Exception as e:
+                logger.error(f"Error fetching security settings: {e}")
+                # Use strict defaults on error
+                security_settings = {
+                    "password_min_length": 8,
+                    "password_require_uppercase": True,
+                    "password_require_lowercase": True,
+                    "password_require_numbers": True,
+                    "password_require_special_chars": False
+                }
+                logger.warning("Using default security settings due to error")
+
+            # Validate password against security settings
+            is_valid, error_message = self.security_service.validate_password(user_data.password, security_settings)
+            if not is_valid:
+                logger.warning(f"Password validation failed for user creation: {error_message}")
+                raise ValueError(error_message or "Password does not meet security requirements")
 
             # Hash password
             hashed_password = self.security_service.get_password_hash(user_data.password)
@@ -345,16 +388,60 @@ class UserService:
             logger.error(f"Error authenticating user: {e}")
             return None
 
-    async def change_password(self, user_id: str, current_password: str, new_password: str) -> bool:
-        """Change user password"""
+    async def change_password(self, user_id: str, current_password: str, new_password: str) -> tuple:
+        """
+        Change user password.
+        Returns (success, error_message)
+        """
         try:
             user = await self.get_user_by_id(user_id)
             if not user:
-                return False
+                return False, "User not found"
 
             # Verify current password
             if not self.security_service.verify_password(current_password, user.hashed_password):
-                return False
+                return False, "Invalid current password"
+
+            # Get security settings - MUST exist for password validation
+            security_settings = None
+            try:
+                security_setting = await settings_service.get_settings_by_category(SettingsCategory.SECURITY)
+                if security_setting and security_setting.security:
+                    # Convert Pydantic model to dict, ensuring boolean values are preserved
+                    security_settings = security_setting.security.dict()
+                    logger.info(f"Using security settings for password validation:")
+                    logger.info(f"  - min_length: {security_settings.get('password_min_length')}")
+                    logger.info(f"  - require_uppercase: {security_settings.get('password_require_uppercase')}")
+                    logger.info(f"  - require_lowercase: {security_settings.get('password_require_lowercase')}")
+                    logger.info(f"  - require_numbers: {security_settings.get('password_require_numbers')}")
+                    logger.info(f"  - require_special_chars: {security_settings.get('password_require_special_chars')}")
+                else:
+                    logger.warning("Security settings not found in database. Using strict defaults.")
+                    # Use strict defaults if no settings found
+                    security_settings = {
+                        "password_min_length": 8,
+                        "password_require_uppercase": True,
+                        "password_require_lowercase": True,
+                        "password_require_numbers": True,
+                        "password_require_special_chars": False
+                    }
+            except Exception as e:
+                logger.error(f"Error fetching security settings: {e}")
+                # Use strict defaults on error
+                security_settings = {
+                    "password_min_length": 8,
+                    "password_require_uppercase": True,
+                    "password_require_lowercase": True,
+                    "password_require_numbers": True,
+                    "password_require_special_chars": False
+                }
+                logger.warning("Using default security settings due to error")
+
+            # Validate new password against security settings
+            is_valid, error_message = self.security_service.validate_password(new_password, security_settings)
+            if not is_valid:
+                logger.warning(f"Password validation failed for user {user_id}: {error_message}")
+                return False, error_message
 
             # Hash new password
             new_hashed_password = self.security_service.get_password_hash(new_password)
@@ -373,11 +460,11 @@ class UserService:
                 }
             )
 
-            return result.matched_count > 0
+            return result.matched_count > 0, None
 
         except Exception as e:
             logger.error(f"Error changing password: {e}")
-            return False
+            return False, "Internal server error"
 
     async def update_user_permissions(self, user_id: str, permissions: List[Permission]) -> bool:
         """Update user permissions"""
