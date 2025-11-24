@@ -9,6 +9,7 @@ import uvicorn
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
 from app.api.v1 import auth_router, users_router, sessions_router, audit_logs_router, settings_router
+from app.api.v1.two_factor import router as two_factor_router
 
 # Configure logging
 logging.basicConfig(
@@ -89,6 +90,7 @@ app.include_router(users_router, prefix="/api/v1")
 app.include_router(sessions_router, prefix="/api/v1")
 app.include_router(audit_logs_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
+app.include_router(two_factor_router, prefix="/api/v1")
 
 
 # Root endpoint

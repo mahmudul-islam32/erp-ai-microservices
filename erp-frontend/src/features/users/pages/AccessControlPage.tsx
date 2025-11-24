@@ -59,7 +59,7 @@ export const AccessControlPage: React.FC = () => {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
         >
           <svg
             className="h-5 w-5 mr-2"
@@ -82,9 +82,9 @@ export const AccessControlPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-indigo-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
               <svg
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-primary-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -160,8 +160,59 @@ export const AccessControlPage: React.FC = () => {
       {/* Access Control Table */}
       <div className="bg-white rounded-lg shadow">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Resource
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Permissions
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Granted By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Expires
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {[...Array(5)].map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1">
+                        <div className="h-6 bg-gray-200 rounded w-16 animate-pulse" />
+                        <div className="h-6 bg-gray-200 rounded w-16 animate-pulse" />
+                        <div className="h-6 bg-gray-200 rounded w-16 animate-pulse" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : entries.length === 0 ? (
           <div className="text-center py-12">
@@ -185,7 +236,7 @@ export const AccessControlPage: React.FC = () => {
             <div className="mt-6">
               <button
                 onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
               >
                 Grant Access
               </button>

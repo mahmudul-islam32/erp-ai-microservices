@@ -10,6 +10,7 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem('access_token'),
   isLoading: false,
   error: null,
+  requires2FASetup: false,
 };
 
 // Async thunks
@@ -18,9 +19,24 @@ export const login = createAsyncThunk(
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
+      
+      // Check if 2FA is required
+      if (response && typeof response === 'object' && 'requires_2fa' in response && response.requires_2fa) {
+        // Return the 2FA requirement response without error
+        return response;
+      }
+      
+      // Normal login success
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
-      toast.success('Login successful!');
+      
+      // Check if 2FA setup is recommended
+      if (response && typeof response === 'object' && 'requires_2fa_setup' in response && response.requires_2fa_setup) {
+        toast.warning('Please set up two-factor authentication in your security settings for enhanced security.');
+      } else {
+        toast.success('Login successful!');
+      }
+      
       return response;
     } catch (error: any) {
       let message = 'Login failed';
@@ -99,6 +115,10 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.requires2FASetup = false;
+    },
+    clear2FASetupFlag: (state) => {
+      state.requires2FASetup = false;
     },
     clearError: (state) => {
       state.error = null;
@@ -112,15 +132,29 @@ const authSlice = createSlice({
     });
     builder.addCase(login.fulfilled, (state, action) => {
       state.isLoading = false;
-      const user = action.payload.user;
-      // Compute full_name if not present
-      if (user && !user.full_name) {
-        user.full_name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User';
+      
+      // Check if 2FA is required (response has requires_2fa field)
+      if (action.payload && typeof action.payload === 'object' && 'requires_2fa' in action.payload) {
+        // Don't set authenticated state, just return the 2FA requirement
+        state.error = null;
+        return;
       }
-      state.user = user;
+      
+      // Normal login success
+      // The login endpoint returns tokens, not user object
+      // User will be fetched separately by ProtectedRoute or App component
       state.accessToken = action.payload.access_token;
       state.refreshToken = action.payload.refresh_token;
       state.isAuthenticated = true;
+      
+      // Check if 2FA setup is required
+      if (action.payload && typeof action.payload === 'object' && 'requires_2fa_setup' in action.payload) {
+        state.requires2FASetup = action.payload.requires_2fa_setup === true;
+      } else {
+        state.requires2FASetup = false;
+      }
+      
+      // User will be loaded by getCurrentUser thunk or ProtectedRoute
     });
     builder.addCase(login.rejected, (state, action) => {
       state.isLoading = false;
@@ -139,6 +173,11 @@ const authSlice = createSlice({
         user.full_name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User';
       }
       state.user = user;
+      
+      // If user has 2FA enabled, clear the requires2FASetup flag
+      if (user && user.two_factor_enabled === true) {
+        state.requires2FASetup = false;
+      }
     });
     builder.addCase(getCurrentUser.rejected, (state, action) => {
       state.isLoading = false;
@@ -156,6 +195,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, clearAuth, clearError } = authSlice.actions;
+export const { setUser, clearAuth, clearError, clear2FASetupFlag } = authSlice.actions;
 export default authSlice.reducer;
 

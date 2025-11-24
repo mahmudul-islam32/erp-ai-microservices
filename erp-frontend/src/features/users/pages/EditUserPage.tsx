@@ -34,7 +34,7 @@ export const EditUserPage: React.FC = () => {
   if (loading && !selectedUser) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export const EditUserPage: React.FC = () => {
         <p className="text-gray-500">User not found</p>
         <button
           onClick={() => navigate('/dashboard/users')}
-          className="mt-4 text-indigo-600 hover:text-indigo-900"
+          className="mt-4 text-primary-600 hover:text-primary-900"
         >
           Back to Users
         </button>

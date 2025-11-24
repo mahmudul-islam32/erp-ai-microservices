@@ -95,7 +95,7 @@ export const PermissionsEditor: React.FC<PermissionsEditorProps> = ({
                 <button
                   type="button"
                   onClick={() => handleToggleGroup(permissions)}
-                  className="text-sm text-indigo-600 hover:text-indigo-900"
+                  className="text-sm text-primary-600 hover:text-primary-900"
                 >
                   {allSelected ? 'Deselect All' : 'Select All'}
                 </button>
@@ -110,7 +110,7 @@ export const PermissionsEditor: React.FC<PermissionsEditorProps> = ({
                     checked={selectedPermissions.includes(permission)}
                     onChange={() => handleTogglePermission(permission)}
                     disabled={readOnly}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded disabled:opacity-50"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded disabled:opacity-50"
                   />
                   <label
                     htmlFor={permission}
