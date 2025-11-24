@@ -10,3 +10,5 @@ pydantic-settings==2.1.0
 python-dotenv==1.0.0
 email-validator==2.1.0
 httpx==0.25.2
+pyotp==2.9.0
+qrcode[pil]==7.4.2

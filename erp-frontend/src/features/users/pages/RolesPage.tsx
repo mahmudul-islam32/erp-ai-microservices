@@ -70,7 +70,7 @@ export const RolesPage: React.FC = () => {
     const colors = {
       [UserRole.SUPER_ADMIN]: 'bg-purple-100 text-purple-800 border-purple-200',
       [UserRole.ADMIN]: 'bg-blue-100 text-blue-800 border-blue-200',
-      [UserRole.MANAGER]: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      [UserRole.MANAGER]: 'bg-primary-100 text-primary-800 border-primary-200',
       [UserRole.EMPLOYEE]: 'bg-gray-100 text-gray-800 border-gray-200',
       [UserRole.CUSTOMER]: 'bg-green-100 text-green-800 border-green-200',
       [UserRole.VENDOR]: 'bg-orange-100 text-orange-800 border-orange-200',
@@ -163,7 +163,7 @@ export const RolesPage: React.FC = () => {
                 <div className="border-t pt-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs text-gray-500">Permissions</p>
-                    <p className="text-2xl font-bold text-indigo-600">
+                    <p className="text-2xl font-bold text-primary-600">
                       {permissions.length}
                     </p>
                   </div>
@@ -182,7 +182,7 @@ export const RolesPage: React.FC = () => {
                     {isSuperAdmin && (
                       <button
                         onClick={() => handleEditRole(role)}
-                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-indigo-600 shadow-sm text-xs font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 transition-colors"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-primary-600 shadow-sm text-xs font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50 transition-colors"
                       >
                         <svg className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -254,7 +254,7 @@ export const RolesPage: React.FC = () => {
                         setEditMode(true);
                         setEditedPermissions(rolePermissions?.[selectedRole] || []);
                       }}
-                      className="inline-flex items-center px-3 py-1.5 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50"
+                      className="inline-flex items-center px-3 py-1.5 border border-primary-600 text-sm font-medium rounded-md text-primary-600 bg-white hover:bg-primary-50"
                     >
                       <svg className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -305,7 +305,7 @@ export const RolesPage: React.FC = () => {
                       <button
                         onClick={handleSavePermissions}
                         disabled={saving}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
                       >
                         {saving ? (
                           <>

@@ -132,6 +132,9 @@ class UserService:
                 except Exception as e:
                     logger.warning(f"Failed to send notification for new user: {e}")
                 
+                # Ensure 2FA field exists
+                if "two_factor_enabled" not in created_user:
+                    created_user["two_factor_enabled"] = False
                 return UserResponse(**created_user)
             
             return None
@@ -152,6 +155,13 @@ class UserService:
             if user:
                 user["id"] = str(user["_id"])
                 del user["_id"]  # Remove the original _id field
+                # Ensure 2FA fields exist with defaults
+                if "two_factor_enabled" not in user:
+                    user["two_factor_enabled"] = False
+                if "two_factor_secret" not in user:
+                    user["two_factor_secret"] = None
+                if "two_factor_backup_codes" not in user:
+                    user["two_factor_backup_codes"] = []
                 return UserInDB(**user)
             return None
         except Exception as e:
@@ -168,6 +178,13 @@ class UserService:
             if user:
                 user["id"] = str(user["_id"])
                 del user["_id"]  # Remove the original _id field
+                # Ensure 2FA fields exist with defaults
+                if "two_factor_enabled" not in user:
+                    user["two_factor_enabled"] = False
+                if "two_factor_secret" not in user:
+                    user["two_factor_secret"] = None
+                if "two_factor_backup_codes" not in user:
+                    user["two_factor_backup_codes"] = []
                 return UserInDB(**user)
             return None
         except Exception as e:
@@ -192,6 +209,9 @@ class UserService:
                 if user:
                     user["id"] = str(user["_id"])
                     del user["_id"]  # Remove the original _id field
+                    # Ensure 2FA field exists
+                    if "two_factor_enabled" not in user:
+                        user["two_factor_enabled"] = False
                     return UserResponse(**user)
                 return None
 
@@ -259,6 +279,9 @@ class UserService:
                 except Exception as e:
                     logger.warning(f"Failed to send notification for user update: {e}")
                 
+                # Ensure 2FA field exists
+                if "two_factor_enabled" not in updated_user:
+                    updated_user["two_factor_enabled"] = False
                 return UserResponse(**updated_user)
             
             return None
@@ -347,6 +370,9 @@ class UserService:
             for user in users:
                 user["id"] = str(user["_id"])
                 del user["_id"]  # Remove the original _id field
+                # Ensure 2FA field exists
+                if "two_factor_enabled" not in user:
+                    user["two_factor_enabled"] = False
                 user_responses.append(UserResponse(**user))
 
             return user_responses
@@ -366,9 +392,16 @@ class UserService:
             if user.status != UserStatus.ACTIVE:
                 return None
 
-            # Check if account is locked
-            if user.locked_until and user.locked_until > datetime.utcnow():
-                return None
+            # Check if account is locked (and clear if lockout expired)
+            if user.locked_until:
+                if user.locked_until > datetime.utcnow():
+                    # Account is still locked
+                    return None
+                else:
+                    # Lockout expired, clear it
+                    await self._reset_failed_login_attempts(user.id)
+                    # Reload user to get updated lockout status
+                    user = await self.get_user_by_email(email)
 
             # Verify password
             if not self.security_service.verify_password(password, user.hashed_password):
@@ -466,6 +499,91 @@ class UserService:
             logger.error(f"Error changing password: {e}")
             return False, "Internal server error"
 
+    async def update_user_2fa_secret(self, user_id: str, secret: str, backup_codes: List[str]) -> bool:
+        """Update user 2FA secret (during setup, before enabling)"""
+        try:
+            db = get_database()
+            users_collection = db.users
+            
+            result = await users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        "two_factor_secret": secret,
+                        "two_factor_backup_codes": backup_codes,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Error updating 2FA secret: {e}")
+            return False
+    
+    async def enable_2fa(self, user_id: str, secret: str, backup_codes: List[str]) -> bool:
+        """Enable 2FA for user"""
+        try:
+            db = get_database()
+            users_collection = db.users
+            
+            result = await users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        "two_factor_enabled": True,
+                        "two_factor_secret": secret,
+                        "two_factor_backup_codes": backup_codes,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Error enabling 2FA: {e}")
+            return False
+    
+    async def disable_2fa(self, user_id: str) -> bool:
+        """Disable 2FA for user"""
+        try:
+            db = get_database()
+            users_collection = db.users
+            
+            result = await users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        "two_factor_enabled": False,
+                        "two_factor_secret": None,
+                        "two_factor_backup_codes": [],
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Error disabling 2FA: {e}")
+            return False
+    
+    async def update_user_backup_codes(self, user_id: str, backup_codes: List[str]) -> bool:
+        """Update user backup codes"""
+        try:
+            db = get_database()
+            users_collection = db.users
+            
+            result = await users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        "two_factor_backup_codes": backup_codes,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Error updating backup codes: {e}")
+            return False
+
     async def update_user_permissions(self, user_id: str, permissions: List[Permission]) -> bool:
         """Update user permissions"""
         try:
@@ -491,6 +609,9 @@ class UserService:
     async def _increment_failed_login_attempts(self, user_id: str):
         """Increment failed login attempts and lock account if necessary"""
         try:
+            from app.services.settings_service import settings_service
+            from app.models.settings import SettingsCategory
+            
             db = get_database()
             users_collection = db.users
 
@@ -498,15 +619,33 @@ class UserService:
             if not user:
                 return
 
+            # Get security settings
+            max_attempts = 5
+            lockout_duration_minutes = 30
+            try:
+                security_setting = await settings_service.get_settings_by_category(SettingsCategory.SECURITY)
+                if security_setting and security_setting.security:
+                    security_dict = security_setting.security
+                    if isinstance(security_dict, dict):
+                        max_attempts = security_dict.get("max_login_attempts", 5)
+                        lockout_duration_minutes = security_dict.get("account_lockout_duration_minutes", 30)
+                    else:
+                        max_attempts = getattr(security_dict, "max_login_attempts", 5)
+                        lockout_duration_minutes = getattr(security_dict, "account_lockout_duration_minutes", 30)
+            except Exception as e:
+                logger.warning(f"Error getting security settings for lockout: {e}")
+
             failed_attempts = user.get("failed_login_attempts", 0) + 1
             update_data = {
                 "failed_login_attempts": failed_attempts,
                 "updated_at": datetime.utcnow()
             }
 
-            # Lock account after 5 failed attempts for 30 minutes
-            if failed_attempts >= 5:
-                update_data["locked_until"] = datetime.utcnow() + timedelta(minutes=30)
+            # Lock account if max attempts reached
+            if failed_attempts >= max_attempts:
+                lockout_until = datetime.utcnow() + timedelta(minutes=lockout_duration_minutes)
+                update_data["locked_until"] = lockout_until
+                logger.warning(f"Account locked for user {user_id} until {lockout_until} after {failed_attempts} failed attempts")
 
             await users_collection.update_one(
                 {"_id": ObjectId(user_id)},

@@ -21,7 +21,7 @@ export const UserDetailPage: React.FC = () => {
   if (loading && !selectedUser) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -32,7 +32,7 @@ export const UserDetailPage: React.FC = () => {
         <p className="text-gray-500">User not found</p>
         <button
           onClick={() => navigate('/dashboard/users')}
-          className="mt-4 text-indigo-600 hover:text-indigo-900"
+          className="mt-4 text-primary-600 hover:text-primary-900"
         >
           Back to Users
         </button>
@@ -62,7 +62,7 @@ export const UserDetailPage: React.FC = () => {
       case UserRole.ADMIN:
         return 'bg-blue-100 text-blue-800';
       case UserRole.MANAGER:
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-primary-100 text-primary-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

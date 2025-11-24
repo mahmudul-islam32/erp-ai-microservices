@@ -116,9 +116,9 @@ export const AuditLogsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-indigo-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
               <svg
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-primary-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -229,7 +229,7 @@ export const AuditLogsPage: React.FC = () => {
               onChange={(e) =>
                 setFilters({ ...filters, action: e.target.value || undefined })
               }
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             >
               <option value="">All Actions</option>
               <option value="login">Login</option>
@@ -249,7 +249,7 @@ export const AuditLogsPage: React.FC = () => {
               onChange={(e) =>
                 setFilters({ ...filters, resource: e.target.value || undefined })
               }
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             >
               <option value="">All Resources</option>
               <option value="user">User</option>
@@ -271,7 +271,7 @@ export const AuditLogsPage: React.FC = () => {
                   status: e.target.value as 'success' | 'failure' | undefined,
                 })
               }
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             >
               <option value="">All Status</option>
               <option value="success">Success</option>
@@ -298,8 +298,61 @@ export const AuditLogsPage: React.FC = () => {
       {/* Logs Table */}
       <div className="bg-white rounded-lg shadow">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Timestamp
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Resource
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    IP Address
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Details
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {[...Array(5)].map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-gray-200 rounded w-12 animate-pulse" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : logs.length === 0 ? (
           <div className="text-center py-12">
@@ -393,7 +446,7 @@ export const AuditLogsPage: React.FC = () => {
                           onClick={() =>
                             alert(JSON.stringify(log.details, null, 2))
                           }
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="text-primary-600 hover:text-primary-900"
                         >
                           View
                         </button>

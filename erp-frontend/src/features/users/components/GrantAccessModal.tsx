@@ -71,8 +71,8 @@ export const GrantAccessModal: React.FC<GrantAccessModalProps> = ({ onClose, onS
           <div className="px-6 py-5 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-indigo-100">
-                  <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-2 rounded-lg bg-primary-100">
+                  <svg className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
@@ -107,7 +107,7 @@ export const GrantAccessModal: React.FC<GrantAccessModalProps> = ({ onClose, onS
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
                     required
-                    className="block w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
+                    className="block w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
                   >
                     <option value="">Choose a user...</option>
                     {users.map((user) => (
@@ -137,7 +137,7 @@ export const GrantAccessModal: React.FC<GrantAccessModalProps> = ({ onClose, onS
                       onClick={() => setResource(res.value)}
                       className={`p-3 border-2 rounded-lg text-left transition-all ${
                         resource === res.value
-                          ? 'border-indigo-500 bg-indigo-50'
+                          ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -183,7 +183,7 @@ export const GrantAccessModal: React.FC<GrantAccessModalProps> = ({ onClose, onS
                     id="expires_at"
                     value={expiresAt}
                     onChange={(e) => setExpiresAt(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
                   />
                 </div>
                 <p className="mt-1.5 text-xs text-gray-500">
@@ -202,7 +202,7 @@ export const GrantAccessModal: React.FC<GrantAccessModalProps> = ({ onClose, onS
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Add any additional notes about this access grant..."
-                  className="block w-full px-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                  className="block w-full px-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
                 />
               </div>
             </div>
@@ -226,7 +226,7 @@ export const GrantAccessModal: React.FC<GrantAccessModalProps> = ({ onClose, onS
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving || !selectedUser || !resource || selectedPermissions.length === 0}
-                className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>

@@ -313,6 +313,8 @@ services:
       - notification-service
     networks:
       - erp-network
+    profiles:
+      - production
       
   # Frontend React Application (Development with hot-reload)
   frontend-dev:
@@ -322,7 +324,7 @@ services:
     container_name: erp-frontend-dev
     restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "8080:5173"
     environment:
       VITE_AUTH_SERVICE_URL: http://localhost:8001
       VITE_INVENTORY_SERVICE_URL: http://localhost:8002
@@ -340,6 +342,9 @@ services:
       - ./erp-frontend/postcss.config.js:/app/postcss.config.js
       - ./erp-frontend/tsconfig.json:/app/tsconfig.json
       - ./erp-frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./erp-frontend/package.json:/app/package.json
+      - ./erp-frontend/package-lock.json:/app/package-lock.json
+      - /app/node_modules
     depends_on:
       - auth-service
       - inventory-service
@@ -347,8 +352,6 @@ services:
       - notification-service
     networks:
       - erp-network
-    profiles:
-      - development
 
 volumes:
   mongodb_data:

@@ -3,6 +3,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services import SecurityService, user_service
 from app.models import TokenData, UserInDB, Permission
 from typing import Optional, List, Tuple
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_authorization_scheme_param(authorization_header: str) -> Tuple[str, str]:
@@ -102,6 +105,57 @@ async def get_current_user(
         user = await user_service.get_user_by_id(token_data.user_id)
         if user is None:
             raise credentials_exception
+        
+        # Check session timeout - get user's active session and check last activity
+        from app.services.session_service import SessionService
+        from app.models.settings import SettingsCategory
+        from app.services.settings_service import settings_service
+        from datetime import datetime, timedelta
+        
+        session_service = SessionService()
+        
+        # Get user's active sessions
+        user_sessions = await session_service.get_user_sessions(str(user.id), active_only=True)
+        
+        if user_sessions:
+            # Get the most recent active session
+            active_session = user_sessions[0] if user_sessions else None
+            
+            if active_session and active_session.last_activity:
+                # Get session timeout from security settings
+                session_timeout_minutes = None
+                try:
+                    security_setting = await settings_service.get_settings_by_category(SettingsCategory.SECURITY)
+                    if security_setting and security_setting.security:
+                        security_dict = security_setting.security
+                        if isinstance(security_dict, dict):
+                            session_timeout_minutes = security_dict.get("session_timeout_minutes")
+                        else:
+                            session_timeout_minutes = getattr(security_dict, "session_timeout_minutes", None)
+                except Exception as e:
+                    logger.warning(f"Error getting session timeout from settings: {e}")
+                
+                # If session timeout is configured, check if session has expired due to inactivity
+                if session_timeout_minutes:
+                    time_since_activity = datetime.utcnow() - active_session.last_activity
+                    timeout_delta = timedelta(minutes=session_timeout_minutes)
+                    
+                    if time_since_activity > timeout_delta:
+                        # Session expired due to inactivity - terminate session and log out user
+                        await session_service.terminate_session(str(active_session.id), str(user.id))
+                        
+                        # Clear cookies
+                        response.delete_cookie(key="access_token", path="/")
+                        response.delete_cookie(key="refresh_token", path="/")
+                        
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail=f"Session expired due to inactivity. Please log in again.",
+                            headers={"WWW-Authenticate": "Bearer"},
+                        )
+                    else:
+                        # Update last activity timestamp
+                        await session_service.update_last_activity(str(active_session.id))
         
         return user
     except HTTPException:

@@ -72,9 +72,9 @@ class SessionService:
             filter_dict = {"user_id": user_id}
             if active_only:
                 filter_dict["is_active"] = True
-                filter_dict["expires_at"] = {"$gt": datetime.utcnow()}
+                # Don't filter by expires_at - we check last_activity separately for timeout enforcement
             
-            cursor = self.db.sessions.find(filter_dict).sort("created_at", -1)
+            cursor = self.db.sessions.find(filter_dict).sort("last_activity", -1)  # Sort by last_activity, most recent first
             sessions = await cursor.to_list(length=None)
             
             result = []
@@ -94,7 +94,8 @@ class SessionService:
             filter_dict = {}
             if active_only:
                 filter_dict["is_active"] = True
-                filter_dict["expires_at"] = {"$gt": datetime.utcnow()}
+                # Don't filter by expires_at - sessions should remain active regardless of expiration
+                # Session timeout is only for tracking, not for enforcing logout
             
             cursor = self.db.sessions.find(filter_dict).sort("created_at", -1)
             sessions = await cursor.to_list(length=None)
