@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, UserRole, UserStatus } from '../types';
 import { formatDistanceToNow } from 'date-fns';
+import { Button } from '../../../shared/components/ui/Button';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 
 interface UserTableProps {
   users: User[];
@@ -9,6 +11,7 @@ interface UserTableProps {
   onView: (user: User) => void;
   selectedUsers?: string[];
   onSelectionChange?: (userIds: string[]) => void;
+  isLoading?: boolean;
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
@@ -18,6 +21,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   onView,
   selectedUsers = [],
   onSelectionChange,
+  isLoading = false,
 }) => {
   const [sortField, setSortField] = useState<keyof User>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -84,7 +88,7 @@ export const UserTable: React.FC<UserTableProps> = ({
       case UserRole.ADMIN:
         return 'bg-blue-100 text-blue-800';
       case UserRole.MANAGER:
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-primary-100 text-primary-800';
       case UserRole.EMPLOYEE:
         return 'bg-gray-100 text-gray-800';
       case UserRole.CUSTOMER:
@@ -95,6 +99,84 @@ export const UserTable: React.FC<UserTableProps> = ({
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Calculate column count for skeleton loading
+  const columnCount = 7 + (onSelectionChange ? 1 : 0);
+
+  if (isLoading) {
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {onSelectionChange && (
+                <th className="px-6 py-3 text-left">
+                  <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+                </th>
+              )}
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Role
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Department
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Last Login
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {[...Array(5)].map((_, idx) => (
+              <tr key={idx}>
+                {onSelectionChange && (
+                  <td className="px-6 py-4">
+                    <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+                  </td>
+                )}
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-2">
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -184,40 +266,39 @@ export const UserTable: React.FC<UserTableProps> = ({
                   {user.last_login ? formatDistanceToNow(new Date(user.last_login), { addSuffix: true }) : 'Never'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     {/* View Button */}
-                    <button
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => onView(user)}
-                      className="inline-flex items-center p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors"
                       title="View Details"
+                      className="p-2"
                     >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </button>
+                      <Eye className="h-4 w-4" />
+                    </Button>
 
                     {/* Edit Button */}
-                    <button
+                    <Button
+                      size="sm"
+                      variant="primary"
                       onClick={() => onEdit(user)}
-                      className="inline-flex items-center p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition-colors"
                       title="Edit User"
+                      className="p-2"
                     >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
+                      <Edit className="h-4 w-4" />
+                    </Button>
 
                     {/* Delete Button */}
-                    <button
+                    <Button
+                      size="sm"
+                      variant="danger"
                       onClick={() => onDelete(user)}
-                      className="inline-flex items-center p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-colors"
                       title="Delete User"
+                      className="p-2"
                     >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </td>
               </tr>

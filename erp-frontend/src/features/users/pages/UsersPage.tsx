@@ -154,7 +154,7 @@ export const UsersPage: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/dashboard/users/create')}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
           >
             <svg
               className="h-5 w-5 mr-2"
@@ -178,9 +178,9 @@ export const UsersPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-indigo-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
               <svg
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-primary-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -287,27 +287,27 @@ export const UsersPage: React.FC = () => {
 
       {/* Bulk Actions */}
       {selectedUsers.length > 0 && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-indigo-800">
+            <p className="text-sm text-primary-800">
               {selectedUsers.length} user(s) selected
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={() => handleBulkStatusUpdate(UserStatus.ACTIVE)}
-                className="text-sm text-indigo-600 hover:text-indigo-900"
+                className="text-sm text-primary-600 hover:text-primary-900"
               >
                 Activate
               </button>
               <button
                 onClick={() => handleBulkStatusUpdate(UserStatus.SUSPENDED)}
-                className="text-sm text-indigo-600 hover:text-indigo-900"
+                className="text-sm text-primary-600 hover:text-primary-900"
               >
                 Suspend
               </button>
               <button
                 onClick={handleBulkDelete}
-                className="text-sm text-red-600 hover:text-red-900"
+                className="text-sm text-danger-600 hover:text-danger-900"
               >
                 Delete
               </button>
@@ -318,33 +318,26 @@ export const UsersPage: React.FC = () => {
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
-        ) : (
-          <>
-            <UserTable
-              users={paginatedUsers}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onView={handleView}
-              selectedUsers={selectedUsers}
-              onSelectionChange={setSelectedUsers}
-            />
-            
-            {/* Pagination */}
-            {filteredUsers.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredUsers.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={handlePageChange}
-                onItemsPerPageChange={handleItemsPerPageChange}
-              />
-            )}
-          </>
+        <UserTable
+          users={paginatedUsers}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          selectedUsers={selectedUsers}
+          onSelectionChange={setSelectedUsers}
+          isLoading={loading}
+        />
+        
+        {/* Pagination */}
+        {!loading && filteredUsers.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredUsers.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
         )}
       </div>
 

@@ -96,6 +96,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     last_login: Optional[datetime] = None
+    two_factor_enabled: bool = False
 
     class Config:
         populate_by_name = True
@@ -151,6 +152,9 @@ class UserInDB(BaseModel):
     last_login: Optional[datetime] = None
     failed_login_attempts: int = 0
     locked_until: Optional[datetime] = None
+    two_factor_enabled: bool = False
+    two_factor_secret: Optional[str] = None
+    two_factor_backup_codes: List[str] = []
 
     class Config:
         populate_by_name = True

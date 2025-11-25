@@ -1,16 +1,20 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from app.models import (
     UserLogin, UserCreate, UserUpdate, UserResponse, Token, 
     RefreshTokenRequest, ChangePasswordRequest,
     ResetPasswordRequest, ResetPasswordConfirm
 )
+from app.models.settings import SettingsCategory
 from app.services import user_service, SecurityService
 from app.services.session_service import SessionService
 from app.services.audit_log_service import AuditLogService
+from app.services.settings_service import settings_service
 from app.api.dependencies import get_current_active_user
-from datetime import timedelta
+from datetime import timedelta, datetime
 from app.config import settings
+from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,7 +41,7 @@ async def register(user_data: UserCreate):
         )
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 async def login(user_credentials: UserLogin, response: Response, request: Request):
     """Login user and return access tokens"""
     session_service = SessionService()
@@ -48,6 +52,32 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
     user_agent = request.headers.get("user-agent", "unknown")
     
     try:
+        # Check if account is locked before authentication
+        user_check = await user_service.get_user_by_email(user_credentials.email)
+        if user_check:
+            # Check if account is locked
+            if user_check.locked_until and user_check.locked_until > datetime.utcnow():
+                lockout_remaining = (user_check.locked_until - datetime.utcnow()).total_seconds() / 60
+                minutes = int(lockout_remaining)
+                seconds = int((lockout_remaining - minutes) * 60)
+                
+                await audit_log_service.create_audit_log(
+                    user_id=str(user_check.id) if user_check.id else "unknown",
+                    user_email=user_credentials.email,
+                    action="login_failed",
+                    resource="auth",
+                    ip_address=client_ip,
+                    user_agent=user_agent,
+                    status="failure",
+                    details={"reason": "Account locked", "locked_until": user_check.locked_until.isoformat()}
+                )
+                
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail=f"Account is locked due to too many failed login attempts. Please try again in {minutes} minute(s) and {seconds} second(s).",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        
         # Authenticate user
         user = await user_service.authenticate_user(
             user_credentials.email, 
@@ -55,9 +85,33 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
         )
         
         if not user:
+            # Check if account was just locked
+            user_check = await user_service.get_user_by_email(user_credentials.email)
+            if user_check and user_check.locked_until and user_check.locked_until > datetime.utcnow():
+                lockout_remaining = (user_check.locked_until - datetime.utcnow()).total_seconds() / 60
+                minutes = int(lockout_remaining)
+                seconds = int((lockout_remaining - minutes) * 60)
+                
+                await audit_log_service.create_audit_log(
+                    user_id=str(user_check.id) if user_check.id else "unknown",
+                    user_email=user_credentials.email,
+                    action="login_failed",
+                    resource="auth",
+                    ip_address=client_ip,
+                    user_agent=user_agent,
+                    status="failure",
+                    details={"reason": "Account locked after max attempts", "locked_until": user_check.locked_until.isoformat()}
+                )
+                
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail=f"Account has been locked due to too many failed login attempts. Please try again in {minutes} minute(s) and {seconds} second(s).",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            
             # Log failed login attempt
             await audit_log_service.create_audit_log(
-                user_id="unknown",
+                user_id=str(user_check.id) if user_check and user_check.id else "unknown",
                 user_email=user_credentials.email,
                 action="login_failed",
                 resource="auth",
@@ -72,6 +126,42 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
                 detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
+        # Check if 2FA is required
+        requires_2fa = False
+        try:
+            security_setting = await settings_service.get_settings_by_category(SettingsCategory.SECURITY)
+            if security_setting and security_setting.security:
+                security_dict = security_setting.security
+                # Handle both dict and Pydantic model
+                if isinstance(security_dict, dict):
+                    requires_2fa = security_dict.get("require_two_factor_auth", False)
+                else:
+                    # It's a Pydantic model
+                    requires_2fa = getattr(security_dict, "require_two_factor_auth", False)
+        except Exception as e:
+            logger.warning(f"Error checking 2FA requirement: {e}")
+        
+        # Log for debugging
+        logger.info(f"User {user.email} - 2FA enabled: {user.two_factor_enabled}, System requires 2FA: {requires_2fa}")
+
+        # Only require 2FA if user has actually enabled it
+        # If system requires 2FA but user hasn't set it up yet, allow login but flag it
+        if user.two_factor_enabled:
+            # User has 2FA enabled, require code
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "requires_2fa": True,
+                    "message": "Two-factor authentication required",
+                    "email": user.email
+                }
+            )
+        elif requires_2fa and not user.two_factor_enabled:
+            # System requires 2FA but user hasn't set it up yet
+            # Allow login but flag that 2FA setup is recommended
+            logger.info(f"User {user.email} - System requires 2FA but user hasn't set it up yet. Allowing login but flagging for setup.")
+            # Continue with normal login - we'll add a flag in the response
 
         # Create access token
         access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
@@ -93,8 +183,20 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
             }
         )
         
-        # Create session
-        session_expires_minutes = 7 * 24 * 60  # 7 days
+        # Create session - use session timeout from security settings for expiration
+        # But we'll also track last_activity and enforce timeout based on inactivity
+        session_expires_minutes = 30 * 24 * 60  # Default: 30 days (long expiration for session record)
+        try:
+            security_setting = await settings_service.get_settings_by_category(SettingsCategory.SECURITY)
+            if security_setting and security_setting.security:
+                security_dict = security_setting.security
+                if isinstance(security_dict, dict):
+                    # Use session timeout for tracking, but keep long expiration for session record
+                    # The actual timeout enforcement happens in get_current_user based on last_activity
+                    pass
+        except Exception as e:
+            logger.warning(f"Error getting session timeout from settings: {e}")
+        
         await session_service.create_session(
             user_id=str(user.id),
             user_email=user.email,
@@ -136,12 +238,19 @@ async def login(user_credentials: UserLogin, response: Response, request: Reques
         )
 
         # Still return tokens in response (optional, can be removed for extra security)
-        return Token(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=settings.access_token_expire_minutes * 60
-        )
+        token_response = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.access_token_expire_minutes * 60
+        }
+        
+        # If system requires 2FA but user hasn't set it up, add a flag
+        if requires_2fa and not user.two_factor_enabled:
+            token_response["requires_2fa_setup"] = True
+            token_response["message"] = "Two-factor authentication setup is required. Please set it up in your security settings."
+        
+        return token_response
 
     except HTTPException:
         raise
@@ -326,7 +435,8 @@ async def get_current_user_info(current_user=Depends(get_current_active_user)):
         profile_image=getattr(current_user, 'profile_image', None),
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
-        last_login=current_user.last_login
+        last_login=current_user.last_login,
+        two_factor_enabled=getattr(current_user, 'two_factor_enabled', False)
     )
 
 

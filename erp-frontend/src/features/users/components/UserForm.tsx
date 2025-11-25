@@ -134,7 +134,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 })}
                 disabled={isEdit}
                 placeholder="user@example.com"
-                className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out ${
+                className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
                   isEdit ? 'bg-gray-50 cursor-not-allowed border-gray-200' : 'border-gray-300'
                 } ${errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
               />
@@ -172,7 +172,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                     validate: validatePassword,
                   })}
                   placeholder={passwordHelperText}
-                  className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out ${
+                  className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
                     errors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -217,7 +217,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                   },
                 })}
                 placeholder="John"
-                className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out ${
+                className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
                   errors.first_name ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -258,7 +258,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                   },
                 })}
                 placeholder="Doe"
-                className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out ${
+                className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
                   errors.last_name ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -294,7 +294,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <select
                 id="role"
                 {...register('role', { required: !isEdit ? 'Role is required' : false })}
-                className={`block w-full pl-3 pr-10 py-2.5 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out appearance-none ${
+                className={`block w-full pl-3 pr-10 py-2.5 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out appearance-none ${
                   errors.role ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
                 }`}
               >
@@ -332,7 +332,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 <select
                   id="status"
                   {...register('status')}
-                  className="block w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
+                  className="block w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -377,7 +377,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 id="department"
                 {...register('department')}
                 placeholder="e.g. Sales, IT, HR"
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
               />
             </div>
             <p className="mt-1.5 text-xs text-gray-500">Organizational department</p>
@@ -399,7 +399,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 id="phone"
                 {...register('phone')}
                 placeholder="+1 (555) 123-4567"
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
               />
             </div>
             <p className="mt-1.5 text-xs text-gray-500">Contact phone number</p>
@@ -415,7 +415,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+          className="inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition duration-150 ease-in-out"
         >
           <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -425,7 +425,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+          className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
         >
           {loading ? (
             <>

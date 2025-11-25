@@ -15,6 +15,7 @@ export interface User {
   last_login?: string;
   is_active?: boolean;
   is_superuser?: boolean;
+  two_factor_enabled?: boolean;
 }
 
 export interface LoginCredentials {
@@ -36,5 +37,6 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  requires2FASetup?: boolean;
 }
 
