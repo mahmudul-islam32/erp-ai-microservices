@@ -29,7 +29,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
           </svg>
           <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           {hasActiveFilters && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
               Active
             </span>
           )}
@@ -37,7 +37,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
         {hasActiveFilters && (
           <button
             onClick={handleClear}
-            className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-900 font-medium"
+            className="inline-flex items-center text-sm text-primary-600 hover:text-primary-900 font-medium"
           >
             <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -65,7 +65,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
               value={filters.search || ''}
               onChange={(e) => handleChange('search', e.target.value)}
               placeholder="Search by email or name..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
             />
           </div>
         </div>
@@ -80,7 +80,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
               id="role"
               value={filters.role || ''}
               onChange={(e) => handleChange('role', e.target.value || undefined)}
-              className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
+              className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
             >
               <option value="">All Roles</option>
               {Object.values(UserRole).map((role) => (
@@ -107,7 +107,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
               id="status"
               value={filters.status || ''}
               onChange={(e) => handleChange('status', e.target.value || undefined)}
-              className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
+              className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out appearance-none"
             >
               <option value="">All Statuses</option>
               {Object.values(UserStatus).map((status) => (
@@ -141,7 +141,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
               value={filters.department || ''}
               onChange={(e) => handleChange('department', e.target.value || undefined)}
               placeholder="Filter by department..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
             />
           </div>
         </div>

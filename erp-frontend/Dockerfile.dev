@@ -8,12 +8,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Copy source code
-COPY . .
-
 # Expose port
 EXPOSE 5173
 
-# Start development server
+# Start development server (Vite watches files by default)
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 

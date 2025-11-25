@@ -108,6 +108,34 @@
     --tw-ring-color: var(--color-primary);
   }
   
+  .bg-primary-50 {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, white);
+  }
+  
+  .bg-primary-100 {
+    background-color: color-mix(in srgb, var(--color-primary) 20%, white);
+  }
+  
+  .bg-primary-200 {
+    background-color: color-mix(in srgb, var(--color-primary) 30%, white);
+  }
+  
+  .bg-primary-700 {
+    background-color: color-mix(in srgb, var(--color-primary) 80%, black);
+  }
+  
+  .text-primary-800 {
+    color: color-mix(in srgb, var(--color-primary) 70%, black);
+  }
+  
+  .text-primary-900 {
+    color: color-mix(in srgb, var(--color-primary) 80%, black);
+  }
+  
+  .border-primary-200 {
+    border-color: color-mix(in srgb, var(--color-primary) 30%, white);
+  }
+  
   .bg-success-500 {
     background-color: var(--color-success);
   }

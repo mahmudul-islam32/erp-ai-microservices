@@ -10,6 +10,13 @@ export default defineConfig(({ command, mode }) => {
     server: {
       host: true,
       port: 5173,
+      watch: {
+        usePolling: true,
+      },
+      hmr: {
+        host: 'localhost',
+        port: 5173,
+      },
       // Add proxy for API calls to auth service
       proxy: {
         '/api': {
