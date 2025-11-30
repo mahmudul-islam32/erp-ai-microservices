@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models import (
     CustomerCreate, CustomerUpdate, CustomerResponse, CustomerStatus, CustomerType,
     PaginationResponse
@@ -6,7 +6,7 @@ from app.models import (
 from app.services import customer_service
 from app.api.dependencies import (
     get_current_active_user, require_sales_access, require_sales_write, 
-    require_sales_access_flexible
+    require_sales_access_flexible, require_sales_access_exclude_customers
 )
 from typing import List, Optional
 import logging
@@ -19,11 +19,19 @@ router = APIRouter(prefix="/customers", tags=["Customers"])
 @router.post("/", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 async def create_customer(
     customer_data: CustomerCreate,
+    request: Request,
     current_user=Depends(require_sales_write())
 ):
-    """Create a new customer"""
+    """Create a new customer and associated user account"""
     try:
-        customer = await customer_service.create_customer(customer_data)
+        # Extract auth token from request to pass to customer service for user creation
+        token = request.cookies.get("access_token")
+        if not token:
+            authorization = request.headers.get("Authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1]
+        
+        customer = await customer_service.create_customer(customer_data, token=token)
         return customer
     except ValueError as e:
         raise HTTPException(
@@ -45,7 +53,7 @@ async def get_customers(
     status: Optional[CustomerStatus] = None,
     customer_type: Optional[CustomerType] = None,
     search: Optional[str] = None,
-    current_user=Depends(require_sales_access_flexible())
+    current_user=Depends(require_sales_access_exclude_customers())
 ):
     """Get list of customers with pagination and filters"""
     try:
@@ -88,10 +96,38 @@ async def get_customers(
         )
 
 
+@router.get("/email/{email}", response_model=CustomerResponse)
+async def get_customer_by_email(
+    email: str,
+    current_user=Depends(require_sales_access_exclude_customers())
+):
+    """Get customer by email"""
+    try:
+        logger.info(f"Getting customer by email '{email}' for user: {current_user.get('email')}")
+        
+        customer = await customer_service.get_customer_by_email(email)
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found"
+            )
+
+        return CustomerResponse(**customer.dict())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get customer by email error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+
 @router.get("/{customer_id}", response_model=CustomerResponse)
 async def get_customer(
     customer_id: str,
-    current_user=Depends(require_sales_access_flexible())
+    current_user=Depends(require_sales_access_exclude_customers())
 ):
     """Get customer by ID"""
     try:
@@ -173,7 +209,7 @@ async def delete_customer(
 async def search_customers(
     query: str,
     limit: int = Query(10, ge=1, le=50),
-    current_user=Depends(require_sales_access_flexible())
+    current_user=Depends(require_sales_access_exclude_customers())
 ):
     """Search customers for autocomplete"""
     try:

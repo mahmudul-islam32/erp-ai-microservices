@@ -3,11 +3,14 @@ from app.models import (
     CustomerCreate, CustomerUpdate, CustomerResponse, CustomerInDB,
     CustomerStatus, CustomerType
 )
+from app.services.external_services import auth_service
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from bson import ObjectId
 import logging
+import secrets
+import string
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +19,33 @@ class CustomerService:
     def __init__(self):
         pass
 
-    async def create_customer(self, customer_data: CustomerCreate) -> CustomerResponse:
-        """Create a new customer"""
+    def _generate_temp_password(self, length: int = 12) -> str:
+        """Generate a secure temporary password that meets security requirements"""
+        # Ensure password has uppercase, lowercase, numbers, and special characters
+        uppercase = string.ascii_uppercase
+        lowercase = string.ascii_lowercase
+        digits = string.digits
+        special_chars = "!@#$%^&*"
+        
+        # At least one of each required type
+        password = [
+            secrets.choice(uppercase),
+            secrets.choice(lowercase),
+            secrets.choice(digits),
+            secrets.choice(special_chars)
+        ]
+        
+        # Fill the rest randomly
+        all_chars = uppercase + lowercase + digits + special_chars
+        for _ in range(length - 4):
+            password.append(secrets.choice(all_chars))
+        
+        # Shuffle to randomize position
+        secrets.SystemRandom().shuffle(password)
+        return ''.join(password)
+
+    async def create_customer(self, customer_data: CustomerCreate, token: Optional[str] = None) -> CustomerResponse:
+        """Create a new customer and associated user account with Customer role"""
         try:
             db = get_database()
             customers_collection = db.customers
@@ -56,10 +84,44 @@ class CustomerService:
             
             # Fetch created customer
             created_customer = await customers_collection.find_one({"_id": result.inserted_id})
-            if created_customer:
-                return CustomerResponse(**created_customer)
+            if not created_customer:
+                raise ValueError("Failed to create customer record")
             
-            return None
+            # Create user account in auth service with Customer role
+            if token:
+                try:
+                    # Generate a secure temporary password
+                    temp_password = self._generate_temp_password()
+                    
+                    # Prepare user data for auth service
+                    user_data = {
+                        "email": customer_data.email,
+                        "password": temp_password,
+                        "first_name": customer_data.first_name,
+                        "last_name": customer_data.last_name,
+                        "role": "customer",  # Customer role
+                        "phone": customer_data.phone,
+                        "department": customer_data.company_name if customer_data.company_name else None
+                    }
+                    
+                    # Create user account via auth service
+                    user_response = await auth_service.create_user(user_data, token)
+                    
+                    if user_response:
+                        logger.info(f"User account created successfully for customer {customer_data.email}")
+                        # TODO: Send email with temporary password to customer
+                        # For now, log the password (in production, send via email)
+                        logger.info(f"Temporary password for {customer_data.email}: {temp_password} (should be sent via email)")
+                    else:
+                        logger.warning(f"Failed to create user account for customer {customer_data.email}. Customer record was created but user account creation failed.")
+                except Exception as user_error:
+                    # Log error but don't fail customer creation
+                    logger.error(f"Error creating user account for customer {customer_data.email}: {user_error}")
+                    logger.warning(f"Customer record was created but user account creation failed. Customer can be linked to existing user account manually.")
+            else:
+                logger.warning("No auth token provided. Customer record created but user account was not created.")
+            
+            return CustomerResponse(**created_customer)
 
         except DuplicateKeyError:
             raise ValueError("Customer with this email already exists")

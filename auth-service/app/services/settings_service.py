@@ -110,10 +110,14 @@ class SettingsService:
                 settings_doc["general"] = settings_data.general.dict(exclude_none=True)
             if settings_data.appearance:
                 # Convert appearance settings to dict
+                # Use exclude_unset=False to include all fields, even if set to default values
+                # exclude_none=True to skip None values (frontend should send all fields with values)
                 try:
-                    appearance_dict = settings_data.appearance.model_dump(exclude_none=True)
+                    appearance_dict = settings_data.appearance.model_dump(exclude_unset=False, exclude_none=True)
                 except AttributeError:
-                    appearance_dict = settings_data.appearance.dict(exclude_none=True)
+                    appearance_dict = settings_data.appearance.dict(exclude_unset=False, exclude_none=True)
+                logger.info(f"Saving appearance settings - icon_button_padding_size: {appearance_dict.get('icon_button_padding_size')}, icon_button_icon_size: {appearance_dict.get('icon_button_icon_size')}")
+                logger.info(f"All appearance dict keys: {sorted(list(appearance_dict.keys()))}")
                 settings_doc["appearance"] = appearance_dict
             if settings_data.security:
                 # Convert to dict and explicitly include all fields, especially False values
@@ -154,13 +158,13 @@ class SettingsService:
                 settings_doc["created_at"] = existing.get("created_at", datetime.utcnow())
                 settings_doc["created_by"] = existing.get("created_by", user_id)
                 
-                # For security settings, new values completely replace old (no merge)
-                # This ensures False values are properly saved
-                # The frontend sends all security fields, so we use the new values entirely
+                # For security and appearance settings, new values completely replace old (no merge)
+                # This ensures all values are properly saved
+                # The frontend sends all fields, so we use the new values entirely
                 
-                # Merge with existing data for other categories
+                # Merge with existing data for other categories (but NOT appearance or security)
                 for key in ["company_info", "financial", "sales", "inventory", 
-                           "email", "notifications", "integrations", "general", "appearance"]:
+                           "email", "notifications", "integrations", "general"]:
                     if key not in settings_doc and key in existing:
                         settings_doc[key] = existing[key]
 

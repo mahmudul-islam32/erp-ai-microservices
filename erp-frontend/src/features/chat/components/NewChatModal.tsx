@@ -4,6 +4,9 @@ import { Modal } from '../../../shared/components/ui/Modal';
 import { Button } from '../../../shared/components/ui/Button';
 import { authApi } from '../../../shared/api/client';
 import { chatApi } from '../services/chatApi';
+import { ordersApi } from '../../sales/services/ordersApi';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { UserRole } from '../../users/types';
 import { toast } from 'sonner';
 
 interface User {
@@ -27,6 +30,8 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
   onClose,
   onConversationCreated,
 }) => {
+  const { user } = usePermissions();
+  const isCustomer = user?.role === UserRole.CUSTOMER;
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
@@ -38,7 +43,7 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentUserId, isCustomer, user?.id]);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -58,13 +63,96 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await authApi.get('/api/v1/users/');
-      const allUsers = response.data || [];
+      let allowedUserIds: Set<string> = new Set();
+      
+      // For customers, allow messaging:
+      // 1. Users who created their orders
+      // 2. Customer support users (ADMIN, MANAGER, EMPLOYEE, SUPER_ADMIN with sales access)
+      if (isCustomer && user?.email) {
+        try {
+          // Backend automatically filters orders by customer email, so we don't need to pass customer_id
+          // Just fetch orders without filters - backend will auto-filter for the logged-in customer
+          const ordersResponse = await ordersApi.getAll({});
+          const orders = ordersResponse.items || [];
+          
+          console.log('Fetched orders for customer:', orders.length, orders);
+          
+          // Collect unique user IDs from sales_rep_id and created_by
+          if (orders.length === 0) {
+            console.warn('No orders found for customer. Will only show customer support users.');
+          } else {
+            orders.forEach((order: any) => {
+              console.log('Processing order:', order.order_number, {
+                sales_rep_id: order.sales_rep_id,
+                created_by: order.created_by
+              });
+              
+              if (order.sales_rep_id) {
+                allowedUserIds.add(order.sales_rep_id);
+                console.log('Added sales_rep_id:', order.sales_rep_id);
+              }
+              if (order.created_by) {
+                allowedUserIds.add(order.created_by);
+                console.log('Added created_by:', order.created_by);
+              }
+            });
+            
+            console.log('Total allowed user IDs from orders:', Array.from(allowedUserIds));
+          }
+        } catch (error: any) {
+          console.error('Failed to fetch customer orders:', error);
+          // Don't return early - still show customer support users
+          console.warn('Could not load order information. Showing customer support users only.');
+        }
+      }
+      
+      // Fetch users - use chat-eligible endpoint for customers, regular endpoint for others
+      let allUsers: User[] = [];
+      
+      if (isCustomer) {
+        // For customers, use the chat-eligible endpoint with user IDs from orders
+        const userIdParams = Array.from(allowedUserIds).join(',');
+        const endpoint = userIdParams 
+          ? `/api/v1/users/chat-eligible?user_ids=${userIdParams}`
+          : '/api/v1/users/chat-eligible';
+        
+        console.log('Fetching chat-eligible users for customer:', endpoint);
+        
+        try {
+          const response = await authApi.get(endpoint);
+          allUsers = response.data || [];
+          console.log('Received chat-eligible users:', allUsers.length, allUsers.map(u => ({ id: u.id || u._id, email: u.email, role: u.role })));
+        } catch (error: any) {
+          console.error('Failed to fetch chat-eligible users:', error);
+          toast.error('Failed to load users for chat');
+          setUsers([]);
+          setFilteredUsers([]);
+          return;
+        }
+      } else {
+        // For non-customers, use regular users endpoint
+        const response = await authApi.get('/api/v1/users/');
+        allUsers = response.data || [];
+      }
       
       // Filter out current user
-      const otherUsers = allUsers.filter(
+      let otherUsers = allUsers.filter(
         (user: User) => (user.id || user._id) !== currentUserId
       );
+      
+      console.log('Final users list:', otherUsers.length, otherUsers.map(u => ({ id: u.id || u._id, email: u.email, role: u.role })));
+      
+      // If no users found, show message
+      if (otherUsers.length === 0) {
+        if (isCustomer) {
+          toast.info('No users available to message. You need customer support users or users who created your orders.');
+        } else {
+          toast.info('No users found');
+        }
+        setUsers([]);
+        setFilteredUsers([]);
+        return;
+      }
       
       setUsers(otherUsers);
       setFilteredUsers(otherUsers);

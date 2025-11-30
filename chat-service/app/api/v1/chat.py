@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect, Request
-from typing import List
+from fastapi import Request as FastAPIRequest
+from typing import List, Optional
 import logging
 
 from app.models.message import (
@@ -61,15 +62,24 @@ async def create_conversation(
 async def get_conversations(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
+    request: FastAPIRequest = None,
     service: ChatService = Depends(get_chat_service),
     current_user: dict = Depends(get_current_user)
 ):
     """Get all conversations for current user"""
     try:
+        # Extract token from request for refreshing participant details
+        token = ""
+        if request:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                token = auth_header[7:]  # Remove "Bearer " prefix
+        
         conversations = await service.get_user_conversations(
             user_id=current_user["user_id"],
             skip=skip,
-            limit=limit
+            limit=limit,
+            token=token
         )
         return conversations
     except Exception as e:

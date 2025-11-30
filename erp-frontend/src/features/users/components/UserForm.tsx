@@ -300,10 +300,10 @@ export const UserForm: React.FC<UserFormProps> = ({
               >
                 <option value="">Select a role</option>
                 {Object.values(UserRole).map((role) => (
-                  <option key={role} value={role}>
-                    {role.replace('_', ' ').charAt(0) + role.replace('_', ' ').slice(1).toLowerCase()}
-                  </option>
-                ))}
+                    <option key={role} value={role}>
+                      {role.replace('_', ' ').charAt(0) + role.replace('_', ' ').slice(1).toLowerCase()}
+                    </option>
+                  ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

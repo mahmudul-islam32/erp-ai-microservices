@@ -10,22 +10,29 @@ import { Button } from '../../../shared/components/ui/Button';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
 import { invoicesApi } from '../services/invoicesApi';
 import { toast } from 'sonner';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission, UserRole } from '../../users/types';
 
 export const InvoicesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { hasPermission, user } = usePermissions();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
+  
+  const isCustomer = user?.role === UserRole.CUSTOMER;
+  const canCreate = hasPermission(Permission.SALES_CREATE) && !isCustomer;
 
   useEffect(() => {
     fetchInvoices();
-  }, []);
+  }, [isCustomer, user?.email]);
 
   const fetchInvoices = async () => {
     setIsLoading(true);
     try {
       console.log('Fetching invoices...');
+      // Backend will automatically filter by customer if user is customer
       const data = await invoicesApi.getAll();
       console.log('Invoices data received:', data);
       console.log('Data items:', data.items);
@@ -197,13 +204,15 @@ export const InvoicesPage: React.FC = () => {
           { label: 'Invoices' },
         ]}
         actions={
-          <Button
-            variant="primary"
-            onClick={() => navigate('/dashboard/sales/invoices/create')}
-            leftIcon={<Plus className="h-4 w-4" />}
-          >
-            Create Invoice
-          </Button>
+          canCreate ? (
+            <Button
+              variant="primary"
+              onClick={() => navigate('/dashboard/sales/invoices/create')}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              Create Invoice
+            </Button>
+          ) : null
         }
       />
 

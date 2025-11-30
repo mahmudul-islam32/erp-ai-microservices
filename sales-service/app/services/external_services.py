@@ -65,6 +65,34 @@ class AuthService:
             logger.error(f"Auth service error: {e}")
             return None
 
+    async def create_user(self, user_data: Dict[str, Any], token: str) -> Optional[Dict[str, Any]]:
+        """Create a new user account in auth service"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.auth_service_url}/api/v1/users/",
+                    headers=headers,
+                    json=user_data
+                )
+                
+                if response.status_code == 201:
+                    user_created = response.json()
+                    logger.info(f"User created successfully: {user_created.get('email')}")
+                    return user_created
+                else:
+                    error_detail = response.text
+                    logger.warning(f"Create user failed: {response.status_code} - {error_detail}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Auth service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Auth service error: {e}")
+            return None
+
 
 class InventoryService:
     def __init__(self):

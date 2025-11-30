@@ -126,6 +126,14 @@ class AppearanceSettings(BaseModel):
     border_radius_large: str = Field(default="0.5rem", max_length=20)
     spacing_unit: str = Field(default="0.25rem", max_length=20)  # Base spacing unit
     
+    # IconButton Settings
+    icon_button_default_size: Optional[str] = Field(default="md", max_length=10)  # xs, sm, md, lg
+    icon_button_default_variant: Optional[str] = Field(default="primary", max_length=20)  # primary, secondary, outline, danger, ghost, success, warning, info
+    # Single base size settings that scale automatically for all button sizes
+    # Uses semantic values: 'extra-small', 'small', 'medium', 'large', 'extra-large'
+    icon_button_padding_size: Optional[str] = Field(default="medium", max_length=20)
+    icon_button_icon_size: Optional[str] = Field(default="medium", max_length=20)
+    
     # Additional CSS
     custom_css: Optional[str] = None  # Custom CSS rules
 
