@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserFilters as IUserFilters, UserRole, UserStatus } from '../types';
+import { FilterPanel } from '../../../shared/components/ui/FilterPanel';
 
 interface UserFiltersProps {
   filters: IUserFilters;
@@ -21,31 +22,11 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
   const hasActiveFilters = filters.search || filters.role || filters.status || filters.department;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center space-x-2">
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-          {hasActiveFilters && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-              Active
-            </span>
-          )}
-        </div>
-        {hasActiveFilters && (
-          <button
-            onClick={handleClear}
-            className="inline-flex items-center text-sm text-primary-600 hover:text-primary-900 font-medium"
-          >
-            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Clear All
-          </button>
-        )}
-      </div>
+    <FilterPanel
+      title="Filters"
+      hasActiveFilters={hasActiveFilters}
+      onClear={handleClear}
+    >
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Search */}
@@ -146,7 +127,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
           </div>
         </div>
       </div>
-    </div>
+    </FilterPanel>
   );
 };
 

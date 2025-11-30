@@ -14,6 +14,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Textarea } from '../../../shared/components/ui/Textarea';
 import { Select } from '../../../shared/components/ui/Select';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -29,9 +31,14 @@ type CategoryFormData = z.infer<typeof categorySchema>;
 export const CategoriesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { categories, isLoading } = useAppSelector((state) => state.categories);
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  
+  const canCreate = hasPermission(Permission.INVENTORY_CREATE);
+  const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
+  const canDelete = hasPermission(Permission.INVENTORY_DELETE);
 
   const {
     register,
@@ -105,28 +112,32 @@ export const CategoriesPage: React.FC = () => {
       width: '200px',
       render: (cat) => (
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<Edit className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenModal(cat);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="danger"
-            leftIcon={<Trash2 className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(cat._id);
-            }}
-          >
-            Delete
-          </Button>
+          {canUpdate && (
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<Edit className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenModal(cat);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="danger"
+              leftIcon={<Trash2 className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(cat._id);
+              }}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -150,13 +161,15 @@ export const CategoriesPage: React.FC = () => {
           { label: 'Categories' },
         ]}
         actions={
-          <Button
-            variant="primary"
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => handleOpenModal()}
-          >
-            Add Category
-          </Button>
+          canCreate ? (
+            <Button
+              variant="primary"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => handleOpenModal()}
+            >
+              Add Category
+            </Button>
+          ) : null
         }
       />
 

@@ -5,6 +5,7 @@ from app.services.security import SecurityService
 from app.services.settings_service import settings_service
 from app.services.notification_client import NotificationClient
 from app.services.notification_helper import send_user_management_notification
+from app.services.sales_service_client import sales_service_client
 from pymongo.errors import DuplicateKeyError
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -132,6 +133,49 @@ class UserService:
                 except Exception as e:
                     logger.warning(f"Failed to send notification for new user: {e}")
                 
+                # If user role is Customer, create customer record in sales service
+                if user_data.role == UserRole.CUSTOMER and auth_token:
+                    try:
+                        # Prepare customer data with minimal required fields
+                        # Create a default address
+                        default_address = {
+                            "street": "Not provided",
+                            "city": "Not provided",
+                            "state": "Not provided",
+                            "postal_code": "00000",
+                            "zip_code": "00000",
+                            "country": "USA"
+                        }
+                        
+                        customer_data = {
+                            "first_name": user_data.first_name,
+                            "last_name": user_data.last_name,
+                            "email": user_data.email,
+                            "phone": user_data.phone or "Not provided",
+                            "billing_address": default_address,
+                            "customer_type": "individual",
+                            "payment_terms": "net_30"
+                        }
+                        
+                        # Add company name if department is set
+                        if user_data.department:
+                            customer_data["company_name"] = user_data.department
+                        
+                        # Create customer in sales service
+                        customer_response = await sales_service_client.create_customer(
+                            customer_data, 
+                            token=auth_token
+                        )
+                        
+                        if customer_response:
+                            logger.info(f"Customer record created successfully for user {user_data.email}")
+                        else:
+                            logger.warning(f"Failed to create customer record for user {user_data.email}. User account was created but customer record creation failed or customer already exists.")
+                    except Exception as customer_error:
+                        # Log error but don't fail user creation
+                        logger.error(f"Error creating customer record for user {user_data.email}: {customer_error}")
+                        logger.warning(f"User account was created but customer record creation failed. Customer record can be created manually later.")
+                
                 # Ensure 2FA field exists
                 if "two_factor_enabled" not in created_user:
                     created_user["two_factor_enabled"] = False
@@ -191,7 +235,7 @@ class UserService:
             logger.error(f"Error getting user by email: {e}")
             return None
 
-    async def update_user(self, user_id: str, user_update: UserUpdate) -> Optional[UserResponse]:
+    async def update_user(self, user_id: str, user_update: UserUpdate, auth_token: Optional[str] = None) -> Optional[UserResponse]:
         """Update user"""
         try:
             db = get_database()
@@ -217,6 +261,11 @@ class UserService:
 
             # Add updated timestamp
             update_data["updated_at"] = datetime.utcnow()
+
+            # Get original user to check if they were a customer
+            original_user = await users_collection.find_one({"_id": ObjectId(user_id)})
+            original_role = original_user.get("role") if original_user else None
+            original_email = original_user.get("email") if original_user else None
 
             # If role is being updated, update permissions
             if "role" in update_data:
@@ -278,6 +327,60 @@ class UserService:
                     )
                 except Exception as e:
                     logger.warning(f"Failed to send notification for user update: {e}")
+                
+                # If user role is Customer, sync updates to customer record in sales service
+                updated_role = updated_user.get("role")
+                # Check if user is/was a customer (supports both enum and string formats)
+                is_customer_after = (updated_role == UserRole.CUSTOMER.value or str(updated_role).lower() == "customer")
+                is_customer_before = (original_role == UserRole.CUSTOMER.value or (original_role and str(original_role).lower() == "customer"))
+                
+                # Sync if user is currently a customer OR was a customer before (to handle email updates)
+                if (is_customer_after or is_customer_before) and auth_token:
+                    try:
+                        # Use original email to find customer record (before potential email update)
+                        # If email is being updated, we need to find customer by old email, then update to new email
+                        search_email = original_email if original_email else updated_user.get("email")
+                        if search_email:
+                            # Get customer by email (using original email in case email is being changed)
+                            customer = await sales_service_client.get_customer_by_email(search_email, token=auth_token)
+                            if customer:
+                                customer_id = customer.get("id") or customer.get("_id")
+                                if not customer_id:
+                                    logger.warning(f"Customer record found but missing ID for user {search_email}. User update completed but customer sync skipped.")
+                                else:
+                                    # Prepare customer update data from user update
+                                    customer_update_data = {}
+                                    if "first_name" in update_data:
+                                        customer_update_data["first_name"] = update_data["first_name"]
+                                    if "last_name" in update_data:
+                                        customer_update_data["last_name"] = update_data["last_name"]
+                                    if "phone" in update_data:
+                                        customer_update_data["phone"] = update_data["phone"]
+                                    if "department" in update_data:
+                                        customer_update_data["company_name"] = update_data["department"]
+                                    # Handle email update - if email is being updated, update customer email too
+                                    if "email" in update_data:
+                                        customer_update_data["email"] = update_data["email"]
+                                    
+                                    # Only update if there are relevant fields to sync
+                                    if customer_update_data:
+                                        customer_response = await sales_service_client.update_customer(
+                                            str(customer_id),
+                                            customer_update_data,
+                                            token=auth_token
+                                        )
+                                        if customer_response:
+                                            logger.info(f"Customer record synced successfully for user {search_email}")
+                                        else:
+                                            logger.warning(f"Failed to sync customer record for user {search_email}")
+                                    else:
+                                        logger.info(f"No customer fields to sync for user {search_email}")
+                            else:
+                                logger.warning(f"Customer record not found for user {search_email}. User update completed but customer sync skipped.")
+                    except Exception as customer_sync_error:
+                        # Log error but don't fail user update
+                        logger.error(f"Error syncing customer record for user update: {customer_sync_error}")
+                        logger.warning(f"User update completed but customer record sync failed. Customer record can be updated manually.")
                 
                 # Ensure 2FA field exists
                 if "two_factor_enabled" not in updated_user:

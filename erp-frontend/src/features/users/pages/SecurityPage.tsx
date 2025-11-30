@@ -10,16 +10,22 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { clear2FASetupFlag, getCurrentUser } from '../../auth/store/authSlice';
 import { toast } from 'sonner';
 import { Save, Loader2, Shield, QrCode, CheckCircle, XCircle, Copy, RefreshCw, AlertCircle } from 'lucide-react';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../types';
 
 export const SecurityPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { requires2FASetup } = useAppSelector((state) => state.auth);
+  const { hasPermission } = usePermissions();
   
   const [settings, setSettings] = useState<SecuritySettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<SecuritySettings>>({});
+  
+  const canReadSettings = hasPermission(Permission.SETTINGS_READ);
+  const canUpdateSettings = hasPermission(Permission.SETTINGS_UPDATE);
   
   // 2FA state
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; has_backup_codes: boolean } | null>(null);
@@ -29,9 +35,16 @@ export const SecurityPage: React.FC = () => {
   const [loading2FA, setLoading2FA] = useState(false);
 
   useEffect(() => {
-    console.log('SecurityPage mounted, loading settings and 2FA status');
-    loadSettings();
+    console.log('SecurityPage mounted, loading 2FA status');
     load2FAStatus();
+    
+    // Only load settings if user has permission
+    if (canReadSettings) {
+      console.log('User has SETTINGS_READ permission, loading settings');
+      loadSettings();
+    } else {
+      console.log('User does not have SETTINGS_READ permission, skipping settings load');
+    }
     
     // Set a timeout to default to "not enabled" if status check takes too long
     const timeout = setTimeout(() => {
@@ -45,7 +58,7 @@ export const SecurityPage: React.FC = () => {
     }, 3000); // 3 second timeout (reduced from 5)
     
     return () => clearTimeout(timeout);
-  }, []);
+  }, [canReadSettings]);
 
   const load2FAStatus = async () => {
     console.log('Loading 2FA status...');
@@ -105,9 +118,18 @@ export const SecurityPage: React.FC = () => {
         };
         setFormData(defaults);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading security settings:', error);
-      toast.error('Failed to load security settings');
+      
+      // Don't show error toast for permission errors (403) - these are expected
+      // The API interceptor already handles this, but also check here for safety
+      if (error?.response?.status === 403) {
+        console.log('User does not have permission to view security settings - this is expected');
+        // Silently fail - settings sections will be hidden
+      } else {
+        // Only show error for unexpected errors
+        toast.error('Failed to load security settings');
+      }
     } finally {
       setLoading(false);
     }
@@ -176,16 +198,19 @@ export const SecurityPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Security Settings" 
-        subtitle="Configure system-wide security policies and authentication settings"
+        title={canReadSettings ? "Security Settings" : "Security"}
+        subtitle={canReadSettings ? "Configure system-wide security policies and authentication settings" : "Manage your account security settings"}
         icon={Shield}
       />
 
-      <Card padding="lg">
-        <CardHeader 
-          title="Password Requirements" 
-          subtitle="Configure password requirements for user accounts"
-        />
+      {/* System Security Settings - Only visible to users with SETTINGS_READ permission */}
+      {canReadSettings && (
+        <>
+          <Card padding="lg">
+            <CardHeader 
+              title="Password Requirements" 
+              subtitle="Configure password requirements for user accounts"
+            />
         <CardContent>
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -270,6 +295,23 @@ export const SecurityPage: React.FC = () => {
             </div>
           </div>
         </CardContent>
+        {canUpdateSettings && (
+          <CardFooter>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
 
       <Card padding="lg">
@@ -310,7 +352,7 @@ export const SecurityPage: React.FC = () => {
 
       <Card padding="lg">
         <CardHeader 
-          title="Two-Factor Authentication" 
+          title="System Two-Factor Authentication Settings" 
           subtitle="Configure 2FA settings for enhanced security"
         />
         <CardContent>
@@ -351,6 +393,60 @@ export const SecurityPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Card padding="lg">
+        <CardHeader 
+          title="Token Settings" 
+          subtitle="Configure token refresh and expiration settings"
+        />
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
+              <div>
+                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  Enable Token Refresh
+                </label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Allow users to refresh their access tokens
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={getBooleanValue('token_refresh_enabled')}
+                onChange={(e) => updateFormData('token_refresh_enabled', e.target.checked)}
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+              />
+            </div>
+            <Input
+              label="Refresh Token Expiration (Days)"
+              type="number"
+              value={formData.refresh_token_expire_days || 7}
+              onChange={(e) => updateFormData('refresh_token_expire_days', parseInt(e.target.value))}
+              min={1}
+              max={90}
+            />
+          </div>
+        </CardContent>
+        {canUpdateSettings && (
+          <CardFooter>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        )}
+      </Card>
+        </>
+      )}
 
       {requires2FASetup && (
         <Card padding="lg" className="border-warning-300 bg-warning-50">
@@ -586,56 +682,6 @@ export const SecurityPage: React.FC = () => {
             </div>
           )}
         </CardContent>
-      </Card>
-
-      <Card padding="lg">
-        <CardHeader 
-          title="Token Settings" 
-          subtitle="Configure token refresh and expiration settings"
-        />
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-              <div>
-                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Enable Token Refresh
-                </label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Allow users to refresh their access tokens
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={getBooleanValue('token_refresh_enabled')}
-                onChange={(e) => updateFormData('token_refresh_enabled', e.target.checked)}
-                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-              />
-            </div>
-            <Input
-              label="Refresh Token Expiration (Days)"
-              type="number"
-              value={formData.refresh_token_expire_days || 7}
-              onChange={(e) => updateFormData('refresh_token_expire_days', parseInt(e.target.value))}
-              min={1}
-              max={90}
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

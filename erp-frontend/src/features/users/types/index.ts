@@ -49,6 +49,10 @@ export enum Permission {
   // AI Features
   AI_ACCESS = 'ai:access',
   AI_ADMIN = 'ai:admin',
+  
+  // Settings Management
+  SETTINGS_READ = 'settings:read',
+  SETTINGS_UPDATE = 'settings:update',
 }
 
 // User interface

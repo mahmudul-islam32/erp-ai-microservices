@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { User, UserRole, UserStatus } from '../types';
+import { User, UserRole, UserStatus, Permission } from '../types';
 import { formatDistanceToNow } from 'date-fns';
-import { Button } from '../../../shared/components/ui/Button';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Eye, Edit, Trash2 } from 'lucide-react';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
 
 interface UserTableProps {
   users: User[];
@@ -23,8 +24,12 @@ export const UserTable: React.FC<UserTableProps> = ({
   onSelectionChange,
   isLoading = false,
 }) => {
+  const { hasPermission } = usePermissions();
   const [sortField, setSortField] = useState<keyof User>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  const canEdit = hasPermission(Permission.USER_UPDATE);
+  const canDelete = hasPermission(Permission.USER_DELETE);
 
   const handleSort = (field: keyof User) => {
     if (sortField === field) {
@@ -267,38 +272,33 @@ export const UserTable: React.FC<UserTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex items-center gap-2">
-                    {/* View Button */}
-                    <Button
-                      size="sm"
+                    {/* View Button - uses appearance settings dynamically */}
+                    <IconButton
+                      icon={Eye}
                       variant="outline"
                       onClick={() => onView(user)}
                       title="View Details"
-                      className="p-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    />
 
-                    {/* Edit Button */}
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => onEdit(user)}
-                      title="Edit User"
-                      className="p-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    {/* Edit Button - only show if user has permission */}
+                    {canEdit && (
+                      <IconButton
+                        icon={Edit}
+                        variant="primary"
+                        onClick={() => onEdit(user)}
+                        title="Edit User"
+                      />
+                    )}
 
-                    {/* Delete Button */}
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => onDelete(user)}
-                      title="Delete User"
-                      className="p-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {/* Delete Button - only show if user has permission */}
+                    {canDelete && (
+                      <IconButton
+                        icon={Trash2}
+                        variant="danger"
+                        onClick={() => onDelete(user)}
+                        title="Delete User"
+                      />
+                    )}
                   </div>
                 </td>
               </tr>

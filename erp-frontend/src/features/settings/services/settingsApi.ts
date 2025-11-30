@@ -139,6 +139,16 @@ export interface AppearanceSettings {
   border_radius_large: string;
   spacing_unit: string;
   
+  // IconButton Settings
+  icon_button_default_size?: 'xs' | 'sm' | 'md' | 'lg';
+  icon_button_default_variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'success' | 'warning' | 'info';
+  // Single padding size setting that scales for all button sizes
+  // Uses semantic values: 'extra-small', 'small', 'medium', 'large', 'extra-large'
+  icon_button_padding_size?: string;
+  // Single icon size setting that scales for all button sizes
+  // Uses semantic values: 'extra-small', 'small', 'medium', 'large', 'extra-large'
+  icon_button_icon_size?: string;
+  
   // Additional CSS
   custom_css?: string;
 }

@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from typing import Optional, List
 from app.models.settings import (
-    SettingsResponse, SettingsUpdate, SettingsCategory
+    SettingsResponse, SettingsUpdate, SettingsCategory, SecuritySettings
 )
+from datetime import datetime
+from bson import ObjectId
 from app.services.settings_service import settings_service
 from app.api.dependencies import get_current_active_user
 from app.models.user import UserInDB, Permission
@@ -16,7 +18,7 @@ router = APIRouter(prefix="/settings", tags=["Settings"])
 @router.get("/", response_model=List[SettingsResponse])
 async def get_all_settings(
     category: Optional[SettingsCategory] = Query(None, description="Filter by category"),
-    current_user: UserInDB = Depends(get_current_active_user)
+    current_user: UserInDB = Depends(require_permissions([Permission.SETTINGS_READ]))
 ):
     """Get all settings or settings by category"""
     try:
@@ -33,16 +35,34 @@ async def get_all_settings(
 @router.get("/{category}", response_model=SettingsResponse)
 async def get_settings_by_category(
     category: SettingsCategory,
-    current_user: UserInDB = Depends(get_current_active_user)
+    current_user: UserInDB = Depends(require_permissions([Permission.SETTINGS_READ]))
 ):
-    """Get settings for a specific category"""
+    """Get settings for a specific category. Returns default settings if none exist."""
     try:
         settings = await settings_service.get_settings_by_category(category)
         if not settings:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Settings for category {category.value} not found"
-            )
+            # Return default settings instead of 404
+            # This provides better UX - frontend always gets valid settings
+            user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user._id)
+            
+            # Create default settings based on category
+            default_data = {
+                "id": str(ObjectId()),
+                "category": category,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "created_by": user_id,
+            }
+            
+            # Add category-specific defaults
+            if category == SettingsCategory.SECURITY:
+                security_defaults = SecuritySettings()
+                try:
+                    default_data["security"] = security_defaults.model_dump(exclude_unset=False)
+                except AttributeError:
+                    default_data["security"] = security_defaults.dict(exclude_unset=False)
+            
+            return SettingsResponse(**default_data)
         return settings
     except HTTPException:
         raise
@@ -58,7 +78,7 @@ async def get_settings_by_category(
 async def update_settings(
     category: SettingsCategory,
     settings_data: SettingsUpdate,
-    current_user: UserInDB = Depends(require_permissions([Permission.USER_UPDATE]))
+    current_user: UserInDB = Depends(require_permissions([Permission.SETTINGS_UPDATE]))
 ):
     """Create or update settings for a category"""
     try:

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { clsx } from 'clsx';
 import {
@@ -29,92 +29,309 @@ import {
   BarChart,
   Palette,
 } from 'lucide-react';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission, UserRole } from '../../../features/users/types';
 
 interface NavItem {
   name: string;
   path: string;
   icon: React.ElementType;
   children?: NavItem[];
+  // Permission requirements - item is shown if user has any of these permissions (or all if requireAllPermissions is true)
+  requiredPermissions?: (Permission | string)[];
+  // If true, user must have ALL requiredPermissions, otherwise ANY is sufficient
+  requireAllPermissions?: boolean;
+  // Or check if user has access to a service
+  requiredService?: 'user' | 'inventory' | 'sales' | 'finance' | 'hr' | 'ai';
+  // Or check if user has specific role(s)
+  requiredRole?: (UserRole | string)[];
+  // Roles that should NOT see this item
+  excludedRole?: (UserRole | string)[];
 }
 
-const navigation: NavItem[] = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Messages', path: '/dashboard/messages', icon: MessageSquare },
+// Base navigation configuration with permission requirements
+const baseNavigation: NavItem[] = [
+  { 
+    name: 'Dashboard', 
+    path: '/dashboard', 
+    icon: LayoutDashboard,
+    // Hide dashboard for customers - they only see orders/invoices
+    excludedRole: [UserRole.CUSTOMER],
+  },
+  { 
+    name: 'Messages', 
+    path: '/dashboard/messages', 
+    icon: MessageSquare,
+    // Messages accessible to all authenticated users
+  },
   {
     name: 'Users & Auth',
     path: '/dashboard/users',
     icon: Users,
+    requiredService: 'user',
+    excludedRole: [UserRole.CUSTOMER],
     children: [
-      { name: 'Users', path: '/dashboard/users', icon: Users },
-      { name: 'Roles', path: '/dashboard/roles', icon: UserCog },
-      { name: 'Access Control', path: '/dashboard/access-control', icon: Shield },
-      { name: 'Security', path: '/dashboard/security', icon: Shield },
-      { name: 'Sessions', path: '/dashboard/sessions', icon: Clock },
-      { name: 'Audit Logs', path: '/dashboard/audit', icon: FileSearch },
+      { 
+        name: 'Users', 
+        path: '/dashboard/users', 
+        icon: Users,
+        requiredPermissions: [Permission.USER_READ],
+      },
+      { 
+        name: 'Roles', 
+        path: '/dashboard/roles', 
+        icon: UserCog,
+        requiredPermissions: [Permission.USER_READ],
+      },
+      { 
+        name: 'Access Control', 
+        path: '/dashboard/access-control', 
+        icon: Shield,
+        requiredRole: [UserRole.SUPER_ADMIN],
+      },
+      { 
+        name: 'Security', 
+        path: '/dashboard/security', 
+        icon: Shield,
+        // Security page accessible to all for 2FA setup
+      },
+      { 
+        name: 'Sessions', 
+        path: '/dashboard/sessions', 
+        icon: Clock,
+        requiredPermissions: [Permission.USER_READ],
+      },
+      { 
+        name: 'Audit Logs', 
+        path: '/dashboard/audit', 
+        icon: FileSearch,
+        requiredPermissions: [Permission.USER_READ],
+      },
     ],
   },
   {
     name: 'Inventory',
     path: '/dashboard/inventory',
     icon: Package,
+    requiredService: 'inventory',
+    excludedRole: [UserRole.CUSTOMER],
     children: [
-      { name: 'Overview', path: '/dashboard/inventory', icon: LayoutDashboard },
-      { name: 'Products', path: '/dashboard/inventory/products', icon: Box },
-      { name: 'Categories', path: '/dashboard/inventory/categories', icon: Tag },
-      { name: 'Warehouses', path: '/dashboard/inventory/warehouses', icon: Warehouse },
-      { name: 'Stock', path: '/dashboard/inventory/stock', icon: Package },
-      { name: 'Settings', path: '/dashboard/inventory/settings', icon: Settings },
+      { 
+        name: 'Overview', 
+        path: '/dashboard/inventory', 
+        icon: LayoutDashboard,
+        requiredPermissions: [Permission.INVENTORY_READ],
+      },
+      { 
+        name: 'Products', 
+        path: '/dashboard/inventory/products', 
+        icon: Box,
+        requiredPermissions: [Permission.INVENTORY_READ],
+      },
+      { 
+        name: 'Categories', 
+        path: '/dashboard/inventory/categories', 
+        icon: Tag,
+        requiredPermissions: [Permission.INVENTORY_READ],
+      },
+      { 
+        name: 'Warehouses', 
+        path: '/dashboard/inventory/warehouses', 
+        icon: Warehouse,
+        requiredPermissions: [Permission.INVENTORY_READ],
+      },
+      { 
+        name: 'Stock', 
+        path: '/dashboard/inventory/stock', 
+        icon: Package,
+        requiredPermissions: [Permission.INVENTORY_READ],
+      },
+      { 
+        name: 'Settings', 
+        path: '/dashboard/inventory/settings', 
+        icon: Settings,
+        requiredPermissions: [Permission.INVENTORY_UPDATE, Permission.SETTINGS_READ],
+        requireAllPermissions: true,
+      },
     ],
   },
   {
     name: 'Sales',
     path: '/dashboard/sales',
     icon: ShoppingCart,
+    requiredService: 'sales',
     children: [
-      { name: 'Overview', path: '/dashboard/sales', icon: LayoutDashboard },
-      { name: 'Customers', path: '/dashboard/sales/customers', icon: Users },
-      { name: 'Orders', path: '/dashboard/sales/orders', icon: ShoppingCart },
-      { name: 'Quotes', path: '/dashboard/sales/quotes', icon: FileText },
-      { name: 'Invoices', path: '/dashboard/sales/invoices', icon: Receipt },
-      { name: 'Settings', path: '/dashboard/sales/settings', icon: Settings },
+      { 
+        name: 'Overview', 
+        path: '/dashboard/sales', 
+        icon: LayoutDashboard,
+        requiredPermissions: [Permission.SALES_READ],
+        excludedRole: [UserRole.CUSTOMER],
+      },
+      { 
+        name: 'Customers', 
+        path: '/dashboard/sales/customers', 
+        icon: Users,
+        requiredPermissions: [Permission.SALES_READ],
+        excludedRole: [UserRole.CUSTOMER],
+      },
+      { 
+        name: 'Orders', 
+        path: '/dashboard/sales/orders', 
+        icon: ShoppingCart,
+        requiredPermissions: [Permission.SALES_READ],
+      },
+      { 
+        name: 'Quotes', 
+        path: '/dashboard/sales/quotes', 
+        icon: FileText,
+        requiredPermissions: [Permission.SALES_READ],
+        excludedRole: [UserRole.CUSTOMER],
+      },
+      { 
+        name: 'Invoices', 
+        path: '/dashboard/sales/invoices', 
+        icon: Receipt,
+        requiredPermissions: [Permission.SALES_READ],
+      },
+      { 
+        name: 'Settings', 
+        path: '/dashboard/sales/settings', 
+        icon: Settings,
+        requiredPermissions: [Permission.SALES_UPDATE, Permission.SETTINGS_READ],
+        requireAllPermissions: true,
+        excludedRole: [UserRole.CUSTOMER],
+      },
     ],
   },
   {
     name: 'Finance',
     path: '/dashboard/finance',
     icon: DollarSign,
+    requiredService: 'finance',
+    excludedRole: [UserRole.CUSTOMER],
     children: [
-      { name: 'Overview', path: '/dashboard/finance', icon: LayoutDashboard },
-      { name: 'Chart of Accounts', path: '/dashboard/finance/accounts', icon: BookOpen },
-      { name: 'Journal Entries', path: '/dashboard/finance/journal-entries', icon: Receipt },
-      { name: 'Financial Reports', path: '/dashboard/finance/reports', icon: BarChart3 },
-      { name: 'Settings', path: '/dashboard/finance/settings', icon: Settings },
+      { 
+        name: 'Overview', 
+        path: '/dashboard/finance', 
+        icon: LayoutDashboard,
+        requiredPermissions: [Permission.FINANCE_READ],
+      },
+      { 
+        name: 'Chart of Accounts', 
+        path: '/dashboard/finance/accounts', 
+        icon: BookOpen,
+        requiredPermissions: [Permission.FINANCE_READ],
+      },
+      { 
+        name: 'Journal Entries', 
+        path: '/dashboard/finance/journal-entries', 
+        icon: Receipt,
+        requiredPermissions: [Permission.FINANCE_READ],
+      },
+      { 
+        name: 'Financial Reports', 
+        path: '/dashboard/finance/reports', 
+        icon: BarChart3,
+        requiredPermissions: [Permission.FINANCE_READ],
+      },
+      { 
+        name: 'Settings', 
+        path: '/dashboard/finance/settings', 
+        icon: Settings,
+        requiredPermissions: [Permission.FINANCE_UPDATE, Permission.SETTINGS_READ],
+        requireAllPermissions: true,
+      },
     ],
   },
   {
     name: 'HRM',
     path: '/dashboard/hrm',
     icon: UserCheck,
+    requiredService: 'hr',
+    excludedRole: [UserRole.CUSTOMER],
     children: [
-      { name: 'Overview', path: '/dashboard/hrm', icon: LayoutDashboard },
-      { name: 'Employees', path: '/dashboard/hrm/employees', icon: Users },
-      { name: 'Payroll', path: '/dashboard/hrm/payroll', icon: DollarSign },
-      { name: 'Attendance', path: '/dashboard/hrm/attendance', icon: Clock },
-      { name: 'Leave Management', path: '/dashboard/hrm/leave', icon: Calendar },
-      { name: 'Performance', path: '/dashboard/hrm/performance', icon: TrendingUp },
-      { name: 'Recruitment', path: '/dashboard/hrm/recruitment', icon: Briefcase },
-      { name: 'Training', path: '/dashboard/hrm/training', icon: GraduationCap },
-      { name: 'Benefits', path: '/dashboard/hrm/benefits', icon: Heart },
-      { name: 'Analytics', path: '/dashboard/hrm/analytics', icon: BarChart },
+      { 
+        name: 'Overview', 
+        path: '/dashboard/hrm', 
+        icon: LayoutDashboard,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Employees', 
+        path: '/dashboard/hrm/employees', 
+        icon: Users,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Payroll', 
+        path: '/dashboard/hrm/payroll', 
+        icon: DollarSign,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Attendance', 
+        path: '/dashboard/hrm/attendance', 
+        icon: Clock,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Leave Management', 
+        path: '/dashboard/hrm/leave', 
+        icon: Calendar,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Performance', 
+        path: '/dashboard/hrm/performance', 
+        icon: TrendingUp,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Recruitment', 
+        path: '/dashboard/hrm/recruitment', 
+        icon: Briefcase,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Training', 
+        path: '/dashboard/hrm/training', 
+        icon: GraduationCap,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Benefits', 
+        path: '/dashboard/hrm/benefits', 
+        icon: Heart,
+        requiredPermissions: [Permission.HR_READ],
+      },
+      { 
+        name: 'Analytics', 
+        path: '/dashboard/hrm/analytics', 
+        icon: BarChart,
+        requiredPermissions: [Permission.HR_READ],
+      },
     ],
   },
   { 
     name: 'Settings', 
     path: '/dashboard/settings', 
     icon: Settings,
+    requiredPermissions: [Permission.SETTINGS_READ],
+    excludedRole: [UserRole.CUSTOMER],
     children: [
-      { name: 'General', path: '/dashboard/settings', icon: Settings },
-      { name: 'Appearance', path: '/dashboard/settings/appearance', icon: Palette },
+      { 
+        name: 'General', 
+        path: '/dashboard/settings', 
+        icon: Settings,
+        requiredPermissions: [Permission.SETTINGS_READ],
+      },
+      { 
+        name: 'Appearance', 
+        path: '/dashboard/settings/appearance', 
+        icon: Palette,
+        requiredPermissions: [Permission.SETTINGS_READ],
+      },
     ],
   },
 ];
@@ -125,6 +342,71 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const { hasPermission, hasAnyPermission, hasAllPermissions, hasServiceAccess, hasAnyRole, isSuperAdmin, user } = usePermissions();
+
+  // Filter navigation items based on permissions
+  const navigation = useMemo(() => {
+    const filterNavItems = (items: NavItem[]): NavItem[] => {
+      return items
+        .filter((item) => {
+          // If item is excluded for customer role, hide it
+          if (item.excludedRole && item.excludedRole.length > 0 && user?.role) {
+            if (hasAnyRole(item.excludedRole)) {
+              return false;
+            }
+          }
+          
+          // If item requires specific role(s), check that first
+          if (item.requiredRole && item.requiredRole.length > 0) {
+            if (!hasAnyRole(item.requiredRole)) {
+              return false;
+            }
+          }
+          
+          // If item requires service access, check that
+          if (item.requiredService) {
+            if (!hasServiceAccess(item.requiredService)) {
+              return false;
+            }
+          }
+          
+          // If item requires specific permissions, check those
+          if (item.requiredPermissions && item.requiredPermissions.length > 0) {
+            // Use hasAllPermissions if requireAllPermissions is true, otherwise use hasAnyPermission
+            const hasRequiredPermissions = item.requireAllPermissions 
+              ? hasAllPermissions(item.requiredPermissions)
+              : hasAnyPermission(item.requiredPermissions);
+            if (!hasRequiredPermissions) {
+              return false;
+            }
+          }
+          
+          // If item has children, filter them and only show if at least one child is visible
+          if (item.children && item.children.length > 0) {
+            const filteredChildren = filterNavItems(item.children);
+            if (filteredChildren.length === 0) {
+              return false; // Hide parent if no children are visible
+            }
+            return true;
+          }
+          
+          // Show item if no restrictions or all checks passed
+          return true;
+        })
+        .map((item) => {
+          // Recursively filter children
+          if (item.children && item.children.length > 0) {
+            return {
+              ...item,
+              children: filterNavItems(item.children),
+            };
+          }
+          return item;
+        });
+    };
+    
+    return filterNavItems(baseNavigation);
+  }, [hasPermission, hasAnyPermission, hasServiceAccess, isSuperAdmin]);
 
   const toggleExpanded = (path: string) => {
     setExpandedItems((prev) =>

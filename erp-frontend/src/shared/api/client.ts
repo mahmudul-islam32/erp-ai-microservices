@@ -72,11 +72,23 @@ apiClient.interceptors.response.use(
         // Refresh failed, logout user
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        
+        // Only redirect if not already on login page to avoid loops
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+        
         return Promise.reject(refreshError);
       }
     }
 
+    // Handle 403 Forbidden (permission denied) - don't show error toast
+    // Permission errors are expected and handled by UI hiding elements
+    if (error.response?.status === 403) {
+      // Silently reject without showing error toast
+      return Promise.reject(error);
+    }
+    
     // Handle other errors
     let message = 'An error occurred';
     
@@ -94,6 +106,7 @@ apiClient.interceptors.response.use(
       message = error.message;
     }
     
+    // Only show error toast for non-permission errors
     toast.error(message);
 
     return Promise.reject(error);

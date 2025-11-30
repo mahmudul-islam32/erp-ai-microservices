@@ -8,6 +8,7 @@ from app.api.dependencies import (
     get_current_active_user, require_sales_access, require_sales_write, 
     get_token_from_request, require_sales_access_flexible
 )
+from app.services import customer_service
 from typing import List, Optional
 from datetime import date
 import logging
@@ -104,6 +105,22 @@ async def get_sales_orders(
     try:
         logger.info(f"Getting sales orders for user: {current_user.get('email')}")
         
+        # If user is a customer, automatically filter by their customer_id
+        user_role = current_user.get("role", "").lower()
+        if user_role == "customer":
+            # Get customer by email
+            user_email = current_user.get("email")
+            if user_email:
+                try:
+                    customer = await customer_service.get_customer_by_email(user_email)
+                    if customer:
+                        customer_id = customer.id
+                        logger.info(f"Customer user filtering orders by customer_id: {customer_id}")
+                    else:
+                        logger.warning(f"Customer user {user_email} not found in customers table")
+                except Exception as e:
+                    logger.error(f"Error finding customer by email {user_email}: {e}")
+        
         # Get orders and total count
         orders = await sales_order_service.get_orders(
             skip=skip,
@@ -160,6 +177,34 @@ async def get_sales_order(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Sales order not found"
             )
+
+        # If user is a customer, verify the order belongs to them
+        user_role = current_user.get("role", "").lower()
+        if user_role == "customer":
+            user_email = current_user.get("email")
+            if user_email:
+                try:
+                    customer = await customer_service.get_customer_by_email(user_email)
+                    if customer:
+                        # Check if order belongs to this customer
+                        if order.customer_id != customer.id:
+                            raise HTTPException(
+                                status_code=status.HTTP_403_FORBIDDEN,
+                                detail="You do not have access to this order"
+                            )
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Customer record not found"
+                        )
+                except HTTPException:
+                    raise
+                except Exception as e:
+                    logger.error(f"Error verifying customer access to order: {e}")
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Unable to verify order access"
+                    )
 
         return SalesOrderResponse(**order.dict())
 
@@ -324,6 +369,34 @@ async def get_order_by_number(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Sales order not found"
             )
+
+        # If user is a customer, verify the order belongs to them
+        user_role = current_user.get("role", "").lower()
+        if user_role == "customer":
+            user_email = current_user.get("email")
+            if user_email:
+                try:
+                    customer = await customer_service.get_customer_by_email(user_email)
+                    if customer:
+                        # Check if order belongs to this customer
+                        if order.customer_id != customer.id:
+                            raise HTTPException(
+                                status_code=status.HTTP_403_FORBIDDEN,
+                                detail="You do not have access to this order"
+                            )
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Customer record not found"
+                        )
+                except HTTPException:
+                    raise
+                except Exception as e:
+                    logger.error(f"Error verifying customer access to order: {e}")
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Unable to verify order access"
+                    )
 
         return SalesOrderResponse(**order.dict())
 
