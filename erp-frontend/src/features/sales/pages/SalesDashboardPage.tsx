@@ -17,12 +17,17 @@ import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Car
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { UserRole } from '../../users/types';
 
 export const SalesDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { orders, isLoading: ordersLoading } = useAppSelector((state) => state.orders);
   const { customers, isLoading: customersLoading } = useAppSelector((state) => state.customers);
+  const { user } = usePermissions();
+  
+  const isCustomer = user?.role === UserRole.CUSTOMER;
   
   const [stats, setStats] = useState({
     totalSales: 0,      // Total selling price (subtotal)
@@ -39,13 +44,28 @@ export const SalesDashboardPage: React.FC = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchOrders());
-    dispatch(fetchCustomers());
-  }, [dispatch]);
+    // For customers, filter by their customer_id; for others, fetch all
+    const params = isCustomer && user?.id 
+      ? { customer_id: user.id } 
+      : {};
+    dispatch(fetchOrders(params));
+    // Customers don't need to fetch all customers
+    if (!isCustomer) {
+      dispatch(fetchCustomers());
+    }
+  }, [dispatch, isCustomer, user?.id]);
 
   useEffect(() => {
-    if (orders && customers) {
+    if (orders) {
       const ordersList = Array.isArray(orders) ? orders : [];
+      
+      // Filter orders for customers - only show their own
+      const customerOrders = isCustomer && user?.id
+        ? ordersList.filter(
+            (order) => order.customer_id === user.id || order.customer_id === user._id
+          )
+        : ordersList;
+      
       const customersList = Array.isArray(customers) ? customers : [];
 
       // Calculate statistics
@@ -53,7 +73,7 @@ export const SalesDashboardPage: React.FC = () => {
       let totalCost = 0;    // Cost of goods sold
       let totalTax = 0;     // Tax collected
       
-      ordersList.forEach(order => {
+      customerOrders.forEach(order => {
         // Only count paid orders
         if (order.payment_status?.toLowerCase() === 'paid') {
           // Calculate from line items if available
@@ -87,8 +107,8 @@ export const SalesDashboardPage: React.FC = () => {
         totalCost,
         totalTax,
         totalRevenue,
-        totalOrders: ordersList.length,
-        totalCustomers: customersList.length,
+        totalOrders: customerOrders.length,
+        totalCustomers: isCustomer ? 0 : customersList.length, // Don't show customer count for customers
         paidOrders: paidOrdersCount,
         pendingPayments: pendingPaymentsCount,
         confirmedOrders: confirmedOrdersCount,
@@ -96,15 +116,24 @@ export const SalesDashboardPage: React.FC = () => {
         profitMargin,
       });
     }
-  }, [orders, customers]);
+  }, [orders, customers, isCustomer, user?.id]);
 
-  const recentOrders = Array.isArray(orders) 
-    ? [...orders].sort((a, b) => {
-        const dateA = new Date(a.created_at || a.order_date).getTime();
-        const dateB = new Date(b.created_at || b.order_date).getTime();
-        return dateB - dateA;
-      }).slice(0, 5)
-    : [];
+  // Filter recent orders for customers
+  const ordersList = Array.isArray(orders) ? orders : [];
+  const customerOrdersList = isCustomer && user?.id
+    ? ordersList.filter(
+        (order) => order.customer_id === user.id || order.customer_id === user._id
+      )
+    : ordersList;
+  
+  // Create a copy of the array before sorting (Redux state is immutable)
+  const recentOrders = [...customerOrdersList]
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at || a.order_date).getTime();
+      const dateB = new Date(b.created_at || b.order_date).getTime();
+      return dateB - dateA;
+    })
+    .slice(0, 5);
 
   const getStatusVariant = (status: string): 'success' | 'warning' | 'danger' | 'default' => {
     const statusMap: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
@@ -128,7 +157,7 @@ export const SalesDashboardPage: React.FC = () => {
     return statusMap[status?.toLowerCase()] || 'default';
   };
 
-  if (ordersLoading || customersLoading) {
+  if (ordersLoading || (!isCustomer && customersLoading)) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Spinner size="lg" />
@@ -148,9 +177,10 @@ export const SalesDashboardPage: React.FC = () => {
         ]}
       />
 
-      {/* Financial Summary Banner */}
-      <div className="mb-6 p-5 bg-gradient-to-r from-slate-50 to-primary-50 border border-slate-200 rounded-lg shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-700 mb-4">💰 Financial Summary (Paid Orders Only)</h3>
+      {/* Financial Summary Banner - Hide for customers */}
+      {!isCustomer && (
+        <div className="mb-6 p-5 bg-gradient-to-r from-slate-50 to-primary-50 border border-slate-200 rounded-lg shadow-sm">
+          <h3 className="text-sm font-semibold text-slate-700 mb-4">💰 Financial Summary (Paid Orders Only)</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-white rounded-lg border border-slate-200">
             <p className="text-xs text-slate-600 mb-1">Total Sales</p>
@@ -181,6 +211,7 @@ export const SalesDashboardPage: React.FC = () => {
           </p>
         </div>
       </div>
+      )}
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -201,20 +232,22 @@ export const SalesDashboardPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-warning-100 rounded-lg">
-                <Users className="h-6 w-6 text-warning-600" />
+        {!isCustomer && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-warning-100 rounded-lg">
+                  <Users className="h-6 w-6 text-warning-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Total Customers</p>
+                  <h3 className="text-2xl font-bold text-slate-900">{stats.totalCustomers}</h3>
+                  <p className="text-xs text-slate-500 mt-1">Active customers</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-slate-600">Total Customers</p>
-                <h3 className="text-2xl font-bold text-slate-900">{stats.totalCustomers}</h3>
-                <p className="text-xs text-slate-500 mt-1">Active customers</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardContent className="p-6">
@@ -234,13 +267,14 @@ export const SalesDashboardPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Order Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader 
-            title="Order Status Breakdown"
-            subtitle="Current order statuses"
-          />
+      {/* Order Statistics - Hide profit/loss for customers */}
+      {!isCustomer && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card>
+            <CardHeader 
+              title="Order Status Breakdown"
+              subtitle="Current order statuses"
+            />
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-success-50 rounded-lg">
@@ -338,7 +372,8 @@ export const SalesDashboardPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
 
       {/* Recent Orders */}
       <Card>

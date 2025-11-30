@@ -4,19 +4,34 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { getCurrentUser } from '../store/authSlice';
 import { settingsApi, SettingsCategory } from '../../settings/services/settingsApi';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission, UserRole } from '../../users/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredPermission?: string;
+  requiredPermission?: Permission | string;
+  requiredPermissions?: (Permission | string)[];
+  requiredService?: 'user' | 'inventory' | 'sales' | 'finance' | 'hr' | 'ai';
+  requiredRole?: UserRole | string;
+  requiredRoles?: (UserRole | string)[];
+  excludedRole?: UserRole | string;
+  excludedRoles?: (UserRole | string)[];
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredPermission,
+  requiredPermissions,
+  requiredService,
+  requiredRole,
+  requiredRoles,
+  excludedRole,
+  excludedRoles,
 }) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user, isLoading, requires2FASetup } = useAppSelector((state) => state.auth);
+  const { hasPermission, hasAnyPermission, hasServiceAccess, hasRole, hasAnyRole } = usePermissions();
   const [checking2FA, setChecking2FA] = useState(false);
   const [systemRequires2FA, setSystemRequires2FA] = useState(false);
 
@@ -91,19 +106,37 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/dashboard/security" replace />;
   }
 
+  // Check excluded roles first - if user has an excluded role, deny access
+  if (excludedRole && hasRole(excludedRole)) {
+    return <Navigate to="/dashboard/sales/orders" replace />;
+  }
+
+  if (excludedRoles && excludedRoles.length > 0 && hasAnyRole(excludedRoles)) {
+    return <Navigate to="/dashboard/sales/orders" replace />;
+  }
+
+  // Check role requirements (most restrictive)
+  if (requiredRole && !hasRole(requiredRole)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (requiredRoles && requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Check permission if required
-  if (requiredPermission && user.permissions) {
-    const hasPermission = user.permissions.includes(requiredPermission) || user.is_superuser;
-    if (!hasPermission) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-900">Access Denied</h1>
-            <p className="text-slate-600 mt-2">You don't have permission to access this page.</p>
-          </div>
-        </div>
-      );
-    }
+  if (requiredService && !hasServiceAccess(requiredService)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Check single permission
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Check multiple permissions (user needs at least one)
+  if (requiredPermissions && requiredPermissions.length > 0 && !hasAnyPermission(requiredPermissions)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

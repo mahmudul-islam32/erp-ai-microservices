@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 import { fetchEmployees, deleteEmployee } from '../store/hrmSlice';
 import { Employee } from '../types';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -18,6 +20,7 @@ import {
 const EmployeesPage: React.FC = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state: RootState) => state.hrm.employees);
+  const { hasPermission } = usePermissions();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -25,6 +28,10 @@ const EmployeesPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  
+  const canCreate = hasPermission(Permission.HR_CREATE);
+  const canUpdate = hasPermission(Permission.HR_UPDATE);
+  const canDelete = hasPermission(Permission.HR_DELETE);
 
   useEffect(() => {
     dispatch(fetchEmployees());
@@ -106,10 +113,12 @@ const EmployeesPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
             <p className="text-gray-600 mt-1">Manage employee records and information</p>
           </div>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
-            <PlusIcon className="h-5 w-5" />
-            <span>Add Employee</span>
-          </button>
+          {canCreate && (
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+              <PlusIcon className="h-5 w-5" />
+              <span>Add Employee</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -251,15 +260,19 @@ const EmployeesPage: React.FC = () => {
                       <button className="text-blue-600 hover:text-blue-900">
                         <EyeIcon className="h-4 w-4" />
                       </button>
-                      <button className="text-indigo-600 hover:text-indigo-900">
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(employee.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      {canUpdate && (
+                        <button className="text-indigo-600 hover:text-indigo-900">
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button 
+                          onClick={() => handleDelete(employee.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

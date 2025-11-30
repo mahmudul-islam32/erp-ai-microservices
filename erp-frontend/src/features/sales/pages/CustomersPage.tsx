@@ -9,12 +9,19 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 export const CustomersPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { customers, isLoading } = useAppSelector((state) => state.customers);
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState('');
+  
+  const canCreate = hasPermission(Permission.SALES_CREATE);
+  const canUpdate = hasPermission(Permission.SALES_UPDATE);
+  const canDelete = hasPermission(Permission.SALES_DELETE);
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -78,28 +85,32 @@ export const CustomersPage: React.FC = () => {
       width: '200px',
       render: (customer) => (
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<Edit className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/dashboard/sales/customers/${customer.id}/edit`);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="danger"
-            leftIcon={<Trash2 className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(customer.id);
-            }}
-          >
-            Delete
-          </Button>
+          {canUpdate && (
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<Edit className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/dashboard/sales/customers/${customer.id}/edit`);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="danger"
+              leftIcon={<Trash2 className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(customer.id);
+              }}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -128,13 +139,15 @@ export const CustomersPage: React.FC = () => {
           { label: 'Customers' },
         ]}
         actions={
-          <Button
-            variant="primary"
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => navigate('/dashboard/sales/customers/create')}
-          >
-            Add Customer
-          </Button>
+          canCreate ? (
+            <Button
+              variant="primary"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => navigate('/dashboard/sales/customers/create')}
+            >
+              Add Customer
+            </Button>
+          ) : null
         }
       />
 

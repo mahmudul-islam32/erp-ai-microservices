@@ -13,9 +13,11 @@ export default defineConfig(({ command, mode }) => {
       watch: {
         usePolling: true,
       },
+      // HMR configuration for Docker
+      // When running in Docker, the container port 5173 is mapped to host port 8080
+      // The HMR client needs to connect via the mapped port (8080)
       hmr: {
-        host: 'localhost',
-        port: 5173,
+        clientPort: process.env.VITE_HMR_PORT ? parseInt(process.env.VITE_HMR_PORT) : undefined,
       },
       // Add proxy for API calls to auth service
       proxy: {

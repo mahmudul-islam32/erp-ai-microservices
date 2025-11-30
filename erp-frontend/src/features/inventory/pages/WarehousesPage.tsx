@@ -13,6 +13,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Textarea } from '../../../shared/components/ui/Textarea';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 const warehouseSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -38,9 +40,14 @@ type WarehouseFormData = z.infer<typeof warehouseSchema>;
 export const WarehousesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { warehouses, isLoading } = useAppSelector((state) => state.warehouses);
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<any>(null);
+  
+  const canCreate = hasPermission(Permission.INVENTORY_CREATE);
+  const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
+  const canDelete = hasPermission(Permission.INVENTORY_DELETE);
 
   const {
     register,
@@ -131,28 +138,32 @@ export const WarehousesPage: React.FC = () => {
       width: '200px',
       render: (wh) => (
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<Edit className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenModal(wh);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="danger"
-            leftIcon={<Trash2 className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(wh._id);
-            }}
-          >
-            Delete
-          </Button>
+          {canUpdate && (
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<Edit className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenModal(wh);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="danger"
+              leftIcon={<Trash2 className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(wh._id);
+              }}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -176,13 +187,15 @@ export const WarehousesPage: React.FC = () => {
           { label: 'Warehouses' },
         ]}
         actions={
-          <Button
-            variant="primary"
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => handleOpenModal()}
-          >
-            Add Warehouse
-          </Button>
+          canCreate ? (
+            <Button
+              variant="primary"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => handleOpenModal()}
+            >
+              Add Warehouse
+            </Button>
+          ) : null
         }
       />
 

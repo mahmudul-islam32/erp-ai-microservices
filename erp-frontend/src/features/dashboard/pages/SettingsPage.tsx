@@ -15,6 +15,8 @@ import {
   Save,
   Loader2
 } from 'lucide-react';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 type TabType = SettingsCategory | 'all';
 
@@ -27,7 +29,11 @@ const tabConfig = [
 ];
 
 export const SettingsPage: React.FC = () => {
+  const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState<TabType>(SettingsCategory.COMPANY);
+  
+  const canRead = hasPermission(Permission.SETTINGS_READ);
+  const canUpdate = hasPermission(Permission.SETTINGS_UPDATE);
   const [settings, setSettings] = useState<Record<SettingsCategory, Settings | null>>({
     [SettingsCategory.COMPANY]: null,
     [SettingsCategory.FINANCIAL]: null,
@@ -56,8 +62,12 @@ export const SettingsPage: React.FC = () => {
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    // Permission check is handled by ProtectedRoute/PermissionRoute
+    // Only load settings if user has permission (silent check)
+    if (canRead) {
+      loadSettings();
+    }
+  }, [canRead]);
 
   const loadSettings = async () => {
     setLoading(true);
@@ -132,6 +142,11 @@ export const SettingsPage: React.FC = () => {
   };
 
   const handleSave = async (category: SettingsCategory) => {
+    if (!canUpdate) {
+      toast.error('You do not have permission to update settings');
+      return;
+    }
+    
     setSaving(true);
     try {
       let data = formData[category];
@@ -689,12 +704,14 @@ export const SettingsPage: React.FC = () => {
           <Card padding="lg">
             <CardHeader title="Company Information" subtitle="Manage your company details and address" />
             <CardContent>{renderCompanySettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.COMPANY)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
+            {canUpdate && (
+              <CardFooter>
+                <Button onClick={() => handleSave(SettingsCategory.COMPANY)} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         );
       case SettingsCategory.EMAIL:
@@ -702,12 +719,14 @@ export const SettingsPage: React.FC = () => {
           <Card padding="lg">
             <CardHeader title="Email Settings" subtitle="Configure SMTP settings for email notifications" />
             <CardContent>{renderEmailSettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.EMAIL)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
+            {canUpdate && (
+              <CardFooter>
+                <Button onClick={() => handleSave(SettingsCategory.EMAIL)} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         );
       case SettingsCategory.NOTIFICATIONS:
@@ -715,12 +734,14 @@ export const SettingsPage: React.FC = () => {
           <Card padding="lg">
             <CardHeader title="Notification Preferences" subtitle="Configure how you receive notifications" />
             <CardContent>{renderNotificationSettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.NOTIFICATIONS)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
+            {canUpdate && (
+              <CardFooter>
+                <Button onClick={() => handleSave(SettingsCategory.NOTIFICATIONS)} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         );
       case SettingsCategory.INTEGRATIONS:
@@ -728,12 +749,14 @@ export const SettingsPage: React.FC = () => {
           <Card padding="lg">
             <CardHeader title="Integration Settings" subtitle="Configure third-party integrations" />
             <CardContent>{renderIntegrationSettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.INTEGRATIONS)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
+            {canUpdate && (
+              <CardFooter>
+                <Button onClick={() => handleSave(SettingsCategory.INTEGRATIONS)} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         );
       case SettingsCategory.GENERAL:
@@ -741,12 +764,14 @@ export const SettingsPage: React.FC = () => {
           <Card padding="lg">
             <CardHeader title="General Settings" subtitle="Configure general application preferences" />
             <CardContent>{renderGeneralSettings()}</CardContent>
-            <CardFooter>
-              <Button onClick={() => handleSave(SettingsCategory.GENERAL)} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardFooter>
+            {canUpdate && (
+              <CardFooter>
+                <Button onClick={() => handleSave(SettingsCategory.GENERAL)} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         );
       default:

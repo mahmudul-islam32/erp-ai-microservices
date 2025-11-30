@@ -46,6 +46,84 @@ async def create_user(
         )
 
 
+@router.get("/chat-eligible", response_model=List[UserResponse])
+async def get_chat_eligible_users(
+    user_ids: Optional[str] = Query(None, description="Comma-separated list of user IDs to include"),
+    current_user=Depends(get_current_active_user)
+):
+    """Get users eligible for chat. For customers: returns customer support users + specified user IDs"""
+    try:
+        current_user_role = current_user.role.value.lower() if current_user and current_user.role else ""
+        current_user_id = str(current_user.id) if current_user else ""
+        
+        # For customers, return customer support roles + any specified user IDs
+        if current_user_role == "customer":
+            # Customer support roles that customers can always message
+            customer_support_roles = [
+                UserRole.SUPER_ADMIN,
+                UserRole.ADMIN,
+                UserRole.MANAGER,
+                UserRole.EMPLOYEE
+            ]
+            
+            # Get customer support users
+            all_users = []
+            for role in customer_support_roles:
+                role_users = await user_service.get_users(
+                    skip=0,
+                    limit=1000,
+                    role=role,
+                    status=UserStatus.ACTIVE
+                )
+                all_users.extend(role_users)
+            
+            # Add any specified user IDs (users who created orders)
+            if user_ids:
+                user_id_list = [uid.strip() for uid in user_ids.split(",") if uid.strip()]
+                for user_id in user_id_list:
+                    user_in_db = await user_service.get_user_by_id(user_id)
+                    if user_in_db and user_in_db.status == UserStatus.ACTIVE:
+                        # Check if not already in list (compare by ID)
+                        user_id_str = str(user_in_db.id)
+                        if not any(str(u.id) == user_id_str for u in all_users):
+                            # Convert UserInDB to UserResponse
+                            all_users.append(UserResponse(
+                                id=str(user_in_db.id),
+                                email=user_in_db.email,
+                                first_name=user_in_db.first_name,
+                                last_name=user_in_db.last_name,
+                                role=user_in_db.role,
+                                department=user_in_db.department,
+                                phone=user_in_db.phone,
+                                status=user_in_db.status,
+                                permissions=user_in_db.permissions,
+                                profile_image=getattr(user_in_db, 'profile_image', None),
+                                created_at=user_in_db.created_at,
+                                updated_at=user_in_db.updated_at,
+                                last_login=user_in_db.last_login
+                            ))
+            
+            # Remove current user and return (all_users already contains UserResponse objects)
+            return [user for user in all_users if str(user.id) != current_user_id]
+        
+        else:
+            # For non-customers, return all active users
+            users = await user_service.get_users(
+                skip=0,
+                limit=1000,
+                status=UserStatus.ACTIVE
+            )
+            # Filter out current user
+            return [UserResponse(**user.dict()) for user in users if str(user.id) != current_user_id]
+            
+    except Exception as e:
+        logger.error(f"Get chat-eligible users error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+
 @router.get("/", response_model=List[UserResponse])
 async def get_users(
     skip: int = Query(0, ge=0),
@@ -122,6 +200,7 @@ async def get_user(
 async def update_user(
     user_id: str,
     user_update: UserUpdate,
+    request: Request,
     current_user=Depends(require_any_permission([Permission.USER_UPDATE]))
 ):
     """Update user"""
@@ -142,7 +221,14 @@ async def update_user(
                     detail="Cannot update role or status for own profile"
                 )
 
-        updated_user = await user_service.update_user(user_id, user_update)
+        # Extract token from request for syncing customer updates
+        token = request.cookies.get("access_token")
+        if not token:
+            authorization = request.headers.get("Authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1]
+
+        updated_user = await user_service.update_user(user_id, user_update, auth_token=token)
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

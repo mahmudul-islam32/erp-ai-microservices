@@ -12,16 +12,24 @@ import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
 import { toast } from 'sonner';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { UserRole } from '../../users/types';
 
 export const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { orders, isLoading } = useAppSelector((state) => state.orders);
+  const { user, hasPermission } = usePermissions();
   const [search, setSearch] = useState('');
   const [creatingInvoiceIds, setCreatingInvoiceIds] = useState<Set<string>>(new Set());
 
+  const isCustomer = user?.role === UserRole.CUSTOMER;
+  const canCreate = hasPermission('sales:create') && !isCustomer;
+  const canDelete = hasPermission('sales:delete') && !isCustomer;
+
   useEffect(() => {
-    dispatch(fetchOrders());
+    // Backend will automatically filter by customer_id if user is a customer
+    dispatch(fetchOrders({}));
   }, [dispatch]);
 
   const getStatusVariant = (status: string) => {
@@ -165,34 +173,49 @@ export const OrdersPage: React.FC = () => {
           >
             View
           </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            leftIcon={<Receipt className="h-3 w-3" />}
-            onClick={(e) => handleCreateInvoice(order.id, e)}
-            disabled={creatingInvoiceIds.has(order.id)}
-            isLoading={creatingInvoiceIds.has(order.id)}
-          >
-            Invoice
-          </Button>
-          <Button
-            size="sm"
-            variant="danger"
-            leftIcon={<Trash2 className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(order.id, order.order_number);
-            }}
-          >
-            Delete
-          </Button>
+          {!isCustomer && (
+            <>
+              <Button
+                size="sm"
+                variant="primary"
+                leftIcon={<Receipt className="h-3 w-3" />}
+                onClick={(e) => handleCreateInvoice(order.id, e)}
+                disabled={creatingInvoiceIds.has(order.id)}
+                isLoading={creatingInvoiceIds.has(order.id)}
+              >
+                Invoice
+              </Button>
+              {canDelete && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  leftIcon={<Trash2 className="h-3 w-3" />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(order.id, order.order_number);
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
+            </>
+          )}
         </div>
       ),
     },
   ];
 
   const ordersList = Array.isArray(orders) ? orders : [];
-  const filteredOrders = ordersList.filter(
+  
+  // Filter orders: customers only see their own orders
+  let customerOrders = ordersList;
+  if (isCustomer && user?.id) {
+    customerOrders = ordersList.filter(
+      (order) => order.customer_id === user.id || order.customer_id === user._id
+    );
+  }
+  
+  const filteredOrders = customerOrders.filter(
     (order) =>
       order.order_number?.toLowerCase().includes(search.toLowerCase()) ||
       order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -213,13 +236,15 @@ export const OrdersPage: React.FC = () => {
           { label: 'Orders' },
         ]}
         actions={
-          <Button
-            variant="primary"
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => navigate('/dashboard/sales/orders/create')}
-          >
-            Create Order
-          </Button>
+          canCreate ? (
+            <Button
+              variant="primary"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => navigate('/dashboard/sales/orders/create')}
+            >
+              Create Order
+            </Button>
+          ) : undefined
         }
       />
 

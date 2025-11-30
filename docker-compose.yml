@@ -37,6 +37,7 @@ services:
       SERVICE_PORT: 8001
       SERVICE_HOST: 0.0.0.0
       LOG_LEVEL: INFO
+      SALES_SERVICE_URL: http://sales-service:8003
     depends_on:
       - mongodb
     volumes:
@@ -333,6 +334,7 @@ services:
       VITE_CHAT_SERVICE_URL: http://localhost:8005
       VITE_HRM_SERVICE_URL: http://localhost:8007
       VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      VITE_HMR_PORT: 8080
     volumes:
       - ./erp-frontend/src:/app/src
       - ./erp-frontend/public:/app/public

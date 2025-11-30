@@ -7,8 +7,14 @@ import { Select } from '../../../shared/components/ui/Select';
 import { settingsApi, SettingsCategory, SalesSettings } from '../../settings/services/settingsApi';
 import { toast } from 'sonner';
 import { Save, Loader2, ShoppingCart } from 'lucide-react';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 export const SalesSettingsPage: React.FC = () => {
+  const { hasPermission } = usePermissions();
+  const canReadSettings = hasPermission(Permission.SETTINGS_READ);
+  const canUpdateSettings = hasPermission(Permission.SETTINGS_UPDATE);
+  
   const [settings, setSettings] = useState<SalesSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -22,8 +28,11 @@ export const SalesSettingsPage: React.FC = () => {
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    // Only load settings if user has permission
+    if (canReadSettings) {
+      loadSettings();
+    }
+  }, [canReadSettings]);
 
   const loadSettings = async () => {
     setLoading(true);
@@ -42,9 +51,12 @@ export const SalesSettingsPage: React.FC = () => {
           invoice_due_days: salesSetting.sales.invoice_due_days ?? 30,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading sales settings:', error);
-      toast.error('Failed to load sales settings');
+      // Don't show error toast for permission errors (403) - these are expected
+      if (error?.response?.status !== 403) {
+        toast.error('Failed to load sales settings');
+      }
     } finally {
       setLoading(false);
     }
@@ -75,6 +87,11 @@ export const SalesSettingsPage: React.FC = () => {
       [field]: value,
     }));
   };
+
+  // Hide settings if user doesn't have permission
+  if (!canReadSettings) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -175,8 +192,9 @@ export const SalesSettingsPage: React.FC = () => {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button onClick={handleSave} disabled={saving}>
+        {canUpdateSettings && (
+          <CardFooter>
+            <Button onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -189,7 +207,8 @@ export const SalesSettingsPage: React.FC = () => {
               </>
             )}
           </Button>
-        </CardFooter>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );
