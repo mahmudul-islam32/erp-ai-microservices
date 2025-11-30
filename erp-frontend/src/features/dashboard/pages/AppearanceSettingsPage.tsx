@@ -6,8 +6,12 @@ import { Input } from '../../../shared/components/ui/Input';
 import { Select } from '../../../shared/components/ui/Select';
 import { settingsApi, SettingsCategory, AppearanceSettings } from '../../settings/services/settingsApi';
 import { applyAppearanceSettings } from '../../../shared/utils/themeUtils';
+import { useAppearance } from '../../../shared/contexts/AppearanceContext';
 import { toast } from 'sonner';
-import { Save, Loader2, Palette, Type, Sparkles } from 'lucide-react';
+import { Save, Loader2, Palette, Type, Sparkles, MousePointer2 } from 'lucide-react';
+import { SEMANTIC_SIZE_OPTIONS } from '../../../shared/utils/sizeMapping';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 const FONT_FAMILIES = [
   { value: 'Inter', label: 'Inter' },
@@ -23,9 +27,14 @@ const FONT_FAMILIES = [
 ];
 
 export const AppearanceSettingsPage: React.FC = () => {
+  const { refresh } = useAppearance();
+  const { hasPermission } = usePermissions();
   const [settings, setSettings] = useState<AppearanceSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  const canRead = hasPermission(Permission.SETTINGS_READ);
+  const canUpdate = hasPermission(Permission.SETTINGS_UPDATE);
   const [formData, setFormData] = useState<AppearanceSettings>({
     font_family: 'Inter',
     font_size_base: '14px',
@@ -48,12 +57,20 @@ export const AppearanceSettingsPage: React.FC = () => {
     border_radius: '0.375rem',
     border_radius_large: '0.5rem',
     spacing_unit: '0.25rem',
+    icon_button_default_size: 'md',
+    icon_button_default_variant: 'primary',
+    icon_button_padding_size: 'medium',
+    icon_button_icon_size: 'medium',
     custom_css: '',
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    // Permission check is handled by ProtectedRoute/PermissionRoute
+    // Only load settings if user has permission (silent check)
+    if (canRead) {
+      loadSettings();
+    }
+  }, [canRead]);
 
   // Apply settings when formData changes (for preview)
   useEffect(() => {
@@ -67,6 +84,7 @@ export const AppearanceSettingsPage: React.FC = () => {
       const appearanceSetting = allSettings.find(s => s.category === SettingsCategory.APPEARANCE);
       
       if (appearanceSetting?.appearance) {
+        console.log('Loading existing appearance settings:', appearanceSetting.appearance);
         setSettings(appearanceSetting.appearance);
         setFormData({
           font_family: appearanceSetting.appearance.font_family ?? 'Inter',
@@ -90,8 +108,16 @@ export const AppearanceSettingsPage: React.FC = () => {
           border_radius: appearanceSetting.appearance.border_radius ?? '0.375rem',
           border_radius_large: appearanceSetting.appearance.border_radius_large ?? '0.5rem',
           spacing_unit: appearanceSetting.appearance.spacing_unit ?? '0.25rem',
+          icon_button_default_size: appearanceSetting.appearance.icon_button_default_size ?? 'md',
+          icon_button_default_variant: appearanceSetting.appearance.icon_button_default_variant ?? 'primary',
+          // Use new single field, fallback to medium for backward compatibility
+          icon_button_padding_size: appearanceSetting.appearance.icon_button_padding_size ?? 'medium',
+          icon_button_icon_size: appearanceSetting.appearance.icon_button_icon_size ?? 'medium',
           custom_css: appearanceSetting.appearance.custom_css ?? '',
         });
+      } else {
+        console.log('No existing appearance settings found, using defaults');
+        // Keep default formData, but settings will remain null until first save
       }
     } catch (error) {
       console.error('Error loading appearance settings:', error);
@@ -102,23 +128,64 @@ export const AppearanceSettingsPage: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!canUpdate) {
+      toast.error('You do not have permission to update appearance settings');
+      return;
+    }
+    
     setSaving(true);
     try {
-      console.log('Saving appearance settings:', formData);
+      console.log('Saving appearance settings:', JSON.stringify(formData, null, 2));
+      
+      // Ensure ALL fields are explicitly present - this ensures backend saves everything
+      const settingsToSave: AppearanceSettings = {
+        font_family: formData.font_family || 'Inter',
+        font_size_base: formData.font_size_base || '14px',
+        font_size_small: formData.font_size_small || '12px',
+        font_size_large: formData.font_size_large || '16px',
+        font_weight_normal: formData.font_weight_normal ?? 400,
+        font_weight_medium: formData.font_weight_medium ?? 500,
+        font_weight_bold: formData.font_weight_bold ?? 700,
+        primary_color: formData.primary_color || '#3b82f6',
+        primary_color_dark: formData.primary_color_dark || '#2563eb',
+        secondary_color: formData.secondary_color || '#64748b',
+        accent_color: formData.accent_color || '#8b5cf6',
+        success_color: formData.success_color || '#22c55e',
+        warning_color: formData.warning_color || '#f59e0b',
+        danger_color: formData.danger_color || '#ef4444',
+        background_color: formData.background_color || '#ffffff',
+        background_color_dark: formData.background_color_dark || '#0f172a',
+        text_color: formData.text_color || '#1e293b',
+        text_color_dark: formData.text_color_dark || '#f1f5f9',
+        border_radius: formData.border_radius || '0.375rem',
+        border_radius_large: formData.border_radius_large || '0.5rem',
+        spacing_unit: formData.spacing_unit || '0.25rem',
+        icon_button_default_size: formData.icon_button_default_size || 'md',
+        icon_button_default_variant: formData.icon_button_default_variant || 'primary',
+        icon_button_padding_size: formData.icon_button_padding_size || 'medium',
+        icon_button_icon_size: formData.icon_button_icon_size || 'medium',
+        custom_css: formData.custom_css || '',
+      };
+      
+      console.log('Settings to save:', JSON.stringify(settingsToSave, null, 2));
+      
       const updated = await settingsApi.update(SettingsCategory.APPEARANCE, {
-        appearance: formData,
+        appearance: settingsToSave,
       });
       
-      console.log('Settings saved, response:', updated);
+      console.log('Settings saved, response:', JSON.stringify(updated, null, 2));
       
       if (updated.appearance) {
         setSettings(updated.appearance);
         applyAppearanceSettings(updated.appearance);
+        
+        // Refresh the appearance context so all IconButton components pick up new settings
+        // Wait a moment for the backend to persist, then refresh
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await refresh();
+        console.log('Appearance context refreshed after save with settings:', updated.appearance);
+        
         toast.success('Appearance settings saved successfully');
-        // Force a small delay to ensure settings are persisted
-        setTimeout(() => {
-          console.log('Settings should now be persisted');
-        }, 100);
       } else {
         console.warn('No appearance data in response:', updated);
         toast.error('Settings saved but appearance data not returned');
@@ -162,6 +229,10 @@ export const AppearanceSettingsPage: React.FC = () => {
       border_radius: '0.375rem',
       border_radius_large: '0.5rem',
       spacing_unit: '0.25rem',
+      icon_button_default_size: 'md',
+      icon_button_default_variant: 'primary',
+      icon_button_padding_size: 'medium',
+      icon_button_icon_size: 'medium',
       custom_css: '',
     });
     toast.info('Reset to default values');
@@ -515,6 +586,68 @@ export const AppearanceSettingsPage: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Action Button Settings */}
+      <Card padding="lg">
+        <CardHeader 
+          title="Action Button Settings" 
+          subtitle="Configure default properties for action buttons in tables and throughout the app"
+          icon={MousePointer2}
+        />
+        <CardContent>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Select
+                label="Default Size"
+                value={formData.icon_button_default_size || 'md'}
+                onChange={(e) => updateFormData('icon_button_default_size', e.target.value as 'xs' | 'sm' | 'md' | 'lg')}
+                options={[
+                  { value: 'xs', label: 'Extra Small (xs)' },
+                  { value: 'sm', label: 'Small (sm)' },
+                  { value: 'md', label: 'Medium (md)' },
+                  { value: 'lg', label: 'Large (lg)' },
+                ]}
+                helperText="Default size for action buttons in tables when not specified"
+              />
+              <Select
+                label="Default Variant"
+                value={formData.icon_button_default_variant || 'primary'}
+                onChange={(e) => updateFormData('icon_button_default_variant', e.target.value)}
+                options={[
+                  { value: 'primary', label: 'Primary' },
+                  { value: 'secondary', label: 'Secondary' },
+                  { value: 'outline', label: 'Outline' },
+                  { value: 'danger', label: 'Danger' },
+                  { value: 'ghost', label: 'Ghost' },
+                  { value: 'success', label: 'Success' },
+                  { value: 'warning', label: 'Warning' },
+                  { value: 'info', label: 'Info' },
+                ]}
+                helperText="Default color variant for action buttons in tables"
+              />
+            </div>
+
+            <div className="border-t pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Select
+                  label="Padding Size"
+                  value={formData.icon_button_padding_size || 'medium'}
+                  onChange={(e) => updateFormData('icon_button_padding_size', e.target.value)}
+                  options={SEMANTIC_SIZE_OPTIONS}
+                  helperText="Base padding size for action buttons in tables (scales automatically for different button sizes)"
+                />
+                <Select
+                  label="Icon Size"
+                  value={formData.icon_button_icon_size || 'medium'}
+                  onChange={(e) => updateFormData('icon_button_icon_size', e.target.value)}
+                  options={SEMANTIC_SIZE_OPTIONS}
+                  helperText="Base icon size for action buttons in tables (scales automatically for different button sizes)"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Custom CSS */}
       <Card padding="lg">
         <CardHeader 
@@ -538,26 +671,28 @@ export const AppearanceSettingsPage: React.FC = () => {
             </p>
           </div>
         </CardContent>
-        <CardFooter>
-          <div className="flex items-center justify-between w-full">
-            <Button variant="outline" onClick={resetToDefaults}>
-              Reset to Defaults
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
-        </CardFooter>
+        {canUpdate && (
+          <CardFooter>
+            <div className="flex items-center justify-between w-full">
+              <Button variant="outline" onClick={resetToDefaults}>
+                Reset to Defaults
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

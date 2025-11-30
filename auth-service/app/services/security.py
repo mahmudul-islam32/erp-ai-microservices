@@ -131,7 +131,8 @@ class SecurityService:
                 Permission.SALES_CREATE, Permission.SALES_READ, Permission.SALES_UPDATE,
                 Permission.FINANCE_CREATE, Permission.FINANCE_READ, Permission.FINANCE_UPDATE,
                 Permission.HR_CREATE, Permission.HR_READ, Permission.HR_UPDATE,
-                Permission.AI_ACCESS
+                Permission.AI_ACCESS,
+                Permission.SETTINGS_READ, Permission.SETTINGS_UPDATE
             ],
             UserRole.MANAGER: [
                 Permission.USER_READ,

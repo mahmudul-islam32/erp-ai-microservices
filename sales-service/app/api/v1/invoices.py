@@ -3,7 +3,7 @@ from app.models import (
     InvoiceCreate, InvoiceUpdate, InvoiceResponse, InvoiceStatus, PaymentStatus
 )
 from app.models.pagination import PaginationResponse
-from app.services import invoice_service
+from app.services import invoice_service, customer_service
 from app.api.dependencies import (
     get_current_active_user, require_sales_access, require_sales_write, get_token_from_request
 )
@@ -58,6 +58,22 @@ async def get_invoices(
     """Get list of invoices with pagination and filters"""
     try:
         logger.info(f"Getting invoices for user: {current_user.get('email')}")
+        
+        # If user is a customer, automatically filter by their customer_id
+        user_role = current_user.get("role", "").lower()
+        if user_role == "customer":
+            # Get customer by email
+            user_email = current_user.get("email")
+            if user_email:
+                try:
+                    customer = await customer_service.get_customer_by_email(user_email)
+                    if customer:
+                        customer_id = customer.id
+                        logger.info(f"Customer user filtering invoices by customer_id: {customer_id}")
+                    else:
+                        logger.warning(f"Customer user {user_email} not found in customers table")
+                except Exception as e:
+                    logger.error(f"Error finding customer by email {user_email}: {e}")
         
         # Get invoices and total count
         invoices = await invoice_service.get_invoices(

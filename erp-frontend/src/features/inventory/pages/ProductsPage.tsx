@@ -10,13 +10,20 @@ import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { formatCurrency } from '../../../shared/utils/format';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 export const ProductsPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const productsState = useAppSelector((state) => state.products);
   const { products, isLoading } = productsState;
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState('');
+  
+  const canCreate = hasPermission(Permission.INVENTORY_CREATE);
+  const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
+  const canDelete = hasPermission(Permission.INVENTORY_DELETE);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -96,28 +103,32 @@ export const ProductsPage: React.FC = () => {
       width: '200px',
       render: (product) => (
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<Edit className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/dashboard/inventory/products/${product._id}/edit`);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="danger"
-            leftIcon={<Trash2 className="h-3 w-3" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(product._id);
-            }}
-          >
-            Delete
-          </Button>
+          {canUpdate && (
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<Edit className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/dashboard/inventory/products/${product._id}/edit`);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="danger"
+              leftIcon={<Trash2 className="h-3 w-3" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(product._id);
+              }}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -144,13 +155,15 @@ export const ProductsPage: React.FC = () => {
           { label: 'Products' },
         ]}
         actions={
-          <Button
-            variant="primary"
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => navigate('/dashboard/inventory/products/create')}
-          >
-            Add Product
-          </Button>
+          canCreate ? (
+            <Button
+              variant="primary"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => navigate('/dashboard/inventory/products/create')}
+            >
+              Add Product
+            </Button>
+          ) : null
         }
       />
 

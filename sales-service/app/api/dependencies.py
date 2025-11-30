@@ -243,3 +243,39 @@ def require_sales_access_flexible():
         )
     
     return permission_checker
+
+
+def require_sales_access_exclude_customers():
+    """Sales access that excludes customer role - for admin/internal operations"""
+    def permission_checker(current_user: Dict[str, Any] = Depends(get_current_active_user)):
+        user_permissions = current_user.get("permissions", [])
+        user_role = current_user.get("role", "").lower()
+        
+        logger.info(f"Sales access check (excluding customers) - Role: {user_role}, Permissions: {user_permissions}")
+        
+        # Explicitly exclude customers
+        if user_role == "customer":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Customer role does not have access to this resource"
+            )
+        
+        # Allow admin access
+        if user_role in ["admin", "super_admin"]:
+            return current_user
+            
+        # Check for any sales-related permission or general access
+        sales_permissions = [
+            "sales:read", "sales:create", "sales:update", "sales:delete",
+            "read", "write", "all", "*"  # More general permissions
+        ]
+        
+        if any(perm in user_permissions for perm in sales_permissions):
+            return current_user
+        
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Insufficient permissions for sales access. User role: {user_role}, permissions: {user_permissions}"
+        )
+    
+    return permission_checker

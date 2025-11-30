@@ -11,14 +11,20 @@ import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
 import { toast } from 'sonner';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { selectedProduct, isLoading } = useAppSelector((state) => state.products);
+  const { hasPermission } = usePermissions();
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
+  
+  const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
+  const canDelete = hasPermission(Permission.INVENTORY_DELETE);
   const [stockMetrics, setStockMetrics] = useState({
     totalIn: 0,
     totalOut: 0,
@@ -97,20 +103,24 @@ export const ProductDetailPage: React.FC = () => {
         ]}
         actions={
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              leftIcon={<Edit className="h-4 w-4" />}
-              onClick={() => navigate(`/dashboard/inventory/products/${id}/edit`)}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="danger"
-              leftIcon={<Trash2 className="h-4 w-4" />}
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
+            {canUpdate && (
+              <Button
+                variant="outline"
+                leftIcon={<Edit className="h-4 w-4" />}
+                onClick={() => navigate(`/dashboard/inventory/products/${id}/edit`)}
+              >
+                Edit
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="danger"
+                leftIcon={<Trash2 className="h-4 w-4" />}
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            )}
           </div>
         }
       />

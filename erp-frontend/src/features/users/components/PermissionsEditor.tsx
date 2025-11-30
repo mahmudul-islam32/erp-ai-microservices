@@ -43,6 +43,10 @@ export const PermissionsEditor: React.FC<PermissionsEditorProps> = ({
       Permission.HR_UPDATE,
       Permission.HR_DELETE,
     ],
+    'Settings Management': [
+      Permission.SETTINGS_READ,
+      Permission.SETTINGS_UPDATE,
+    ],
     'AI Features': [Permission.AI_ACCESS, Permission.AI_ADMIN],
   };
 
