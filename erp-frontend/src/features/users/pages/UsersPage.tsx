@@ -23,22 +23,32 @@ import { usersApi } from '../services/usersApi';
 import { toast } from 'sonner';
 import { Users, CheckCircle, Clock, XCircle, Download, Plus } from 'lucide-react';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 
 export const UsersPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { users, loading, filters } = useSelector((state: RootState) => state.users);
   const { hasPermission } = usePermissions();
+  const { defaultItemsPerPage } = usePaginationSettings();
 
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>(users);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   
   const canCreate = hasPermission(Permission.USER_CREATE);
   const canDelete = hasPermission(Permission.USER_DELETE);
   const canUpdate = hasPermission(Permission.USER_UPDATE);
+
+  // Update itemsPerPage when settings change
+  useEffect(() => {
+    if (defaultItemsPerPage && itemsPerPage !== defaultItemsPerPage) {
+      setItemsPerPage(defaultItemsPerPage);
+      setCurrentPage(1);
+    }
+  }, [defaultItemsPerPage]);
 
   useEffect(() => {
     dispatch(fetchUsers(filters));

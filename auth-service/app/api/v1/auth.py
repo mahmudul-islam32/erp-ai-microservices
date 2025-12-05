@@ -361,6 +361,22 @@ async def refresh_token(request: Request, response: Response, refresh_request: R
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # Check if user has any active sessions - if not, reject the refresh
+        from app.services.session_service import SessionService
+        session_service = SessionService()
+        user_sessions = await session_service.get_user_sessions(str(user.id), active_only=True)
+        
+        if not user_sessions:
+            # No active sessions - user has been logged out (sessions terminated)
+            response.delete_cookie(key="access_token", path="/")
+            response.delete_cookie(key="refresh_token", path="/")
+            
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session has been terminated. Please log in again.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         # Create new access token
         access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
         access_token = security_service.create_access_token(

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../store/categoriesSlice';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
@@ -8,6 +8,7 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Modal, ModalFooter } from '../../../shared/components/ui/Modal';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +17,8 @@ import { Textarea } from '../../../shared/components/ui/Textarea';
 import { Select } from '../../../shared/components/ui/Select';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
+import { CategoryFilters as CategoryFiltersComponent, type CategoryFilters } from '../components/CategoryFilters';
+import { DeleteCategoryModal } from '../components/DeleteCategoryModal';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -32,9 +35,10 @@ export const CategoriesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { categories, isLoading } = useAppSelector((state) => state.categories);
   const { hasPermission } = usePermissions();
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<CategoryFilters>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   
   const canCreate = hasPermission(Permission.INVENTORY_CREATE);
   const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
@@ -87,9 +91,14 @@ export const CategoriesPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      await dispatch(deleteCategory(id));
+  const handleDelete = (category: any) => {
+    setCategoryToDelete(category);
+  };
+
+  const confirmDelete = async () => {
+    if (categoryToDelete) {
+      await dispatch(deleteCategory(categoryToDelete._id));
+      setCategoryToDelete(null);
     }
   };
 
@@ -109,46 +118,56 @@ export const CategoriesPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '200px',
+      width: '120px',
       render: (cat) => (
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {canUpdate && (
-            <Button
+            <IconButton
+              icon={Edit}
+              variant="primary"
               size="sm"
-              variant="outline"
-              leftIcon={<Edit className="h-3 w-3" />}
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenModal(cat);
               }}
-            >
-              Edit
-            </Button>
+              title="Edit Category"
+            />
           )}
           {canDelete && (
-            <Button
-              size="sm"
+            <IconButton
+              icon={Trash2}
               variant="danger"
-              leftIcon={<Trash2 className="h-3 w-3" />}
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(cat._id);
+                handleDelete(cat);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete Category"
+            />
           )}
         </div>
       ),
     },
   ];
 
-  const filteredCategories = (categories || []).filter(
-    (cat) =>
-      cat.name?.toLowerCase().includes(search.toLowerCase()) ||
-      cat.code?.toLowerCase().includes(search.toLowerCase()) ||
-      cat.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCategories = (categories || []).filter((cat) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        cat.name?.toLowerCase().includes(searchLower) ||
+        cat.code?.toLowerCase().includes(searchLower) ||
+        cat.description?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.isActive !== undefined) {
+      if (cat.isActive !== filters.isActive) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
@@ -173,22 +192,20 @@ export const CategoriesPage: React.FC = () => {
         }
       />
 
-      <Card>
-        <div className="p-4 border-b border-slate-200">
-          <Input
-            placeholder="Search categories..."
-            leftIcon={<Search className="h-4 w-4" />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Table
-          data={filteredCategories}
-          columns={columns}
-          isLoading={isLoading}
-          emptyMessage="No categories found. Create your first category!"
+      <div className="space-y-4">
+        <CategoryFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
         />
-      </Card>
+        <Card>
+          <Table
+            data={filteredCategories}
+            columns={columns}
+            isLoading={isLoading}
+            emptyMessage="No categories found. Create your first category!"
+          />
+        </Card>
+      </div>
 
       <Modal
         isOpen={isModalOpen}
@@ -265,6 +282,15 @@ export const CategoriesPage: React.FC = () => {
           </ModalFooter>
         </form>
       </Modal>
+
+      {categoryToDelete && (
+        <DeleteCategoryModal
+          category={categoryToDelete}
+          onConfirm={confirmDelete}
+          onCancel={() => setCategoryToDelete(null)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

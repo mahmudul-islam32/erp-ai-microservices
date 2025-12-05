@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Search, Download, Eye, Plus } from 'lucide-react';
+import { FileText, Download, Eye, Plus } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card } from '../../../shared/components/ui/Card';
-import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
@@ -12,13 +11,14 @@ import { invoicesApi } from '../services/invoicesApi';
 import { toast } from 'sonner';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission, UserRole } from '../../users/types';
+import { InvoiceFilters as InvoiceFiltersComponent, type InvoiceFilters } from '../components/InvoiceFilters';
 
 export const InvoicesPage: React.FC = () => {
   const navigate = useNavigate();
   const { hasPermission, user } = usePermissions();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<InvoiceFilters>({});
   const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
   
   const isCustomer = user?.role === UserRole.CUSTOMER;
@@ -185,13 +185,26 @@ export const InvoicesPage: React.FC = () => {
     },
   ];
 
-  const filteredInvoices = invoices.filter(
-    (invoice) =>
-      invoice.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.customer?.first_name?.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.customer?.last_name?.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.customer?.company_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredInvoices = invoices.filter((invoice) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        invoice.invoice_number?.toLowerCase().includes(searchLower) ||
+        invoice.customer?.first_name?.toLowerCase().includes(searchLower) ||
+        invoice.customer?.last_name?.toLowerCase().includes(searchLower) ||
+        invoice.customer?.company_name?.toLowerCase().includes(searchLower) ||
+        invoice.customer_name?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.status) {
+      if (invoice.status?.toLowerCase() !== filters.status.toLowerCase()) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
@@ -216,23 +229,12 @@ export const InvoicesPage: React.FC = () => {
         }
       />
 
-      <Card>
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <Input
-            placeholder="Search invoices..."
-            leftIcon={<Search className="h-4 w-4" />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 max-w-md"
-          />
-          <div className="text-sm text-slate-600 ml-4">
-            {!isLoading && (
-              <span>
-                {invoices.length} invoice{invoices.length !== 1 ? 's' : ''} found
-              </span>
-            )}
-          </div>
-        </div>
+      <div className="space-y-4">
+        <InvoiceFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
+        <Card>
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -243,7 +245,7 @@ export const InvoicesPage: React.FC = () => {
             <FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-900 mb-2">No invoices found</h3>
             <p className="text-slate-600 mb-6">
-              {search ? 'Try adjusting your search criteria' : 'Get started by creating your first invoice'}
+              {filters.search ? 'Try adjusting your search criteria' : 'Get started by creating your first invoice'}
             </p>
             <Button
               variant="primary"
@@ -284,7 +286,8 @@ export const InvoicesPage: React.FC = () => {
             />
           </>
         )}
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
