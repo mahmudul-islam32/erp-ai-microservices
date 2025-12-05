@@ -10,6 +10,14 @@ logger = logging.getLogger(__name__)
 class AnalyticsService:
     def __init__(self):
         pass
+    
+    def _date_to_datetime(self, d: date, end_of_day: bool = False) -> datetime:
+        """Convert date to datetime for MongoDB queries"""
+        if isinstance(d, datetime):
+            return d
+        if end_of_day:
+            return datetime.combine(d, datetime.max.time())
+        return datetime.combine(d, datetime.min.time())
 
     async def get_sales_dashboard(self, start_date: date, end_date: date) -> Dict[str, Any]:
         """Get sales dashboard analytics"""
@@ -82,10 +90,14 @@ class AnalyticsService:
                 "yearly": {"$dateToString": {"format": "%Y", "date": "$order_date"}}
             }
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             pipeline = [
                 {
                     "$match": {
-                        "order_date": {"$gte": start_date, "$lte": end_date},
+                        "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                         "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
                     }
                 },
@@ -122,8 +134,12 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             match_filter = {
-                "order_date": {"$gte": start_date, "$lte": end_date},
+                "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                 "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
             }
             
@@ -177,8 +193,12 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             match_filter = {
-                "order_date": {"$gte": start_date, "$lte": end_date},
+                "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                 "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
             }
             
@@ -647,10 +667,14 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             pipeline = [
                 {
                     "$match": {
-                        "order_date": {"$gte": start_date, "$lte": end_date},
+                        "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                         "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
                     }
                 },
@@ -661,7 +685,7 @@ class AnalyticsService:
             return result[0]["total"] if result else 0.0
 
         except Exception as e:
-            logger.error(f"Error getting total revenue: {e}")
+            logger.error(f"Error getting total revenue: {e}", exc_info=True)
             return 0.0
 
     async def _get_total_orders(self, start_date: date, end_date: date) -> int:
@@ -670,15 +694,19 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             count = await orders_collection.count_documents({
-                "order_date": {"$gte": start_date, "$lte": end_date},
+                "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                 "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
             })
             
             return count
 
         except Exception as e:
-            logger.error(f"Error getting total orders: {e}")
+            logger.error(f"Error getting total orders: {e}", exc_info=True)
             return 0
 
     async def _get_total_customers(self, start_date: date, end_date: date) -> int:
@@ -687,10 +715,14 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             pipeline = [
                 {
                     "$match": {
-                        "order_date": {"$gte": start_date, "$lte": end_date},
+                        "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                         "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
                     }
                 },
@@ -702,7 +734,7 @@ class AnalyticsService:
             return result[0]["total"] if result else 0
 
         except Exception as e:
-            logger.error(f"Error getting total customers: {e}")
+            logger.error(f"Error getting total customers: {e}", exc_info=True)
             return 0
 
     async def _get_top_products_by_revenue(self, limit: int, start_date: date, end_date: date) -> List[Dict]:
@@ -711,10 +743,14 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             pipeline = [
                 {
                     "$match": {
-                        "order_date": {"$gte": start_date, "$lte": end_date},
+                        "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                         "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
                     }
                 },
@@ -744,10 +780,14 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             pipeline = [
                 {
                     "$match": {
-                        "order_date": {"$gte": start_date, "$lte": end_date},
+                        "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                         "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
                     }
                 },
@@ -776,10 +816,14 @@ class AnalyticsService:
             db = get_database()
             orders_collection = db.sales_orders
             
+            # Convert date to datetime for MongoDB
+            start_datetime = self._date_to_datetime(start_date, end_of_day=False)
+            end_datetime = self._date_to_datetime(end_date, end_of_day=True)
+            
             pipeline = [
                 {
                     "$match": {
-                        "order_date": {"$gte": start_date, "$lte": end_date},
+                        "order_date": {"$gte": start_datetime, "$lte": end_datetime},
                         "status": {"$in": ["confirmed", "processing", "shipped", "delivered"]}
                     }
                 },

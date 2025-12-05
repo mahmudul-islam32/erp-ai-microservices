@@ -28,6 +28,7 @@ import {
   Heart,
   BarChart,
   Palette,
+  Bot,
 } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission, UserRole } from '../../../features/users/types';
@@ -63,6 +64,13 @@ const baseNavigation: NavItem[] = [
     path: '/dashboard/messages', 
     icon: MessageSquare,
     // Messages accessible to all authenticated users
+  },
+  { 
+    name: 'AI Assistant', 
+    path: '/dashboard/ai-assistant', 
+    icon: Bot,
+    requiredService: 'ai',
+    excludedRole: [UserRole.CUSTOMER],
   },
   {
     name: 'Users & Auth',

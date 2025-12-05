@@ -134,6 +134,15 @@ class AppearanceSettings(BaseModel):
     icon_button_padding_size: Optional[str] = Field(default="medium", max_length=20)
     icon_button_icon_size: Optional[str] = Field(default="medium", max_length=20)
     
+    # Pagination Settings
+    pagination_design: str = Field(default="modern", max_length=20)  # modern, classic
+    pagination_default_items_per_page: int = Field(default=25, ge=10, le=100)
+    pagination_active_color: Optional[str] = Field(default=None, max_length=7)  # Hex color, uses primary if None
+    pagination_hover_color: Optional[str] = Field(default=None, max_length=7)  # Hex color
+    pagination_text_color: Optional[str] = Field(default=None, max_length=7)  # Hex color
+    pagination_border_color: Optional[str] = Field(default=None, max_length=7)  # Hex color
+    pagination_items_per_page_options: Optional[str] = Field(default=None, max_length=50)  # Comma-separated: "10,25,50,100"
+    
     # Additional CSS
     custom_css: Optional[str] = None  # Custom CSS rules
 

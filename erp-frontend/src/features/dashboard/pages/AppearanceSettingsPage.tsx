@@ -8,7 +8,7 @@ import { settingsApi, SettingsCategory, AppearanceSettings } from '../../setting
 import { applyAppearanceSettings } from '../../../shared/utils/themeUtils';
 import { useAppearance } from '../../../shared/contexts/AppearanceContext';
 import { toast } from 'sonner';
-import { Save, Loader2, Palette, Type, Sparkles, MousePointer2 } from 'lucide-react';
+import { Save, Loader2, Palette, Type, Sparkles, MousePointer2, List } from 'lucide-react';
 import { SEMANTIC_SIZE_OPTIONS } from '../../../shared/utils/sizeMapping';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
@@ -61,6 +61,13 @@ export const AppearanceSettingsPage: React.FC = () => {
     icon_button_default_variant: 'primary',
     icon_button_padding_size: 'medium',
     icon_button_icon_size: 'medium',
+    pagination_design: 'modern',
+    pagination_default_items_per_page: 25,
+    pagination_active_color: undefined,
+    pagination_hover_color: undefined,
+    pagination_text_color: undefined,
+    pagination_border_color: undefined,
+    pagination_items_per_page_options: undefined,
     custom_css: '',
   });
 
@@ -113,6 +120,13 @@ export const AppearanceSettingsPage: React.FC = () => {
           // Use new single field, fallback to medium for backward compatibility
           icon_button_padding_size: appearanceSetting.appearance.icon_button_padding_size ?? 'medium',
           icon_button_icon_size: appearanceSetting.appearance.icon_button_icon_size ?? 'medium',
+          pagination_design: appearanceSetting.appearance.pagination_design ?? 'modern',
+          pagination_default_items_per_page: appearanceSetting.appearance.pagination_default_items_per_page ?? 25,
+          pagination_active_color: appearanceSetting.appearance.pagination_active_color,
+          pagination_hover_color: appearanceSetting.appearance.pagination_hover_color,
+          pagination_text_color: appearanceSetting.appearance.pagination_text_color,
+          pagination_border_color: appearanceSetting.appearance.pagination_border_color,
+          pagination_items_per_page_options: appearanceSetting.appearance.pagination_items_per_page_options,
           custom_css: appearanceSetting.appearance.custom_css ?? '',
         });
       } else {
@@ -164,6 +178,13 @@ export const AppearanceSettingsPage: React.FC = () => {
         icon_button_default_variant: formData.icon_button_default_variant || 'primary',
         icon_button_padding_size: formData.icon_button_padding_size || 'medium',
         icon_button_icon_size: formData.icon_button_icon_size || 'medium',
+        pagination_design: formData.pagination_design || 'modern',
+        pagination_default_items_per_page: formData.pagination_default_items_per_page ?? 25,
+        pagination_active_color: formData.pagination_active_color,
+        pagination_hover_color: formData.pagination_hover_color,
+        pagination_text_color: formData.pagination_text_color,
+        pagination_border_color: formData.pagination_border_color,
+        pagination_items_per_page_options: formData.pagination_items_per_page_options,
         custom_css: formData.custom_css || '',
       };
       
@@ -233,6 +254,13 @@ export const AppearanceSettingsPage: React.FC = () => {
       icon_button_default_variant: 'primary',
       icon_button_padding_size: 'medium',
       icon_button_icon_size: 'medium',
+      pagination_design: 'modern',
+      pagination_default_items_per_page: 25,
+      pagination_active_color: undefined,
+      pagination_hover_color: undefined,
+      pagination_text_color: undefined,
+      pagination_border_color: undefined,
+      pagination_items_per_page_options: undefined,
       custom_css: '',
     });
     toast.info('Reset to default values');
@@ -642,6 +670,166 @@ export const AppearanceSettingsPage: React.FC = () => {
                   options={SEMANTIC_SIZE_OPTIONS}
                   helperText="Base icon size for action buttons in tables (scales automatically for different button sizes)"
                 />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pagination Settings */}
+      <Card padding="lg">
+        <CardHeader 
+          title="Pagination Settings" 
+          subtitle="Configure pagination design, default items per page, and color styles"
+          icon={List}
+        />
+        <CardContent>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Select
+                label="Pagination Design"
+                value={formData.pagination_design || 'modern'}
+                onChange={(e) => updateFormData('pagination_design', e.target.value as 'modern' | 'classic')}
+                options={[
+                  { value: 'modern', label: 'Modern (Rounded, Spaced)' },
+                  { value: 'classic', label: 'Classic (Connected, Traditional)' },
+                ]}
+                helperText="Choose between modern rounded design or classic connected design"
+              />
+              <Input
+                label="Default Items Per Page"
+                type="number"
+                value={formData.pagination_default_items_per_page || 25}
+                onChange={(e) => updateFormData('pagination_default_items_per_page', parseInt(e.target.value))}
+                min={10}
+                max={100}
+                helperText="Default number of items to show per page (10-100)"
+              />
+              <Input
+                label="Items Per Page Options"
+                value={formData.pagination_items_per_page_options || '10,25,50,100'}
+                onChange={(e) => updateFormData('pagination_items_per_page_options', e.target.value)}
+                placeholder="10,25,50,100"
+                helperText="Comma-separated list of items per page options"
+              />
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
+                Color Customization
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                Leave blank to use primary theme colors, or set custom colors for pagination
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Active Page Color
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={formData.pagination_active_color || formData.primary_color || '#3b82f6'}
+                      onChange={(e) => updateFormData('pagination_active_color', e.target.value)}
+                      className="w-16 h-10 rounded border border-slate-300 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.pagination_active_color || ''}
+                      onChange={(e) => updateFormData('pagination_active_color', e.target.value || undefined)}
+                      placeholder="Leave blank for primary color"
+                      className="flex-1"
+                    />
+                    {formData.pagination_active_color && (
+                      <button
+                        onClick={() => updateFormData('pagination_active_color', undefined)}
+                        className="text-xs text-red-600 hover:text-red-800"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Hover Color
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={formData.pagination_hover_color || '#64748b'}
+                      onChange={(e) => updateFormData('pagination_hover_color', e.target.value)}
+                      className="w-16 h-10 rounded border border-slate-300 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.pagination_hover_color || ''}
+                      onChange={(e) => updateFormData('pagination_hover_color', e.target.value || undefined)}
+                      placeholder="Leave blank for default hover"
+                      className="flex-1"
+                    />
+                    {formData.pagination_hover_color && (
+                      <button
+                        onClick={() => updateFormData('pagination_hover_color', undefined)}
+                        className="text-xs text-red-600 hover:text-red-800"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Text Color
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={formData.pagination_text_color || '#1e293b'}
+                      onChange={(e) => updateFormData('pagination_text_color', e.target.value)}
+                      className="w-16 h-10 rounded border border-slate-300 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.pagination_text_color || ''}
+                      onChange={(e) => updateFormData('pagination_text_color', e.target.value || undefined)}
+                      placeholder="Leave blank for default text color"
+                      className="flex-1"
+                    />
+                    {formData.pagination_text_color && (
+                      <button
+                        onClick={() => updateFormData('pagination_text_color', undefined)}
+                        className="text-xs text-red-600 hover:text-red-800"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Border Color
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={formData.pagination_border_color || '#e5e7eb'}
+                      onChange={(e) => updateFormData('pagination_border_color', e.target.value)}
+                      className="w-16 h-10 rounded border border-slate-300 cursor-pointer"
+                    />
+                    <Input
+                      value={formData.pagination_border_color || ''}
+                      onChange={(e) => updateFormData('pagination_border_color', e.target.value || undefined)}
+                      placeholder="Leave blank for default border color"
+                      className="flex-1"
+                    />
+                    {formData.pagination_border_color && (
+                      <button
+                        onClick={() => updateFormData('pagination_border_color', undefined)}
+                        className="text-xs text-red-600 hover:text-red-800"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

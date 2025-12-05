@@ -1,25 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProducts, deleteProduct } from '../store/productsSlice';
+import { fetchCategories } from '../store/categoriesSlice';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { formatCurrency } from '../../../shared/utils/format';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
+import { ProductFilters as ProductFiltersComponent, type ProductFilters } from '../components/ProductFilters';
+import { DeleteProductModal } from '../components/DeleteProductModal';
 
 export const ProductsPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const productsState = useAppSelector((state) => state.products);
+  const categoriesState = useAppSelector((state) => state.categories);
   const { products, isLoading } = productsState;
+  const { categories } = categoriesState;
   const { hasPermission } = usePermissions();
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<ProductFiltersType>({});
+  const [productToDelete, setProductToDelete] = useState<any>(null);
   
   const canCreate = hasPermission(Permission.INVENTORY_CREATE);
   const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
@@ -27,6 +33,7 @@ export const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchProducts());
+    dispatch(fetchCategories());
   }, [dispatch]);
 
   // Debug: log products to see what we're getting
@@ -34,9 +41,14 @@ export const ProductsPage: React.FC = () => {
     console.log('Products from state:', products, 'Type:', typeof products, 'Is Array:', Array.isArray(products));
   }, [products]);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      await dispatch(deleteProduct(id));
+  const handleDelete = (product: any) => {
+    setProductToDelete(product);
+  };
+
+  const confirmDelete = async () => {
+    if (productToDelete) {
+      await dispatch(deleteProduct(productToDelete._id));
+      setProductToDelete(null);
     }
   };
 
@@ -100,34 +112,32 @@ export const ProductsPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '200px',
+      width: '120px',
       render: (product) => (
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {canUpdate && (
-            <Button
+            <IconButton
+              icon={Edit}
+              variant="primary"
               size="sm"
-              variant="outline"
-              leftIcon={<Edit className="h-3 w-3" />}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/dashboard/inventory/products/${product._id}/edit`);
               }}
-            >
-              Edit
-            </Button>
+              title="Edit Product"
+            />
           )}
           {canDelete && (
-            <Button
-              size="sm"
+            <IconButton
+              icon={Trash2}
               variant="danger"
-              leftIcon={<Trash2 className="h-3 w-3" />}
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(product._id);
+                handleDelete(product);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete Product"
+            />
           )}
         </div>
       ),
@@ -137,12 +147,32 @@ export const ProductsPage: React.FC = () => {
   // Ensure products is always an array
   const productsList = Array.isArray(products) ? products : [];
   
-  const filteredProducts = productsList.filter(
-    (product) =>
-      product.name?.toLowerCase().includes(search.toLowerCase()) ||
-      product.sku?.toLowerCase().includes(search.toLowerCase()) ||
-      product.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = productsList.filter((product) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        product.name?.toLowerCase().includes(searchLower) ||
+        product.sku?.toLowerCase().includes(searchLower) ||
+        product.description?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.isActive !== undefined) {
+      if (product.isActive !== filters.isActive) return false;
+    }
+
+    // Category filter
+    if (filters.category) {
+      const productCategoryId = typeof product.categoryId === 'object' 
+        ? product.categoryId._id 
+        : product.categoryId;
+      if (productCategoryId !== filters.category) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
@@ -167,23 +197,31 @@ export const ProductsPage: React.FC = () => {
         }
       />
 
-      <Card>
-        <div className="p-4 border-b border-slate-200">
-          <Input
-            placeholder="Search by name, SKU, or description..."
-            leftIcon={<Search className="h-4 w-4" />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Table
-          data={filteredProducts}
-          columns={columns}
-          isLoading={isLoading}
-          onRowClick={(product) => navigate(`/dashboard/inventory/products/${product._id}`)}
-          emptyMessage="No products found. Create your first product!"
+      <div className="space-y-4">
+        <ProductFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
+          categories={categories || []}
         />
-      </Card>
+        <Card>
+          <Table
+            data={filteredProducts}
+            columns={columns}
+            isLoading={isLoading}
+            onRowClick={(product) => navigate(`/dashboard/inventory/products/${product._id}`)}
+            emptyMessage="No products found. Create your first product!"
+          />
+        </Card>
+      </div>
+
+      {productToDelete && (
+        <DeleteProductModal
+          product={productToDelete}
+          onConfirm={confirmDelete}
+          onCancel={() => setProductToDelete(null)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

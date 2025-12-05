@@ -128,7 +128,10 @@ class SessionService:
             return False
     
     async def terminate_session(self, session_id: str, user_id: str = None) -> bool:
-        """Terminate a session"""
+        """
+        Terminate a session
+        Note: Permission checks should be done at the API level before calling this method
+        """
         try:
             if not ObjectId.is_valid(session_id):
                 return False
@@ -137,23 +140,17 @@ class SessionService:
             if not session:
                 return False
             
-            # Check if user has permission to terminate this session
-            if user_id and session.user_id != user_id:
-                # Check if user is admin (you can add more sophisticated checks)
-                user = await self.db.users.find_one({"_id": ObjectId(user_id)})
-                if not user or user.get("role") not in ["super_admin", "admin"]:
-                    raise HTTPException(
-                        status_code=http_status.HTTP_403_FORBIDDEN,
-                        detail="You don't have permission to terminate this session"
-                    )
-            
-            await self.db.sessions.update_one(
+            # Update session to inactive
+            result = await self.db.sessions.update_one(
                 {"_id": ObjectId(session_id)},
                 {"$set": {"is_active": False}}
             )
             
+            if result.modified_count == 0:
+                logger.warning(f"Session {session_id} was not updated (may already be inactive)")
+            
             # Log session termination (import here to avoid circular dependency)
-            if session:
+            try:
                 from app.services.audit_log_service import AuditLogService
                 audit_log_service = AuditLogService()
                 await audit_log_service.create_audit_log(
@@ -166,11 +163,12 @@ class SessionService:
                     user_agent=session.user_agent,
                     status="success"
                 )
+            except Exception as audit_error:
+                # Don't fail session termination if audit logging fails
+                logger.error(f"Error creating audit log for session termination: {audit_error}")
             
             return True
             
-        except HTTPException:
-            raise
         except Exception as e:
             logger.error(f"Error terminating session: {e}")
             return False

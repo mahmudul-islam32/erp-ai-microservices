@@ -35,6 +35,13 @@ const defaultSettings: AppearanceSettings = {
   icon_button_default_variant: 'primary',
   icon_button_padding_size: 'medium',
   icon_button_icon_size: 'medium',
+  pagination_design: 'modern',
+  pagination_default_items_per_page: 25,
+  pagination_active_color: undefined,
+  pagination_hover_color: undefined,
+  pagination_text_color: undefined,
+  pagination_border_color: undefined,
+  pagination_items_per_page_options: undefined,
 };
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(undefined);

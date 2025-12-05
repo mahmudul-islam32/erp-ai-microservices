@@ -1,27 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2, Receipt } from 'lucide-react';
+import { Plus, Eye, Trash2, Receipt } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchOrders, deleteOrder } from '../store/ordersSlice';
 import { invoicesApi } from '../services/invoicesApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
 import { toast } from 'sonner';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { UserRole } from '../../users/types';
+import { OrderFilters as OrderFiltersComponent, type OrderFilters } from '../components/OrderFilters';
+import { DeleteOrderModal } from '../components/DeleteOrderModal';
 
 export const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { orders, isLoading } = useAppSelector((state) => state.orders);
   const { user, hasPermission } = usePermissions();
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<OrderFilters>({});
   const [creatingInvoiceIds, setCreatingInvoiceIds] = useState<Set<string>>(new Set());
+  const [orderToDelete, setOrderToDelete] = useState<any>(null);
+
 
   const isCustomer = user?.role === UserRole.CUSTOMER;
   const canCreate = hasPermission('sales:create') && !isCustomer;
@@ -55,16 +59,19 @@ export const OrdersPage: React.FC = () => {
     return statusMap[status.toLowerCase()] || 'default';
   };
 
-  const handleDelete = async (orderId: string, orderNumber: string) => {
-    if (!window.confirm(`Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDelete = (order: any) => {
+    setOrderToDelete(order);
+  };
+
+  const confirmDelete = async () => {
+    if (!orderToDelete) return;
 
     try {
-      const result = await dispatch(deleteOrder(orderId));
+      const result = await dispatch(deleteOrder(orderToDelete.id));
       if (deleteOrder.fulfilled.match(result)) {
         toast.success('Order deleted successfully');
-        dispatch(fetchOrders());
+        dispatch(fetchOrders({}));
+        setOrderToDelete(null);
       } else {
         toast.error('Failed to delete order');
       }
@@ -159,46 +166,42 @@ export const OrdersPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '240px',
+      width: '180px',
       render: (order) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
+        <div className="flex items-center gap-2">
+          {!isCustomer && (
+            <Button
+              size="sm"
+              variant="primary"
+              leftIcon={<Receipt className="h-3 w-3" />}
+              onClick={(e) => handleCreateInvoice(order.id, e)}
+              disabled={creatingInvoiceIds.has(order.id)}
+              isLoading={creatingInvoiceIds.has(order.id)}
+            >
+              Invoice
+            </Button>
+          )}
+          <IconButton
+            icon={Eye}
             variant="outline"
-            leftIcon={<Eye className="h-3 w-3" />}
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/dashboard/sales/orders/${order.id}`);
             }}
-          >
-            View
-          </Button>
-          {!isCustomer && (
-            <>
-              <Button
-                size="sm"
-                variant="primary"
-                leftIcon={<Receipt className="h-3 w-3" />}
-                onClick={(e) => handleCreateInvoice(order.id, e)}
-                disabled={creatingInvoiceIds.has(order.id)}
-                isLoading={creatingInvoiceIds.has(order.id)}
-              >
-                Invoice
-              </Button>
-              {canDelete && (
-                <Button
-                  size="sm"
-                  variant="danger"
-                  leftIcon={<Trash2 className="h-3 w-3" />}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(order.id, order.order_number);
-                  }}
-                >
-                  Delete
-                </Button>
-              )}
-            </>
+            title="View Order"
+          />
+          {!isCustomer && canDelete && (
+            <IconButton
+              icon={Trash2}
+              variant="danger"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(order);
+              }}
+              title="Delete Order"
+            />
           )}
         </div>
       ),
@@ -215,15 +218,32 @@ export const OrdersPage: React.FC = () => {
     );
   }
   
-  const filteredOrders = customerOrders.filter(
-    (order) =>
-      order.order_number?.toLowerCase().includes(search.toLowerCase()) ||
-      order.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
-      order.customer_email?.toLowerCase().includes(search.toLowerCase()) ||
-      order.customer?.first_name?.toLowerCase().includes(search.toLowerCase()) ||
-      order.customer?.last_name?.toLowerCase().includes(search.toLowerCase()) ||
-      order.customer?.company_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOrders = customerOrders.filter((order) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        order.order_number?.toLowerCase().includes(searchLower) ||
+        order.customer_name?.toLowerCase().includes(searchLower) ||
+        order.customer_email?.toLowerCase().includes(searchLower) ||
+        order.customer?.first_name?.toLowerCase().includes(searchLower) ||
+        order.customer?.last_name?.toLowerCase().includes(searchLower) ||
+        order.customer?.company_name?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.status) {
+      if (order.status?.toLowerCase() !== filters.status.toLowerCase()) return false;
+    }
+
+    // Payment status filter
+    if (filters.paymentStatus) {
+      if (order.payment_status?.toLowerCase() !== filters.paymentStatus.toLowerCase()) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
@@ -248,23 +268,30 @@ export const OrdersPage: React.FC = () => {
         }
       />
 
-      <Card>
-        <div className="p-4 border-b border-slate-200">
-          <Input
-            placeholder="Search orders by number or customer..."
-            leftIcon={<Search className="h-4 w-4" />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Table
-          data={filteredOrders}
-          columns={columns}
-          isLoading={isLoading}
-          onRowClick={(order) => navigate(`/dashboard/sales/orders/${order.id}`)}
-          emptyMessage="No orders found. Create your first order!"
+      <div className="space-y-4">
+        <OrderFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
         />
-      </Card>
+        <Card>
+          <Table
+            data={filteredOrders}
+            columns={columns}
+            isLoading={isLoading}
+            onRowClick={(order) => navigate(`/dashboard/sales/orders/${order.id}`)}
+            emptyMessage="No orders found. Create your first order!"
+          />
+        </Card>
+      </div>
+
+      {orderToDelete && (
+        <DeleteOrderModal
+          order={orderToDelete}
+          onConfirm={confirmDelete}
+          onCancel={() => setOrderToDelete(null)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

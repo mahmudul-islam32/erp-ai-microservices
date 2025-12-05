@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../useNotifications';
 import { Notification, NotificationPriority, NotificationType } from '../types';
 import { formatDistanceToNow } from 'date-fns';
@@ -7,7 +8,38 @@ interface NotificationItemProps {
   notification: Notification;
 }
 
+/**
+ * Normalize notification action URL to include /dashboard prefix for internal routes
+ * Handles both relative paths (e.g., /sales/orders/123) and absolute paths
+ */
+const normalizeActionUrl = (url: string): string => {
+  if (!url || url.trim() === '') {
+    return url;
+  }
+
+  const trimmedUrl = url.trim();
+
+  // If it's an external URL (http/https), return as-is
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+
+  // If it already starts with /dashboard, return as-is (avoid double prefix)
+  if (trimmedUrl.startsWith('/dashboard')) {
+    return trimmedUrl;
+  }
+
+  // If it's a relative path starting with /, add /dashboard prefix
+  if (trimmedUrl.startsWith('/')) {
+    return `/dashboard${trimmedUrl}`;
+  }
+
+  // If it doesn't start with /, treat as relative to /dashboard
+  return `/dashboard/${trimmedUrl}`;
+};
+
 export const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
+  const navigate = useNavigate();
   const { markAsRead, deleteNotification } = useNotifications();
 
   const handleClick = () => {
@@ -17,7 +49,15 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
     
     // Navigate to action URL if available
     if (notification.action_url) {
-      window.location.href = notification.action_url;
+      const normalizedUrl = normalizeActionUrl(notification.action_url);
+      
+      // Check if it's an external URL (use window.location.href)
+      if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+        window.location.href = normalizedUrl;
+      } else {
+        // Use React Router for internal routes
+        navigate(normalizedUrl);
+      }
     }
   };
 
