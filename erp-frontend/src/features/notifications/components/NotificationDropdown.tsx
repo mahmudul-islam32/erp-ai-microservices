@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../useNotifications';
 import { NotificationItem } from './NotificationItem';
 
@@ -7,6 +8,7 @@ interface NotificationDropdownProps {
 }
 
 export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose }) => {
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
@@ -17,6 +19,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
 
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
+  };
+
+  const handleViewAll = () => {
+    onClose();
+    navigate('/dashboard/notifications');
   };
 
   // Don't show loading spinner indefinitely - show notifications if we have them
@@ -100,10 +107,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onCl
       {notifications.length > 0 && (
         <div className="border-t border-gray-200 px-4 py-3">
           <button
-            onClick={() => {
-              // Navigate to notifications page
-              window.location.href = '/notifications';
-            }}
+            onClick={handleViewAll}
             className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
             View all notifications

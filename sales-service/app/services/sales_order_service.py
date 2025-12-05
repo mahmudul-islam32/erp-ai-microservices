@@ -291,16 +291,49 @@ class SalesOrderService:
     async def get_order_by_number(self, order_number: str) -> Optional[SalesOrderInDB]:
         """Get order by order number"""
         try:
+            # Normalize order number (trim whitespace)
+            order_number = order_number.strip() if order_number else ""
+            if not order_number:
+                logger.warning("Empty order number provided")
+                return None
+            
             db = get_database()
             orders_collection = db.sales_orders
             
-            order = await orders_collection.find_one({"order_number": order_number})
+            logger.info(f"Looking up order by number: {order_number}")
+            
+            # Exclude deleted orders
+            order = await orders_collection.find_one({
+                "order_number": order_number,
+                "deleted": {"$ne": True}
+            })
             if order:
-                return SalesOrderInDB(**order)
+                logger.info(f"Order {order_number} found in database")
+                # Convert MongoDB document to dict and ensure proper field conversion
+                order_dict = dict(order)
+                
+                # Convert _id ObjectId to string
+                if "_id" in order_dict and isinstance(order_dict["_id"], ObjectId):
+                    order_dict["_id"] = str(order_dict["_id"])
+                    # Also set id field for Pydantic
+                    order_dict["id"] = str(order_dict["_id"])
+                
+                # Convert ObjectId fields in line_items if present
+                if "line_items" in order_dict and order_dict["line_items"]:
+                    for item in order_dict["line_items"]:
+                        if isinstance(item, dict) and "product_id" in item:
+                            if isinstance(item["product_id"], ObjectId):
+                                item["product_id"] = str(item["product_id"])
+                
+                return SalesOrderInDB(**order_dict)
+            else:
+                logger.warning(f"Order {order_number} not found or is deleted")
             return None
 
         except Exception as e:
             logger.error(f"Error getting order by number: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return None
 
     async def update_order(self, order_id: str, order_update: SalesOrderUpdate, user_id: str) -> Optional[SalesOrderResponse]:

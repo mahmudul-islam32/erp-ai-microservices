@@ -1,26 +1,114 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../../../app/hooks';
 import { auditLogsApi } from '../services/usersApi';
 import { AuditLog, AuditFilters } from '../types';
+import { AuditFilters as AuditFiltersComponent } from '../components/AuditFilters';
+import { DataTableContainer } from '../../../shared/components/ui';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 
 export const AuditLogsPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAppSelector((state) => state.auth);
+  const { defaultItemsPerPage } = usePaginationSettings();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
+  const [totalItems, setTotalItems] = useState(0);
   const [filters, setFilters] = useState<AuditFilters>({
     skip: 0,
-    limit: 50,
+    limit: defaultItemsPerPage,
+    user_id: searchParams.get('user_id') || undefined,
   });
 
   const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+
+  // Read user_id from URL query parameters and apply to filters
+  const url_user_id = searchParams.get('user_id');
+  useEffect(() => {
+    setFilters(prev => {
+      // Only update if user_id from URL is different from current filter
+      if (prev.user_id !== url_user_id) {
+        return {
+          ...prev,
+          user_id: url_user_id || undefined,
+          skip: 0,
+        };
+      }
+      return prev;
+    });
+    
+    if (url_user_id) {
+      setCurrentPage(1);
+    }
+  }, [url_user_id]);
+
+  // Initialize itemsPerPage and filters when settings load
+  useEffect(() => {
+    if (defaultItemsPerPage && itemsPerPage !== defaultItemsPerPage) {
+      setItemsPerPage(defaultItemsPerPage);
+      setFilters(prev => ({
+        ...prev,
+        limit: defaultItemsPerPage,
+        skip: 0,
+      }));
+      setCurrentPage(1);
+    }
+  }, [defaultItemsPerPage]);
+
+  // Update filters when pagination changes
+  useEffect(() => {
+    const skip = (currentPage - 1) * itemsPerPage;
+    setFilters(prev => {
+      // Only update if skip or limit actually changed
+      if (prev.skip === skip && prev.limit === itemsPerPage) {
+        return prev;
+      }
+      return {
+        ...prev,
+        skip,
+        limit: itemsPerPage,
+      };
+    });
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (user) {
       loadLogs();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, user]);
+
+  // Handle filter changes from AuditFilters component
+  const handleFiltersChange = (newFilters: AuditFilters) => {
+    // If filter fields changed (not just skip/limit), reset to page 1
+    const filterFieldsChanged = 
+      newFilters.action !== filters.action ||
+      newFilters.resource !== filters.resource ||
+      newFilters.status !== filters.status ||
+      newFilters.user_id !== filters.user_id ||
+      newFilters.start_date !== filters.start_date ||
+      newFilters.end_date !== filters.end_date;
+    
+    if (filterFieldsChanged) {
+      setCurrentPage(1);
+      // Update skip to 0 when filters change, preserve limit
+      setFilters({
+        ...newFilters,
+        skip: 0,
+        limit: newFilters.limit || itemsPerPage,
+      });
+    } else {
+      // Just pagination change, update filters normally
+      setFilters({
+        ...newFilters,
+        limit: newFilters.limit || itemsPerPage,
+      });
+    }
+  };
 
   const loadLogs = async () => {
     if (!user) return;
@@ -30,9 +118,18 @@ export const AuditLogsPage: React.FC = () => {
       // Admins can see all audit logs, regular users only their own
       const data = isAdmin 
         ? await auditLogsApi.getAll(filters)
-        : await auditLogsApi.getMyLogs(filters.limit || 50);
+        : await auditLogsApi.getMyLogs(filters.limit || itemsPerPage);
       
       setLogs(data);
+      
+      // Estimate total items: if we got a full page, there might be more
+      if (data.length === (filters.limit || itemsPerPage)) {
+        // We got a full page, estimate there are more items
+        setTotalItems((filters.skip || 0) + data.length + 1);
+      } else {
+        // We got less than a full page, so this is the total
+        setTotalItems((filters.skip || 0) + data.length);
+      }
     } catch (error: any) {
       console.error('Failed to load audit logs:', error);
       const errorMessage = error?.response?.data?.detail || 'Failed to load audit logs';
@@ -41,15 +138,28 @@ export const AuditLogsPage: React.FC = () => {
       // If non-admin tries to access all logs, fallback to own logs
       if (error?.response?.status === 403 && isAdmin) {
         try {
-          const myLogs = await auditLogsApi.getMyLogs(filters.limit || 50);
+          const myLogs = await auditLogsApi.getMyLogs(filters.limit || itemsPerPage);
           setLogs(myLogs);
+          setTotalItems(myLogs.length);
         } catch (e) {
           // Ignore fallback error
         }
+      } else {
+        setLogs([]);
+        setTotalItems(0);
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (perPage: number) => {
+    setItemsPerPage(perPage);
+    setCurrentPage(1);
   };
 
   const handleExport = () => {
@@ -218,85 +328,21 @@ export const AuditLogsPage: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Action
-            </label>
-            <select
-              value={filters.action || ''}
-              onChange={(e) =>
-                setFilters({ ...filters, action: e.target.value || undefined })
-              }
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="">All Actions</option>
-              <option value="login">Login</option>
-              <option value="logout">Logout</option>
-              <option value="create">Create</option>
-              <option value="update">Update</option>
-              <option value="delete">Delete</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Resource
-            </label>
-            <select
-              value={filters.resource || ''}
-              onChange={(e) =>
-                setFilters({ ...filters, resource: e.target.value || undefined })
-              }
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="">All Resources</option>
-              <option value="user">User</option>
-              <option value="product">Product</option>
-              <option value="order">Order</option>
-              <option value="customer">Customer</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              value={filters.status || ''}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  status: e.target.value as 'success' | 'failure' | undefined,
-                })
-              }
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-            >
-              <option value="">All Status</option>
-              <option value="success">Success</option>
-              <option value="failure">Failure</option>
-            </select>
-          </div>
-
-          <div className="flex items-end">
-            <button
-              onClick={() =>
-                setFilters({
-                  skip: 0,
-                  limit: 50,
-                })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Clear Filters
-            </button>
-          </div>
-        </div>
-      </div>
+      <AuditFiltersComponent
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+      />
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow">
+      <DataTableContainer
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalItems / itemsPerPage) || 1}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        isLoading={loading}
+      >
         {loading ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -320,9 +366,6 @@ export const AuditLogsPage: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Details
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -345,9 +388,6 @@ export const AuditLogsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-gray-200 rounded w-12 animate-pulse" />
                     </td>
                   </tr>
                 ))}
@@ -397,9 +437,6 @@ export const AuditLogsPage: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Details
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -440,27 +477,13 @@ export const AuditLogsPage: React.FC = () => {
                         {log.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {log.details ? (
-                        <button
-                          onClick={() =>
-                            alert(JSON.stringify(log.details, null, 2))
-                          }
-                          className="text-primary-600 hover:text-primary-900"
-                        >
-                          View
-                        </button>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </DataTableContainer>
     </div>
   );
 };

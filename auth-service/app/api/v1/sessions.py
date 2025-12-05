@@ -97,13 +97,39 @@ async def terminate_session(
 ):
     """Terminate a specific session"""
     try:
+        if not ObjectId.is_valid(session_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid session ID"
+            )
+        
         service = SessionService()
+        
+        # Get the session to check ownership
+        session = await service.get_session(session_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Session not found"
+            )
+        
+        # Check permissions: users can terminate their own sessions, admins can terminate any
+        is_own_session = session.user_id == str(current_user.id)
+        is_admin = current_user.role.value in ["super_admin", "admin"]
+        
+        if not is_own_session and not is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to terminate this session"
+            )
+        
+        # Terminate the session
         success = await service.terminate_session(session_id, str(current_user.id))
         
         if not success:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to terminate session"
             )
         
         return {"message": "Session terminated successfully"}

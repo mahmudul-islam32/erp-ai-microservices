@@ -7,6 +7,7 @@ import { invoicesApi } from '../services/invoicesApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
@@ -169,13 +170,13 @@ export const OrderDetailPage: React.FC = () => {
                 )}
               </>
             )}
-            <Button
-              variant="outline"
-              leftIcon={<Edit className="h-4 w-4" />}
+            <IconButton
+              icon={Edit}
+              variant="primary"
+              size="md"
               onClick={() => navigate(`/dashboard/sales/orders/${id}/edit`)}
-            >
-              Edit
-            </Button>
+              title="Edit Order"
+            />
           </div>
         }
       />
