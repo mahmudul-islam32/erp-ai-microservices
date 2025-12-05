@@ -182,12 +182,6 @@ function App() {
                 </PermissionRoute>
               } 
             />
-            <Route 
-              path="ai-assistant" 
-              element={
-                <AIChatbotPage />
-              } 
-            />
 
             {/* Inventory */}
             <Route 
@@ -379,6 +373,16 @@ function App() {
 
             {/* Chat */}
             <Route path="messages" element={<ChatPage />} />
+
+            {/* AI Assistant */}
+            <Route 
+              path="ai-assistant" 
+              element={
+                <PermissionRoute requiredService="ai" excludedRole={UserRole.CUSTOMER}>
+                  <AIChatbotPage />
+                </PermissionRoute>
+              } 
+            />
 
             {/* Notifications */}
             <Route path="notifications" element={<NotificationsPage />} />

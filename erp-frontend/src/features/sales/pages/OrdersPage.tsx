@@ -26,6 +26,7 @@ export const OrdersPage: React.FC = () => {
   const [creatingInvoiceIds, setCreatingInvoiceIds] = useState<Set<string>>(new Set());
   const [orderToDelete, setOrderToDelete] = useState<any>(null);
 
+
   const isCustomer = user?.role === UserRole.CUSTOMER;
   const canCreate = hasPermission('sales:create') && !isCustomer;
   const canDelete = hasPermission('sales:delete') && !isCustomer;
