@@ -1,17 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import { useAppSelector } from '../../../app/hooks';
+import { useNavigate } from 'react-router-dom';
+import { useAppSelector, useAppDispatch } from '../../../app/hooks';
+import { logout, clearAuth } from '../../auth/store/authSlice';
 import { sessionsApi } from '../services/usersApi';
 import { Session } from '../types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { TerminateSessionModal } from '../components/TerminateSessionModal';
+import { TerminateAllSessionsModal } from '../components/TerminateAllSessionsModal';
+import { DataTableContainer } from '../../../shared/components/ui';
+import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 
 export const SessionsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { defaultItemsPerPage } = usePaginationSettings();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
+  const [sessionToTerminate, setSessionToTerminate] = useState<Session | null>(null);
+  const [userToTerminateAll, setUserToTerminateAll] = useState<{ userId: string; userEmail: string; sessionCount?: number } | null>(null);
+  const [isTerminating, setIsTerminating] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
 
   const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+
+  // Update itemsPerPage when settings change
+  useEffect(() => {
+    if (defaultItemsPerPage && itemsPerPage !== defaultItemsPerPage) {
+      setItemsPerPage(defaultItemsPerPage);
+      setCurrentPage(1);
+    }
+  }, [defaultItemsPerPage]);
 
   useEffect(() => {
     if (user) {
@@ -33,7 +55,13 @@ export const SessionsPage: React.FC = () => {
         ? await sessionsApi.getAll(activeOnly)
         : await sessionsApi.getMySessions(activeOnly);
       
-      setSessions(data);
+      // Ensure all sessions have an id field (handle both id and _id from backend)
+      const normalizedSessions = data.map((session: any) => ({
+        ...session,
+        id: session.id || session._id || ''
+      })).filter((session: any) => session.id); // Filter out sessions without valid IDs
+      
+      setSessions(normalizedSessions);
     } catch (error: any) {
       console.error('Failed to load sessions:', error);
       const errorMessage = error?.response?.data?.detail || 'Failed to load sessions';
@@ -43,7 +71,12 @@ export const SessionsPage: React.FC = () => {
       if (error?.response?.status === 403 && isAdmin) {
         try {
           const mySessions = await sessionsApi.getMySessions(filterActive === true ? true : filterActive === false ? false : undefined);
-          setSessions(mySessions);
+          // Normalize sessions to ensure id field exists
+          const normalizedMySessions = mySessions.map((session: any) => ({
+            ...session,
+            id: session.id || session._id || ''
+          })).filter((session: any) => session.id);
+          setSessions(normalizedMySessions);
         } catch (e) {
           // Ignore fallback error
         }
@@ -53,27 +86,131 @@ export const SessionsPage: React.FC = () => {
     }
   };
 
-  const handleTerminate = async (sessionId: string) => {
-    if (window.confirm('Are you sure you want to terminate this session?')) {
-      try {
-        await sessionsApi.terminate(sessionId);
-        toast.success('Session terminated successfully');
-        loadSessions();
-      } catch (error) {
-        toast.error('Failed to terminate session');
+  const handleTerminateClick = (session: Session) => {
+    setSessionToTerminate(session);
+  };
+
+  const confirmTerminate = async () => {
+    if (!sessionToTerminate) return;
+
+    // Get session ID from either id or _id field
+    const sessionId = sessionToTerminate.id || (sessionToTerminate as any)._id;
+    
+    if (!sessionId) {
+      console.error('Session ID is missing:', sessionToTerminate);
+      toast.error('Invalid session: missing session ID');
+      setSessionToTerminate(null);
+      return;
+    }
+    
+    // Check if this is the current user's session
+    const isCurrentUserSession = sessionToTerminate.user_id === user?.id;
+    
+    setIsTerminating(true);
+    try {
+      await sessionsApi.terminate(sessionId);
+      toast.success('Session terminated successfully');
+      
+      // Close modal
+      setSessionToTerminate(null);
+      
+      // Reload sessions to get updated list
+      await loadSessions();
+      
+      // If this was the current user's session, check if they have any active sessions left
+      if (isCurrentUserSession && user) {
+        // Check active sessions for current user
+        try {
+          const activeSessions = await sessionsApi.getMySessions(true);
+          
+          // If no active sessions left, log out the user immediately
+          if (activeSessions.length === 0) {
+            toast.warning('All your sessions have been terminated. Logging out...');
+            
+            // Clear auth state and redirect to login
+            dispatch(clearAuth());
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            
+            setTimeout(() => {
+              navigate('/login');
+            }, 1000);
+          }
+        } catch (checkError) {
+          // If we can't check sessions (maybe already logged out), just log out
+          console.error('Error checking active sessions:', checkError);
+          dispatch(clearAuth());
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          navigate('/login');
+        }
       }
+    } catch (error: any) {
+      console.error('Failed to terminate session:', error);
+      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to terminate session';
+      toast.error(errorMessage);
+      
+      // If we get a 401, the user's session might have been terminated
+      if (error?.response?.status === 401) {
+        toast.warning('Your session has been terminated. Logging out...');
+        dispatch(clearAuth());
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        navigate('/login');
+      }
+    } finally {
+      setIsTerminating(false);
     }
   };
 
-  const handleTerminateAll = async (userId: string) => {
-    if (window.confirm('Are you sure you want to terminate all sessions for this user?')) {
-      try {
-        await sessionsApi.terminateAllForUser(userId);
-        toast.success('All sessions terminated successfully');
-        loadSessions();
-      } catch (error) {
-        toast.error('Failed to terminate sessions');
+  const handleTerminateAllClick = (userId: string, userEmail: string) => {
+    // Count active sessions for this user
+    const userSessions = sessions.filter(s => s.user_id === userId && s.is_active);
+    setUserToTerminateAll({ userId, userEmail, sessionCount: userSessions.length });
+  };
+
+  const confirmTerminateAll = async () => {
+    if (!userToTerminateAll) return;
+
+    setIsTerminating(true);
+    try {
+      await sessionsApi.terminateAllForUser(userToTerminateAll.userId);
+      toast.success('All sessions terminated successfully');
+      
+      // Close modal
+      setUserToTerminateAll(null);
+      
+      // Reload sessions to get updated list
+      await loadSessions();
+      
+      // If this was the current user, log them out immediately
+      if (userToTerminateAll.userId === user?.id) {
+        toast.warning('All your sessions have been terminated. Logging out...');
+        
+        // Clear auth state and redirect to login
+        dispatch(clearAuth());
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        
+        setTimeout(() => {
+          navigate('/login');
+        }, 1000);
       }
+    } catch (error: any) {
+      console.error('Failed to terminate sessions:', error);
+      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to terminate sessions';
+      toast.error(errorMessage);
+      
+      // If we get a 401, the user's session might have been terminated
+      if (error?.response?.status === 401) {
+        toast.warning('Your session has been terminated. Logging out...');
+        dispatch(clearAuth());
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        navigate('/login');
+      }
+    } finally {
+      setIsTerminating(false);
     }
   };
 
@@ -81,6 +218,26 @@ export const SessionsPage: React.FC = () => {
     if (filterActive === null) return true;
     return session.is_active === filterActive;
   });
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredSessions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSessions = filteredSessions.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (perPage: number) => {
+    setItemsPerPage(perPage);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterActive]);
 
   const activeSessions = sessions.filter(s => s.is_active).length;
   const inactiveSessions = sessions.filter(s => !s.is_active).length;
@@ -212,7 +369,15 @@ export const SessionsPage: React.FC = () => {
       </div>
 
       {/* Sessions Table */}
-      <div className="bg-white rounded-lg shadow">
+      <DataTableContainer
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredSessions.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        isLoading={loading}
+      >
         {loading ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -319,7 +484,7 @@ export const SessionsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSessions.map((session) => (
+                {paginatedSessions.map((session) => (
                   <tr key={session.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {session.user_email}
@@ -348,9 +513,9 @@ export const SessionsPage: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {session.is_active && (
+                      {session.is_active && (isAdmin || session.user_id === user?.id) && (
                         <button
-                          onClick={() => handleTerminate(session.id)}
+                          onClick={() => handleTerminateClick(session)}
                           className="text-red-600 hover:text-red-900"
                         >
                           Terminate
@@ -363,7 +528,28 @@ export const SessionsPage: React.FC = () => {
             </table>
           </div>
         )}
-      </div>
+      </DataTableContainer>
+
+      {/* Terminate Session Modal */}
+      {sessionToTerminate && (
+        <TerminateSessionModal
+          session={sessionToTerminate}
+          onConfirm={confirmTerminate}
+          onCancel={() => setSessionToTerminate(null)}
+          loading={isTerminating}
+        />
+      )}
+
+      {/* Terminate All Sessions Modal */}
+      {userToTerminateAll && (
+        <TerminateAllSessionsModal
+          userEmail={userToTerminateAll.userEmail}
+          sessionCount={userToTerminateAll.sessionCount}
+          onConfirm={confirmTerminateAll}
+          onCancel={() => setUserToTerminateAll(null)}
+          loading={isTerminating}
+        />
+      )}
     </div>
   );
 };

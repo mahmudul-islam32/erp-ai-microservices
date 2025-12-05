@@ -149,6 +149,15 @@ export interface AppearanceSettings {
   // Uses semantic values: 'extra-small', 'small', 'medium', 'large', 'extra-large'
   icon_button_icon_size?: string;
   
+  // Pagination Settings
+  pagination_design?: 'modern' | 'classic';
+  pagination_default_items_per_page?: number;
+  pagination_active_color?: string;
+  pagination_hover_color?: string;
+  pagination_text_color?: string;
+  pagination_border_color?: string;
+  pagination_items_per_page_options?: string; // Comma-separated: "10,25,50,100"
+  
   // Additional CSS
   custom_css?: string;
 }

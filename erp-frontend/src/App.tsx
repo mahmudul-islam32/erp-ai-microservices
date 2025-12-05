@@ -24,6 +24,7 @@ import { SecurityPage } from './features/users/pages/SecurityPage';
 import { AccessControlPage } from './features/users/pages/AccessControlPage';
 import { SessionsPage } from './features/users/pages/SessionsPage';
 import { AuditLogsPage } from './features/users/pages/AuditLogsPage';
+import { AIChatbotPage } from './features/ai-chatbot/pages/AIChatbotPage';
 
 // Inventory
 import { InventoryDashboardPage } from './features/inventory/pages/InventoryDashboardPage';
@@ -54,6 +55,9 @@ import { SalesSettingsPage } from './features/sales/pages/SalesSettingsPage';
 
 // Chat
 import { ChatPage } from './features/chat';
+
+// Notifications
+import { NotificationsPage } from './features/notifications/pages/NotificationsPage';
 
 // Finance
 import { 
@@ -369,6 +373,19 @@ function App() {
 
             {/* Chat */}
             <Route path="messages" element={<ChatPage />} />
+
+            {/* AI Assistant */}
+            <Route 
+              path="ai-assistant" 
+              element={
+                <PermissionRoute requiredService="ai" excludedRole={UserRole.CUSTOMER}>
+                  <AIChatbotPage />
+                </PermissionRoute>
+              } 
+            />
+
+            {/* Notifications */}
+            <Route path="notifications" element={<NotificationsPage />} />
 
             {/* Finance */}
             <Route 

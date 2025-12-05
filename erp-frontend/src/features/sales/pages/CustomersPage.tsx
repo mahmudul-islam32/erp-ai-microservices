@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchCustomers, deleteCustomer } from '../store/customersSlice';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
+import { CustomerFilters as CustomerFiltersComponent, type CustomerFilters } from '../components/CustomerFilters';
+import { DeleteCustomerModal } from '../components/DeleteCustomerModal';
 
 export const CustomersPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { customers, isLoading } = useAppSelector((state) => state.customers);
   const { hasPermission } = usePermissions();
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<CustomerFilters>({});
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
   
   const canCreate = hasPermission(Permission.SALES_CREATE);
   const canUpdate = hasPermission(Permission.SALES_UPDATE);
@@ -27,9 +30,17 @@ export const CustomersPage: React.FC = () => {
     dispatch(fetchCustomers());
   }, [dispatch]);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      await dispatch(deleteCustomer(id));
+  const handleDelete = (customer: any) => {
+    setCustomerToDelete(customer);
+  };
+
+  const confirmDelete = async () => {
+    if (customerToDelete) {
+      const customerId = customerToDelete.id || customerToDelete._id;
+      if (customerId) {
+        await dispatch(deleteCustomer(customerId));
+      }
+      setCustomerToDelete(null);
     }
   };
 
@@ -82,34 +93,35 @@ export const CustomersPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '200px',
+      width: '120px',
       render: (customer) => (
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {canUpdate && (
-            <Button
+            <IconButton
+              icon={Edit}
+              variant="primary"
               size="sm"
-              variant="outline"
-              leftIcon={<Edit className="h-3 w-3" />}
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/dashboard/sales/customers/${customer.id}/edit`);
+                const customerId = customer.id || customer._id;
+                if (customerId) {
+                  navigate(`/dashboard/sales/customers/${customerId}/edit`);
+                }
               }}
-            >
-              Edit
-            </Button>
+              title="Edit Customer"
+            />
           )}
           {canDelete && (
-            <Button
-              size="sm"
+            <IconButton
+              icon={Trash2}
               variant="danger"
-              leftIcon={<Trash2 className="h-3 w-3" />}
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(customer.id);
+                handleDelete(customer);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete Customer"
+            />
           )}
         </div>
       ),
@@ -118,15 +130,32 @@ export const CustomersPage: React.FC = () => {
 
   const customersList = Array.isArray(customers) ? customers : [];
   
-  const filteredCustomers = customersList.filter(
-    (customer) =>
-      customer.first_name?.toLowerCase().includes(search.toLowerCase()) ||
-      customer.last_name?.toLowerCase().includes(search.toLowerCase()) ||
-      customer.company_name?.toLowerCase().includes(search.toLowerCase()) ||
-      customer.email?.toLowerCase().includes(search.toLowerCase()) ||
-      customer.phone?.toLowerCase().includes(search.toLowerCase()) ||
-      customer.customer_code?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCustomers = customersList.filter((customer) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        customer.first_name?.toLowerCase().includes(searchLower) ||
+        customer.last_name?.toLowerCase().includes(searchLower) ||
+        customer.company_name?.toLowerCase().includes(searchLower) ||
+        customer.email?.toLowerCase().includes(searchLower) ||
+        customer.phone?.toLowerCase().includes(searchLower) ||
+        customer.customer_code?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.status) {
+      if (customer.status?.toLowerCase() !== filters.status.toLowerCase()) return false;
+    }
+
+    // Customer type filter
+    if (filters.customerType) {
+      if (customer.customer_type?.toLowerCase() !== filters.customerType.toLowerCase()) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
@@ -151,23 +180,30 @@ export const CustomersPage: React.FC = () => {
         }
       />
 
-      <Card>
-        <div className="p-4 border-b border-slate-200">
-          <Input
-            placeholder="Search customers by name, email, phone, or code..."
-            leftIcon={<Search className="h-4 w-4" />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Table
-          data={filteredCustomers}
-          columns={columns}
-          isLoading={isLoading}
-          onRowClick={(customer) => navigate(`/dashboard/sales/customers/${customer.id}`)}
-          emptyMessage="No customers found. Add your first customer!"
+      <div className="space-y-4">
+        <CustomerFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
         />
-      </Card>
+        <Card>
+          <Table
+            data={filteredCustomers}
+            columns={columns}
+            isLoading={isLoading}
+            onRowClick={(customer) => navigate(`/dashboard/sales/customers/${customer.id}`)}
+            emptyMessage="No customers found. Add your first customer!"
+          />
+        </Card>
+      </div>
+
+      {customerToDelete && (
+        <DeleteCustomerModal
+          customer={customerToDelete}
+          onConfirm={confirmDelete}
+          onCancel={() => setCustomerToDelete(null)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

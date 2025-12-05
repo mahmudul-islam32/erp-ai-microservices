@@ -6,13 +6,14 @@ import { fetchProductById, deleteProduct } from '../store/productsSlice';
 import { inventoryTransactionsApi, InventoryTransaction } from '../services/inventoryTransactionsApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
-import { Button } from '../../../shared/components/ui/Button';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
 import { toast } from 'sonner';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
+import { DeleteProductModal } from '../components/DeleteProductModal';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ export const ProductDetailPage: React.FC = () => {
   
   const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
   const canDelete = hasPermission(Permission.INVENTORY_DELETE);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [stockMetrics, setStockMetrics] = useState({
     totalIn: 0,
     totalOut: 0,
@@ -69,15 +71,18 @@ export const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      if (id) {
-        const result = await dispatch(deleteProduct(id));
-        if (deleteProduct.fulfilled.match(result)) {
-          navigate('/dashboard/inventory/products');
-        }
+  const handleDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (id) {
+      const result = await dispatch(deleteProduct(id));
+      if (deleteProduct.fulfilled.match(result)) {
+        navigate('/dashboard/inventory/products');
       }
     }
+    setShowDeleteModal(false);
   };
 
   if (isLoading || !selectedProduct) {
@@ -102,24 +107,24 @@ export const ProductDetailPage: React.FC = () => {
           { label: product.name },
         ]}
         actions={
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {canUpdate && (
-              <Button
-                variant="outline"
-                leftIcon={<Edit className="h-4 w-4" />}
+              <IconButton
+                icon={Edit}
+                variant="primary"
+                size="md"
                 onClick={() => navigate(`/dashboard/inventory/products/${id}/edit`)}
-              >
-                Edit
-              </Button>
+                title="Edit Product"
+              />
             )}
             {canDelete && (
-              <Button
+              <IconButton
+                icon={Trash2}
                 variant="danger"
-                leftIcon={<Trash2 className="h-4 w-4" />}
+                size="md"
                 onClick={handleDelete}
-              >
-                Delete
-              </Button>
+                title="Delete Product"
+              />
             )}
           </div>
         }
@@ -395,6 +400,15 @@ export const ProductDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {showDeleteModal && selectedProduct && (
+        <DeleteProductModal
+          product={selectedProduct}
+          onConfirm={confirmDelete}
+          onCancel={() => setShowDeleteModal(false)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

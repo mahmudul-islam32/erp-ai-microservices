@@ -62,7 +62,7 @@ export const EditProductPage: React.FC = () => {
   useEffect(() => {
     if (selectedProduct) {
       // Extract categoryId - it might be populated as an object or just a string
-      const categoryId = typeof selectedProduct.categoryId === 'object' 
+      const categoryId = selectedProduct.categoryId && typeof selectedProduct.categoryId === 'object' 
         ? selectedProduct.categoryId._id 
         : selectedProduct.categoryId;
       
@@ -128,7 +128,7 @@ export const EditProductPage: React.FC = () => {
                   label="SKU *" 
                   {...register('sku')} 
                   error={errors.sku?.message}
-                  helpText="Unique product identifier"
+                  helperText="Unique product identifier"
                 />
                 <Input 
                   label="Product Name *" 
@@ -140,7 +140,7 @@ export const EditProductPage: React.FC = () => {
                   label="Barcode" 
                   {...register('barcode')}
                   placeholder="UPC, EAN, ISBN, etc."
-                  helpText="Product barcode number"
+                  helperText="Product barcode number"
                 />
 
                 <Select
@@ -165,7 +165,7 @@ export const EditProductPage: React.FC = () => {
                 label="Tags" 
                 {...register('tags')}
                 placeholder="e.g., electronics, premium, featured (comma-separated)"
-                helpText="Tags for categorization and search"
+                helperText="Tags for categorization and search"
               />
             </CardContent>
           </Card>
@@ -181,7 +181,7 @@ export const EditProductPage: React.FC = () => {
                   {...register('price')} 
                   error={errors.price?.message}
                   placeholder="0.00"
-                  helpText="Price customers pay"
+                  helperText="Price customers pay"
                 />
                 <Input 
                   label="Cost Price *" 
@@ -190,14 +190,14 @@ export const EditProductPage: React.FC = () => {
                   {...register('cost')} 
                   error={errors.cost?.message}
                   placeholder="0.00"
-                  helpText="Your cost/purchase price"
+                  helperText="Your cost/purchase price"
                 />
                 <Input 
                   label="Unit of Measure *" 
                   {...register('unit')} 
                   error={errors.unit?.message}
                   placeholder="e.g., pcs, kg, liter"
-                  helpText="Unit for counting stock"
+                  helperText="Unit for counting stock"
                 />
               </div>
             </CardContent>
@@ -219,28 +219,28 @@ export const EditProductPage: React.FC = () => {
                   type="number" 
                   {...register('reorderPoint')}
                   placeholder="0"
-                  helpText="Alert when stock falls below this"
+                  helperText="Alert when stock falls below this"
                 />
                 <Input 
                   label="Reorder Quantity" 
                   type="number" 
                   {...register('reorderQuantity')}
                   placeholder="0"
-                  helpText="Suggested quantity to reorder"
+                  helperText="Suggested quantity to reorder"
                 />
                 <Input 
                   label="Minimum Stock Level" 
                   type="number" 
                   {...register('minStockLevel')}
                   placeholder="0"
-                  helpText="Minimum inventory to maintain"
+                  helperText="Minimum inventory to maintain"
                 />
                 <Input 
                   label="Maximum Stock Level" 
                   type="number" 
                   {...register('maxStockLevel')}
                   placeholder="0"
-                  helpText="Maximum inventory capacity"
+                  helperText="Maximum inventory capacity"
                 />
               </div>
             </CardContent>
@@ -256,13 +256,13 @@ export const EditProductPage: React.FC = () => {
                   step="0.01" 
                   {...register('weight')}
                   placeholder="0.00"
-                  helpText="Product weight for shipping"
+                  helperText="Product weight for shipping"
                 />
                 <Input 
                   label="Dimensions" 
                   {...register('dimensions')}
                   placeholder="e.g., 30x20x10 cm"
-                  helpText="Length x Width x Height"
+                  helperText="Length x Width x Height"
                 />
               </div>
             </CardContent>
@@ -275,7 +275,7 @@ export const EditProductPage: React.FC = () => {
                 label="Tags" 
                 {...register('tags')}
                 placeholder="e.g., electronics, premium, featured"
-                helpText="Comma-separated tags for categorization"
+                helperText="Comma-separated tags for categorization"
               />
               
               <div className="space-y-3">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '../store/warehousesSlice';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
@@ -8,6 +8,7 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
 import { Badge } from '../../../shared/components/ui/Badge';
+import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Modal, ModalFooter } from '../../../shared/components/ui/Modal';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +16,8 @@ import { z } from 'zod';
 import { Textarea } from '../../../shared/components/ui/Textarea';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
+import { WarehouseFilters as WarehouseFiltersComponent, type WarehouseFilters } from '../components/WarehouseFilters';
+import { DeleteWarehouseModal } from '../components/DeleteWarehouseModal';
 
 const warehouseSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -41,9 +44,10 @@ export const WarehousesPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { warehouses, isLoading } = useAppSelector((state) => state.warehouses);
   const { hasPermission } = usePermissions();
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<WarehouseFilters>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<any>(null);
+  const [warehouseToDelete, setWarehouseToDelete] = useState<any>(null);
   
   const canCreate = hasPermission(Permission.INVENTORY_CREATE);
   const canUpdate = hasPermission(Permission.INVENTORY_UPDATE);
@@ -96,9 +100,14 @@ export const WarehousesPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this warehouse?')) {
-      await dispatch(deleteWarehouse(id));
+  const handleDelete = (warehouse: any) => {
+    setWarehouseToDelete(warehouse);
+  };
+
+  const confirmDelete = async () => {
+    if (warehouseToDelete) {
+      await dispatch(deleteWarehouse(warehouseToDelete._id));
+      setWarehouseToDelete(null);
     }
   };
 
@@ -135,46 +144,61 @@ export const WarehousesPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: '200px',
+      width: '120px',
       render: (wh) => (
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {canUpdate && (
-            <Button
+            <IconButton
+              icon={Edit}
+              variant="primary"
               size="sm"
-              variant="outline"
-              leftIcon={<Edit className="h-3 w-3" />}
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenModal(wh);
               }}
-            >
-              Edit
-            </Button>
+              title="Edit Warehouse"
+            />
           )}
           {canDelete && (
-            <Button
-              size="sm"
+            <IconButton
+              icon={Trash2}
               variant="danger"
-              leftIcon={<Trash2 className="h-3 w-3" />}
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(wh._id);
+                handleDelete(wh);
               }}
-            >
-              Delete
-            </Button>
+              title="Delete Warehouse"
+            />
           )}
         </div>
       ),
     },
   ];
 
-  const filteredWarehouses = (warehouses || []).filter(
-    (wh) =>
-      wh.name?.toLowerCase().includes(search.toLowerCase()) ||
-      wh.code?.toLowerCase().includes(search.toLowerCase()) ||
-      wh.city?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredWarehouses = (warehouses || []).filter((wh) => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch =
+        wh.name?.toLowerCase().includes(searchLower) ||
+        wh.code?.toLowerCase().includes(searchLower) ||
+        wh.city?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.isActive !== undefined) {
+      if (wh.isActive !== filters.isActive) return false;
+    }
+
+    // Type filter
+    if (filters.isMainWarehouse !== undefined) {
+      if (wh.isMainWarehouse !== filters.isMainWarehouse) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div>
@@ -199,22 +223,20 @@ export const WarehousesPage: React.FC = () => {
         }
       />
 
-      <Card>
-        <div className="p-4 border-b border-slate-200">
-          <Input
-            placeholder="Search warehouses..."
-            leftIcon={<Search className="h-4 w-4" />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Table
-          data={filteredWarehouses}
-          columns={columns}
-          isLoading={isLoading}
-          emptyMessage="No warehouses found. Create your first warehouse!"
+      <div className="space-y-4">
+        <WarehouseFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
         />
-      </Card>
+        <Card>
+          <Table
+            data={filteredWarehouses}
+            columns={columns}
+            isLoading={isLoading}
+            emptyMessage="No warehouses found. Create your first warehouse!"
+          />
+        </Card>
+      </div>
 
       <Modal
         isOpen={isModalOpen}
@@ -369,6 +391,15 @@ export const WarehousesPage: React.FC = () => {
           </ModalFooter>
         </form>
       </Modal>
+
+      {warehouseToDelete && (
+        <DeleteWarehouseModal
+          warehouse={warehouseToDelete}
+          onConfirm={confirmDelete}
+          onCancel={() => setWarehouseToDelete(null)}
+          loading={isLoading}
+        />
+      )}
     </div>
   );
 };

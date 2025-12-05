@@ -14,4 +14,5 @@ export * from './BulkActionsBar';
 export * from './PageHeader';
 export * from './DataTableContainer';
 export * from './FilterPanel';
+export * from './FilterField';
 
