@@ -84,6 +84,8 @@ import { CreateEmployeePage } from './features/hrm/pages/CreateEmployeePage';
 import { EditEmployeePage } from './features/hrm/pages/EditEmployeePage';
 import { EmployeeDetailPage } from './features/hrm/pages/EmployeeDetailPage';
 import { CreatePayrollPage } from './features/hrm/pages/CreatePayrollPage';
+import { EditPayrollPage } from './features/hrm/pages/EditPayrollPage';
+import { PayrollDetailPage } from './features/hrm/pages/PayrollDetailPage';
 
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
@@ -478,6 +480,22 @@ function App() {
               element={
                 <PermissionRoute requiredPermission={Permission.HR_CREATE}>
                   <CreatePayrollPage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
+              path="hrm/payroll/:id" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_READ}>
+                  <PayrollDetailPage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
+              path="hrm/payroll/:id/edit" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_UPDATE}>
+                  <EditPayrollPage />
                 </PermissionRoute>
               } 
             />
