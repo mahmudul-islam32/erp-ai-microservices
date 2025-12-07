@@ -1,0 +1,177 @@
+---
+alwaysApply: true
+description: Guidelines for including course materials lists and inline references when writing exam answers or documentation that references course materials
+author: Himel Das
+---
+
+# Lecture Reference Linking Rule
+
+## Core Principle
+
+When writing exam answers or documentation that references course materials, **always include both a course materials list at the top and inline references throughout the content**. This makes it clear which lectures support each part of your answer and helps readers verify sources.
+
+## Course Materials List
+
+**Always include a "Course Materials:" section at the top** of each answer file, listing all lectures used:
+
+```markdown
+Course Materials:
+
+- [lecture-01](../lectures/lecture-01)
+- [lecture-04](../lectures/lecture-04)
+- [lecture-05](../lectures/lecture-05)
+```
+
+**Guidelines:**
+- List **all lectures** that contain material used in the answers
+- Use relative paths: `[lecture-XX](../lectures/lecture-XX)`
+- Order lectures by number (lecture-01, lecture-02, etc.)
+- Include the full list even if you only reference one lecture in a specific section
+
+## Inline References
+
+**Add inline references throughout your answers** wherever you draw from course materials:
+
+**Format:**
+- Use abbreviated format: `[L1](../lectures/lecture-01)`, `[L4](../lectures/lecture-04)`, etc.
+- Place references at natural break points: after definitions, examples, or key concepts
+- Multiple references can be combined: `([L1](../lectures/lecture-01), [L4](../lectures/lecture-04))`
+
+**When to add references:**
+
+✅ **Always reference when:**
+- Stating a definition from a lecture
+- Using examples directly from course materials
+- Explaining concepts introduced in specific lectures
+- Quoting or paraphrasing course content
+- Referencing specific patterns, queries, or techniques taught
+
+✅ **Reference placement examples:**
+- After definitions: "**Concept X** is defined as... ([L4](../lectures/lecture-04))"
+- After examples: "The system example ([L4](../lectures/lecture-04), [L5](../lectures/lecture-05)) demonstrates..."
+- After code/queries: "```sql SELECT ... ``` ([L6](../lectures/lecture-06))"
+- After key concepts: "The key advantage is **principle Y** ([L4](../lectures/lecture-04))"
+
+❌ **Don't reference:**
+- Generic knowledge that's common across multiple sources
+- Your own explanations or analogies (unless they're directly based on a lecture)
+- General examples you create yourself
+
+## Reference Style Guidelines
+
+### Abbreviated Format
+
+Use **short abbreviations** for inline references to keep text readable:
+- `[L1](../lectures/lecture-01)` instead of `[lecture-01](../lectures/lecture-01)`
+- `[L4](../lectures/lecture-04)` instead of `[lecture-04](../lectures/lecture-04)`
+
+### Placement
+
+Place references **naturally in the flow**:
+- At the end of sentences introducing concepts
+- After definitions or key terms
+- After examples or code blocks
+- Before or after quoted material
+
+**Good placement:**
+```
+**Concept X** is defined as a method that performs operations on data ([L4](../lectures/lecture-04)). 
+It works by processing information in a structured way...
+```
+
+**Avoid:**
+- Breaking up sentences awkwardly just to add a reference
+- Putting references in the middle of definitions
+- Over-referencing the same concept multiple times in one paragraph
+
+### Multiple References
+
+When referencing multiple lectures:
+- Combine them: `([L1](../lectures/lecture-01), [L4](../lectures/lecture-04))`
+- Use when concepts span multiple lectures
+- Place at the most relevant point in the text
+
+## Examples
+
+### ✅ Correct Structure
+
+```markdown
+# Topic Title
+
+Course Materials:
+
+- [lecture-01](../lectures/lecture-01)
+- [lecture-04](../lectures/lecture-04)
+- [lecture-05](../lectures/lecture-05)
+
+## What is Concept X?
+
+**Concept X** is defined as a method that performs operations on data ([L4](../lectures/lecture-04)). 
+It works by processing information in a structured way.
+
+Think about the progression from **data** → **information** → **processed data** → **result** ([L1](../lectures/lecture-01), [L4](../lectures/lecture-04)):
+
+- **Data** is raw representation...
+```
+
+### ✅ Reference After Examples
+
+```markdown
+**Pattern:** Detect when a specific condition occurs within a time window ([L6](../lectures/lecture-06)):
+
+```sql
+PATTERN SEQ(EventA+ a[], EventB b)
+WHERE condition
+WITHIN time_window
+```
+```
+
+### ✅ Reference for Specific Concepts
+
+```markdown
+The key advantage is **decoupling** ([L4](../lectures/lecture-04)) - components don't need to know what other components will do with the data.
+```
+
+### ❌ Missing Course Materials List
+
+```markdown
+# Topic Title
+
+## What is Concept X?
+
+**Concept X** is defined as a method...
+```
+
+### ❌ No Inline References
+
+```markdown
+Course Materials:
+
+- [lecture-04](../lectures/lecture-04)
+
+## What is Concept X?
+
+**Concept X** is defined as a method that performs operations on data. 
+It works by processing information...
+```
+
+## Checklist
+
+When writing exam answers with lecture references:
+
+✅ Course Materials section at the top with all used lectures
+✅ Inline references after definitions from lectures
+✅ Inline references after examples from course materials
+✅ Inline references for specific patterns, queries, or techniques
+✅ Abbreviated format ([L1], [L4]) for readability
+✅ Natural placement that doesn't disrupt flow
+✅ Multiple references combined when appropriate
+
+## Remember
+
+- **Always include both**: Course materials list at top AND inline references throughout
+- **Be consistent**: Use the same abbreviated format ([L1], [L4]) throughout
+- **Reference appropriately**: Don't over-reference, but don't miss important citations
+- **Keep it readable**: References should enhance clarity, not clutter the text
+- **Link to actual lectures**: Make sure paths are correct and lectures exist
+- **Complete coverage**: If you use material from a lecture, include it in both the list and inline references
