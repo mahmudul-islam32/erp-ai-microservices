@@ -64,15 +64,6 @@ async def create_indexes():
         await orders_collection.create_index("sales_rep_id")
         await orders_collection.create_index([("status", 1), ("order_date", -1)])
         
-        # Quotes collection indexes
-        quotes_collection = db.quotes
-        await quotes_collection.create_index("quote_number", unique=True)
-        await quotes_collection.create_index("customer_id")
-        await quotes_collection.create_index("status")
-        await quotes_collection.create_index("created_at")
-        await quotes_collection.create_index("valid_until")
-        await quotes_collection.create_index("sales_rep_id")
-        
         # Invoices collection indexes
         invoices_collection = db.invoices
         await invoices_collection.create_index("invoice_number", unique=True)

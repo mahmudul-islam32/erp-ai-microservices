@@ -15,4 +15,5 @@ export * from './PageHeader';
 export * from './DataTableContainer';
 export * from './FilterPanel';
 export * from './FilterField';
+export * from './DeleteConfirmationModal';
 

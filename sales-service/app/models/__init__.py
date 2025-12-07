@@ -8,9 +8,6 @@ from .sales_order import (
     OrderLineItem, OrderLineItemCreate, OrderStatus, PaymentStatus,
     ShippingMethod, OrderPriority
 )
-from .quote import (
-    QuoteCreate, QuoteUpdate, QuoteResponse, QuoteInDB, QuoteStatus
-)
 from .invoice import (
     InvoiceCreate, InvoiceUpdate, InvoiceResponse, InvoiceInDB,
     InvoiceLineItem,

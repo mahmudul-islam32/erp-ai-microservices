@@ -93,6 +93,94 @@ class AuthService:
             logger.error(f"Auth service error: {e}")
             return None
 
+    async def get_user_by_email(self, email: str, token: str) -> Optional[Dict[str, Any]]:
+        """Get user details by email"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                # Get all users and filter by email (auth service doesn't have direct email endpoint)
+                # We'll need to search through users
+                response = await client.get(
+                    f"{self.auth_service_url}/api/v1/users/",
+                    headers=headers,
+                    params={"limit": 1000}  # Get a large batch to search
+                )
+                
+                if response.status_code == 200:
+                    users = response.json()
+                    # Find user by email
+                    for user in users:
+                        if user.get("email") == email:
+                            logger.info(f"User found by email: {email}")
+                            return user
+                    logger.warning(f"User with email {email} not found")
+                    return None
+                else:
+                    logger.warning(f"Get users failed: {response.status_code}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Auth service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Auth service error: {e}")
+            return None
+
+    async def update_user(self, user_id: str, user_data: Dict[str, Any], token: str) -> Optional[Dict[str, Any]]:
+        """Update user account in auth service"""
+        try:
+            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.put(
+                    f"{self.auth_service_url}/api/v1/users/{user_id}",
+                    headers=headers,
+                    json=user_data
+                )
+                
+                if response.status_code == 200:
+                    user_updated = response.json()
+                    logger.info(f"User updated successfully: {user_updated.get('email')}")
+                    return user_updated
+                else:
+                    error_detail = response.text
+                    logger.warning(f"Update user failed: {response.status_code} - {error_detail}")
+                    return None
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Auth service request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Auth service error: {e}")
+            return None
+
+    async def delete_user(self, user_id: str, token: str) -> bool:
+        """Delete user account in auth service (soft delete)"""
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.delete(
+                    f"{self.auth_service_url}/api/v1/users/{user_id}",
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    logger.info(f"User deleted successfully: {user_id}")
+                    return True
+                else:
+                    error_detail = response.text
+                    logger.warning(f"Delete user failed: {response.status_code} - {error_detail}")
+                    return False
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Auth service request error: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Auth service error: {e}")
+            return False
+
 
 class InventoryService:
     def __init__(self):
