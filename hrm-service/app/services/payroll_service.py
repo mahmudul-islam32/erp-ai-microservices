@@ -91,10 +91,10 @@ class PayrollService:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error creating payroll: {e}")
+            logger.error(f"Error creating payroll: {e}", exc_info=True)
             raise HTTPException(
                 status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create payroll"
+                detail=f"Failed to create payroll: {str(e)}"
             )
     
     async def _calculate_payroll(self, payroll_data: PayrollCreate) -> PayrollCalculation:

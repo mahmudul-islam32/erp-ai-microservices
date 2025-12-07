@@ -46,6 +46,11 @@ class EmployeeService:
                 if manager:
                     manager_name = f"{manager['first_name']} {manager['last_name']}"
             
+            # Convert date objects to datetime for MongoDB compatibility
+            # MongoDB stores dates as datetime objects, so we need to convert date to datetime
+            date_of_birth_dt = datetime.combine(employee_data.date_of_birth, datetime.min.time())
+            start_date_dt = datetime.combine(employee_data.start_date, datetime.min.time())
+            
             # Create employee document
             employee_doc = {
                 "employee_id": employee_data.employee_id,
@@ -54,7 +59,7 @@ class EmployeeService:
                 "full_name": full_name,
                 "email": employee_data.email,
                 "phone": employee_data.phone,
-                "date_of_birth": employee_data.date_of_birth,
+                "date_of_birth": date_of_birth_dt,
                 "gender": employee_data.gender,
                 "address": employee_data.address.dict(),
                 "emergency_contact": employee_data.emergency_contact.dict(),
@@ -63,7 +68,7 @@ class EmployeeService:
                 "manager_id": employee_data.manager_id,
                 "manager_name": manager_name,
                 "employment_type": employee_data.employment_type,
-                "start_date": employee_data.start_date,
+                "start_date": start_date_dt,
                 "salary": employee_data.salary,
                 "bank_details": employee_data.bank_details.dict() if employee_data.bank_details else None,
                 "skills": employee_data.skills,
@@ -77,23 +82,67 @@ class EmployeeService:
             }
             
             # Insert employee
+            logger.info(f"Inserting employee document with date_of_birth type: {type(date_of_birth_dt)}, start_date type: {type(start_date_dt)}")
             result = await self.db.employees.insert_one(employee_doc)
-            employee_doc["_id"] = str(result.inserted_id)
             
-            return EmployeeResponse(**employee_doc)
+            # Fetch the inserted document to ensure we have the correct format
+            inserted_employee = await self.db.employees.find_one({"_id": result.inserted_id})
+            if not inserted_employee:
+                raise HTTPException(
+                    status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Employee was created but could not be retrieved"
+                )
+            
+            # Convert ObjectId to string and datetime back to date for response
+            inserted_employee["id"] = str(inserted_employee["_id"])
+            del inserted_employee["_id"]
+            
+            # Convert datetime back to date for response model
+            if isinstance(inserted_employee.get("date_of_birth"), datetime):
+                inserted_employee["date_of_birth"] = inserted_employee["date_of_birth"].date()
+            if isinstance(inserted_employee.get("start_date"), datetime):
+                inserted_employee["start_date"] = inserted_employee["start_date"].date()
+            if isinstance(inserted_employee.get("created_at"), datetime):
+                # Keep as datetime for response
+                pass
+            if isinstance(inserted_employee.get("updated_at"), datetime):
+                # Keep as datetime for response
+                pass
+            
+            return EmployeeResponse(**inserted_employee)
             
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error creating employee: {e}")
+            logger.error(f"Error creating employee: {e}", exc_info=True)
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             raise HTTPException(
                 status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create employee"
+                detail=f"Failed to create employee: {str(e)}"
             )
     
     async def get_employee(self, employee_id: str) -> EmployeeResponse:
-        """Get employee by ID"""
+        """Get employee by ID (supports both employee_id and MongoDB _id)"""
         try:
+            # Try to find by MongoDB _id first (ObjectId format)
+            try:
+                from bson import ObjectId
+                if ObjectId.is_valid(employee_id):
+                    employee = await self.db.employees.find_one({"_id": ObjectId(employee_id)})
+                    if employee:
+                        employee["id"] = str(employee["_id"])
+                        del employee["_id"]
+                        # Convert datetime back to date for response
+                        if isinstance(employee.get("date_of_birth"), datetime):
+                            employee["date_of_birth"] = employee["date_of_birth"].date()
+                        if isinstance(employee.get("start_date"), datetime):
+                            employee["start_date"] = employee["start_date"].date()
+                        return EmployeeResponse(**employee)
+            except (ValueError, TypeError):
+                pass
+            
+            # If not found by _id, try employee_id (custom ID)
             employee = await self.db.employees.find_one({"employee_id": employee_id})
             if not employee:
                 raise HTTPException(
@@ -101,16 +150,23 @@ class EmployeeService:
                     detail="Employee not found"
                 )
             
-            employee["_id"] = str(employee["_id"])
+            # Convert ObjectId to string and datetime back to date
+            employee["id"] = str(employee["_id"])
+            del employee["_id"]
+            if isinstance(employee.get("date_of_birth"), datetime):
+                employee["date_of_birth"] = employee["date_of_birth"].date()
+            if isinstance(employee.get("start_date"), datetime):
+                employee["start_date"] = employee["start_date"].date()
+            
             return EmployeeResponse(**employee)
             
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error getting employee: {e}")
+            logger.error(f"Error getting employee: {e}", exc_info=True)
             raise HTTPException(
                 status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to get employee"
+                detail=f"Failed to get employee: {str(e)}"
             )
     
     async def get_employees(
@@ -158,10 +214,29 @@ class EmployeeService:
             )
     
     async def update_employee(self, employee_id: str, employee_data: EmployeeUpdate, current_user_id: str) -> EmployeeResponse:
-        """Update employee"""
+        """Update employee (supports both employee_id and MongoDB _id)"""
         try:
-            # Check if employee exists
-            existing_employee = await self.db.employees.find_one({"employee_id": employee_id})
+            # Try to find by MongoDB _id first (ObjectId format)
+            existing_employee = None
+            lookup_field = None
+            actual_employee_id = None
+            try:
+                from bson import ObjectId
+                if ObjectId.is_valid(employee_id):
+                    existing_employee = await self.db.employees.find_one({"_id": ObjectId(employee_id)})
+                    if existing_employee:
+                        lookup_field = {"_id": ObjectId(employee_id)}
+                        actual_employee_id = existing_employee.get("employee_id")
+            except (ValueError, TypeError):
+                pass
+            
+            # If not found by _id, try employee_id (custom ID)
+            if not existing_employee:
+                existing_employee = await self.db.employees.find_one({"employee_id": employee_id})
+                if existing_employee:
+                    lookup_field = {"employee_id": employee_id}
+                    actual_employee_id = employee_id
+            
             if not existing_employee:
                 raise HTTPException(
                     status_code=http_status.HTTP_404_NOT_FOUND,
@@ -172,7 +247,7 @@ class EmployeeService:
             if employee_data.email:
                 email_check = await self.db.employees.find_one({
                     "email": employee_data.email,
-                    "employee_id": {"$ne": employee_id}
+                    "employee_id": {"$ne": actual_employee_id}
                 })
                 if email_check:
                     raise HTTPException(
@@ -199,15 +274,27 @@ class EmployeeService:
             update_data["updated_at"] = datetime.utcnow()
             update_data["updated_by"] = current_user_id
             
-            # Update employee
+            # Update employee using the lookup field
             await self.db.employees.update_one(
-                {"employee_id": employee_id},
+                lookup_field,
                 {"$set": update_data}
             )
             
             # Get updated employee
-            updated_employee = await self.db.employees.find_one({"employee_id": employee_id})
-            updated_employee["_id"] = str(updated_employee["_id"])
+            updated_employee = await self.db.employees.find_one(lookup_field)
+            if not updated_employee:
+                raise HTTPException(
+                    status_code=http_status.HTTP_404_NOT_FOUND,
+                    detail="Employee not found after update"
+                )
+            
+            # Convert ObjectId to string and datetime back to date
+            updated_employee["id"] = str(updated_employee["_id"])
+            del updated_employee["_id"]
+            if isinstance(updated_employee.get("date_of_birth"), datetime):
+                updated_employee["date_of_birth"] = updated_employee["date_of_birth"].date()
+            if isinstance(updated_employee.get("start_date"), datetime):
+                updated_employee["start_date"] = updated_employee["start_date"].date()
             
             return EmployeeResponse(**updated_employee)
             
@@ -221,19 +308,35 @@ class EmployeeService:
             )
     
     async def delete_employee(self, employee_id: str, current_user_id: str) -> Dict[str, str]:
-        """Delete employee (soft delete)"""
+        """Delete employee (soft delete) - supports both employee_id and MongoDB _id"""
         try:
-            # Check if employee exists
-            employee = await self.db.employees.find_one({"employee_id": employee_id})
+            # Try to find by MongoDB _id first (ObjectId format)
+            employee = None
+            lookup_field = None
+            try:
+                from bson import ObjectId
+                if ObjectId.is_valid(employee_id):
+                    employee = await self.db.employees.find_one({"_id": ObjectId(employee_id)})
+                    if employee:
+                        lookup_field = {"_id": ObjectId(employee_id)}
+            except (ValueError, TypeError):
+                pass
+            
+            # If not found by _id, try employee_id (custom ID)
+            if not employee:
+                employee = await self.db.employees.find_one({"employee_id": employee_id})
+                if employee:
+                    lookup_field = {"employee_id": employee_id}
+            
             if not employee:
                 raise HTTPException(
                     status_code=http_status.HTTP_404_NOT_FOUND,
                     detail="Employee not found"
                 )
             
-            # Soft delete - update status to inactive
+            # Soft delete - update status to inactive using the lookup field
             await self.db.employees.update_one(
-                {"employee_id": employee_id},
+                lookup_field,
                 {
                     "$set": {
                         "status": EmployeeStatus.INACTIVE,

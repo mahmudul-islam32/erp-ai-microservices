@@ -329,20 +329,8 @@ class AnalyticsService:
         """Get sales conversion funnel analytics"""
         try:
             db = get_database()
-            quotes_collection = db.quotes
             orders_collection = db.sales_orders
             invoices_collection = db.invoices
-            
-            # Count quotes
-            quotes_count = await quotes_collection.count_documents({
-                "quote_date": {"$gte": start_date, "$lte": end_date}
-            })
-            
-            # Count accepted quotes
-            accepted_quotes = await quotes_collection.count_documents({
-                "quote_date": {"$gte": start_date, "$lte": end_date},
-                "status": "accepted"
-            })
             
             # Count orders
             orders_count = await orders_collection.count_documents({
@@ -357,21 +345,15 @@ class AnalyticsService:
             })
             
             # Calculate conversion rates
-            quote_to_order = (accepted_quotes / quotes_count * 100) if quotes_count > 0 else 0
             order_to_payment = (paid_invoices / orders_count * 100) if orders_count > 0 else 0
-            quote_to_payment = (paid_invoices / quotes_count * 100) if quotes_count > 0 else 0
             
             return {
                 "funnel": {
-                    "quotes": quotes_count,
-                    "accepted_quotes": accepted_quotes,
                     "orders": orders_count,
                     "paid_invoices": paid_invoices
                 },
                 "conversion_rates": {
-                    "quote_to_order": quote_to_order,
-                    "order_to_payment": order_to_payment,
-                    "quote_to_payment": quote_to_payment
+                    "order_to_payment": order_to_payment
                 },
                 "period": {
                     "start_date": start_date.isoformat(),

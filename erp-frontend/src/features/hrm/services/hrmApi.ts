@@ -152,6 +152,12 @@ export const payrollApi = {
     });
     return response.data;
   },
+
+  // Delete payroll
+  deletePayroll: async (payrollId: string) => {
+    const response = await hrmApi.delete(`/payroll/${payrollId}`);
+    return response.data;
+  },
 };
 
 // Attendance API
