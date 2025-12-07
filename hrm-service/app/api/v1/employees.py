@@ -20,8 +20,24 @@ async def create_employee(
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new employee"""
-    service = EmployeeService()
-    return await service.create_employee(employee_data, current_user["user_id"])
+    try:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Creating employee with data: {employee_data.dict()}")
+        service = EmployeeService()
+        result = await service.create_employee(employee_data, current_user["user_id"])
+        logger.info(f"Employee created successfully: {result.id}")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in create_employee endpoint: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 @router.get("/{employee_id}", response_model=EmployeeResponse)
 async def get_employee(employee_id: str):

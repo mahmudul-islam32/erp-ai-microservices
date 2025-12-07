@@ -47,7 +47,6 @@ import { OrdersPage } from './features/sales/pages/OrdersPage';
 import { CreateOrderPage } from './features/sales/pages/CreateOrderPage';
 import { EditOrderPage } from './features/sales/pages/EditOrderPage';
 import { OrderDetailPage } from './features/sales/pages/OrderDetailPage';
-import { QuotesPage } from './features/sales/pages/QuotesPage';
 import { InvoicesPage } from './features/sales/pages/InvoicesPage';
 import { CreateInvoicePage } from './features/sales/pages/CreateInvoicePage';
 import { InvoiceDetailPage } from './features/sales/pages/InvoiceDetailPage';
@@ -81,6 +80,10 @@ import {
   BenefitsPage, 
   AnalyticsPage 
 } from './features/hrm';
+import { CreateEmployeePage } from './features/hrm/pages/CreateEmployeePage';
+import { EditEmployeePage } from './features/hrm/pages/EditEmployeePage';
+import { EmployeeDetailPage } from './features/hrm/pages/EmployeeDetailPage';
+import { CreatePayrollPage } from './features/hrm/pages/CreatePayrollPage';
 
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
@@ -331,14 +334,6 @@ function App() {
               } 
             />
             <Route 
-              path="sales/quotes" 
-              element={
-                <PermissionRoute requiredPermission={Permission.SALES_READ} excludedRole={UserRole.CUSTOMER}>
-                  <QuotesPage />
-                </PermissionRoute>
-              } 
-            />
-            <Route 
               path="sales/invoices" 
               element={
                 <PermissionRoute requiredPermission={Permission.SALES_READ}>
@@ -447,10 +442,42 @@ function App() {
               } 
             />
             <Route 
+              path="hrm/employees/create" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_CREATE}>
+                  <CreateEmployeePage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
+              path="hrm/employees/:id" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_READ}>
+                  <EmployeeDetailPage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
+              path="hrm/employees/:id/edit" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_UPDATE}>
+                  <EditEmployeePage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
               path="hrm/payroll" 
               element={
                 <PermissionRoute requiredPermission={Permission.HR_READ}>
                   <PayrollPage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
+              path="hrm/payroll/create" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_CREATE}>
+                  <CreatePayrollPage />
                 </PermissionRoute>
               } 
             />

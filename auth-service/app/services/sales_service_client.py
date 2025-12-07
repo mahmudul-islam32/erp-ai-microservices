@@ -144,6 +144,41 @@ class SalesServiceClient:
             logger.error(f"Sales service error: {e}")
             return None
 
+    async def delete_customer(
+        self,
+        customer_id: str,
+        token: Optional[str] = None
+    ) -> bool:
+        """Delete customer in sales service (soft delete)"""
+        try:
+            headers = {}
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
+            
+            logger.info(f"Deleting customer {customer_id} in sales service")
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.delete(
+                    f"{self.sales_service_url}/api/v1/customers/{customer_id}",
+                    headers=headers
+                )
+                
+                logger.info(f"Sales service delete response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    logger.info(f"Customer deleted successfully: {customer_id}")
+                    return True
+                else:
+                    error_detail = response.text
+                    logger.warning(f"Delete customer failed: {response.status_code} - {error_detail}")
+                    return False
+                    
+        except httpx.RequestError as e:
+            logger.error(f"Sales service request error: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Sales service error: {e}")
+            return False
 
 
 # Global instance

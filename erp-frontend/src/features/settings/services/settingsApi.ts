@@ -47,7 +47,6 @@ export interface SalesSettings {
   default_payment_terms: string;
   default_shipping_method?: string;
   default_tax_rate: number;
-  quote_validity_days: number;
   auto_generate_invoice: boolean;
   invoice_due_days: number;
 }

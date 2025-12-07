@@ -250,6 +250,7 @@ async def update_user(
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: str,
+    request: Request,
     current_user=Depends(require_permissions([Permission.USER_DELETE]))
 ):
     """Delete user (soft delete)"""
@@ -261,7 +262,14 @@ async def delete_user(
                 detail="Cannot delete your own account"
             )
 
-        success = await user_service.delete_user(user_id)
+        # Extract auth token from request to pass to user service for customer sync
+        token = request.cookies.get("access_token")
+        if not token:
+            authorization = request.headers.get("Authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1]
+
+        success = await user_service.delete_user(user_id, auth_token=token)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
