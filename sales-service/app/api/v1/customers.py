@@ -156,11 +156,19 @@ async def get_customer(
 async def update_customer(
     customer_id: str,
     customer_update: CustomerUpdate,
+    request: Request,
     current_user=Depends(require_sales_write())
 ):
     """Update customer"""
     try:
-        customer = await customer_service.update_customer(customer_id, customer_update)
+        # Extract auth token from request to pass to customer service for user sync
+        token = request.cookies.get("access_token")
+        if not token:
+            authorization = request.headers.get("Authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1]
+        
+        customer = await customer_service.update_customer(customer_id, customer_update, token=token)
         if not customer:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -182,11 +190,19 @@ async def update_customer(
 @router.delete("/{customer_id}")
 async def delete_customer(
     customer_id: str,
+    request: Request,
     current_user=Depends(require_sales_write())
 ):
     """Delete customer (soft delete)"""
     try:
-        success = await customer_service.delete_customer(customer_id)
+        # Extract auth token from request to pass to customer service for user sync
+        token = request.cookies.get("access_token")
+        if not token:
+            authorization = request.headers.get("Authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1]
+        
+        success = await customer_service.delete_customer(customer_id, token=token)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

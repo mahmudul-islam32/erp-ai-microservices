@@ -45,7 +45,6 @@ class SalesSettings(BaseModel):
     default_payment_terms: str = Field(default="net_30", max_length=50)
     default_shipping_method: Optional[str] = None
     default_tax_rate: float = Field(default=0.0, ge=0, le=1)
-    quote_validity_days: int = Field(default=30, ge=1, le=365)
     auto_generate_invoice: bool = Field(default=False)
     invoice_due_days: int = Field(default=30, ge=1, le=365)
 

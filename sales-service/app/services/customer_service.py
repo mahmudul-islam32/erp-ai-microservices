@@ -183,11 +183,18 @@ class CustomerService:
             logger.error(f"Error getting customer by code: {e}")
             return None
 
-    async def update_customer(self, customer_id: str, customer_update: CustomerUpdate) -> Optional[CustomerResponse]:
-        """Update customer"""
+    async def update_customer(self, customer_id: str, customer_update: CustomerUpdate, token: Optional[str] = None) -> Optional[CustomerResponse]:
+        """Update customer and sync to auth service"""
         try:
             db = get_database()
             customers_collection = db.customers
+
+            # Get current customer to get email before update
+            current_customer = await customers_collection.find_one({"_id": ObjectId(customer_id)})
+            if not current_customer:
+                return None
+            
+            customer_email = current_customer.get("email")
 
             # Prepare update data
             update_data = {k: v for k, v in customer_update.dict(exclude_unset=True).items() if v is not None}
@@ -203,6 +210,63 @@ class CustomerService:
                 # Fetch updated customer
                 updated_customer = await customers_collection.find_one({"_id": ObjectId(customer_id)})
                 if updated_customer:
+                    # Sync update to auth service user account
+                    if token and customer_email:
+                        try:
+                            # Find user by email
+                            user = await auth_service.get_user_by_email(customer_email, token)
+                            if user:
+                                user_id = user.get("id") or user.get("_id")
+                                if user_id:
+                                    # Prepare user update data from customer update
+                                    user_update_data = {}
+                                    if "first_name" in update_data:
+                                        user_update_data["first_name"] = update_data["first_name"]
+                                    if "last_name" in update_data:
+                                        user_update_data["last_name"] = update_data["last_name"]
+                                    if "phone" in update_data:
+                                        user_update_data["phone"] = update_data["phone"]
+                                    if "company_name" in update_data:
+                                        user_update_data["department"] = update_data["company_name"]
+                                    # Handle email update - if email is being updated, update user email too
+                                    if "email" in update_data:
+                                        user_update_data["email"] = update_data["email"]
+                                    # Handle status update - sync customer status to user status
+                                    if "status" in update_data:
+                                        customer_status = update_data["status"]
+                                        # Map customer status to user status
+                                        # CustomerStatus: ACTIVE, INACTIVE, SUSPENDED, PROSPECT
+                                        # UserStatus: ACTIVE, INACTIVE, SUSPENDED, PENDING
+                                        if customer_status == "inactive":
+                                            user_update_data["status"] = "inactive"
+                                        elif customer_status == "active":
+                                            user_update_data["status"] = "active"
+                                        elif customer_status == "suspended":
+                                            user_update_data["status"] = "suspended"
+                                        # PROSPECT in customer status maps to PENDING in user status
+                                        elif customer_status == "prospect":
+                                            user_update_data["status"] = "pending"
+                                    
+                                    # Only update if there are relevant fields to sync
+                                    # Note: Address fields (billing_address, shipping_address) are sales-only
+                                    # and don't need to sync to auth service as users don't have addresses
+                                    if user_update_data:
+                                        user_response = await auth_service.update_user(str(user_id), user_update_data, token)
+                                        if user_response:
+                                            logger.info(f"User account synced successfully for customer {customer_email}")
+                                        else:
+                                            logger.warning(f"Failed to sync user account for customer {customer_email}")
+                                    else:
+                                        logger.info(f"No user fields to sync for customer {customer_email}")
+                                else:
+                                    logger.warning(f"User found but missing ID for customer {customer_email}. Customer update completed but user sync skipped.")
+                            else:
+                                logger.warning(f"User account not found for customer {customer_email}. Customer update completed but user sync skipped.")
+                        except Exception as user_sync_error:
+                            # Log error but don't fail customer update
+                            logger.error(f"Error syncing user account for customer update: {user_sync_error}")
+                            logger.warning(f"Customer update completed but user account sync failed. User account can be updated manually.")
+                    
                     return CustomerResponse(**updated_customer)
             
             return None
@@ -211,16 +275,48 @@ class CustomerService:
             logger.error(f"Error updating customer: {e}")
             return None
 
-    async def delete_customer(self, customer_id: str) -> bool:
-        """Delete customer (soft delete by setting status to inactive)"""
+    async def delete_customer(self, customer_id: str, token: Optional[str] = None) -> bool:
+        """Delete customer (soft delete by setting status to inactive) and sync to auth service"""
         try:
             db = get_database()
             customers_collection = db.customers
 
+            # Get customer email before deletion
+            customer = await customers_collection.find_one({"_id": ObjectId(customer_id)})
+            if not customer:
+                return False
+            
+            customer_email = customer.get("email")
+
+            # Soft delete customer
             result = await customers_collection.update_one(
                 {"_id": ObjectId(customer_id)},
                 {"$set": {"status": CustomerStatus.INACTIVE, "updated_at": datetime.utcnow()}}
             )
+
+            if result.modified_count > 0:
+                # Sync deletion to auth service user account
+                if token and customer_email:
+                    try:
+                        # Find user by email
+                        user = await auth_service.get_user_by_email(customer_email, token)
+                        if user:
+                            user_id = user.get("id") or user.get("_id")
+                            if user_id:
+                                # Soft delete user (set status to inactive)
+                                delete_success = await auth_service.delete_user(str(user_id), token)
+                                if delete_success:
+                                    logger.info(f"User account deleted successfully for customer {customer_email}")
+                                else:
+                                    logger.warning(f"Failed to delete user account for customer {customer_email}")
+                            else:
+                                logger.warning(f"User found but missing ID for customer {customer_email}. Customer deletion completed but user sync skipped.")
+                        else:
+                            logger.warning(f"User account not found for customer {customer_email}. Customer deletion completed but user sync skipped.")
+                    except Exception as user_sync_error:
+                        # Log error but don't fail customer deletion
+                        logger.error(f"Error syncing user deletion for customer: {user_sync_error}")
+                        logger.warning(f"Customer deletion completed but user account deletion sync failed. User account can be deleted manually.")
 
             return result.modified_count > 0
 

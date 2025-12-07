@@ -11,22 +11,9 @@ router = APIRouter(prefix="/payroll", tags=["Payroll"])
 async def get_current_user(token: str = Depends(lambda: None)):
     return {"user_id": "current_user", "email": "user@example.com"}
 
-@router.post("/", response_model=PayrollResponse, status_code=status.HTTP_201_CREATED)
-async def create_payroll(
-    payroll_data: PayrollCreate,
-    current_user: dict = Depends(get_current_user)
-):
-    """Create a new payroll record"""
-    service = PayrollService()
-    return await service.create_payroll(payroll_data, current_user["user_id"])
-
-@router.get("/{payroll_id}", response_model=PayrollResponse)
-async def get_payroll(payroll_id: str):
-    """Get payroll by ID"""
-    service = PayrollService()
-    return await service.get_payroll(payroll_id)
-
-@router.get("/", response_model=List[PayrollResponse])
+# List and create routes (must come before parameterized routes)
+# Using empty string to match /payroll directly without trailing slash redirect
+@router.get("", response_model=List[PayrollResponse])
 async def get_payrolls(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -38,6 +25,37 @@ async def get_payrolls(
     """Get list of payrolls with filters"""
     service = PayrollService()
     return await service.get_payrolls(skip, limit, employee_id, status, pay_period_start, pay_period_end)
+
+@router.post("", response_model=PayrollResponse, status_code=status.HTTP_201_CREATED)
+async def create_payroll(
+    payroll_data: PayrollCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new payroll record"""
+    try:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Creating payroll with data: {payroll_data.dict()}")
+        service = PayrollService()
+        result = await service.create_payroll(payroll_data, current_user["user_id"])
+        logger.info(f"Payroll created successfully: {result.id}")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in create_payroll endpoint: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create payroll: {str(e)}"
+        )
+
+# Parameterized routes (must come after non-parameterized routes)
+@router.get("/{payroll_id}", response_model=PayrollResponse)
+async def get_payroll(payroll_id: str):
+    """Get payroll by ID"""
+    service = PayrollService()
+    return await service.get_payroll(payroll_id)
 
 @router.put("/{payroll_id}", response_model=PayrollResponse)
 async def update_payroll(

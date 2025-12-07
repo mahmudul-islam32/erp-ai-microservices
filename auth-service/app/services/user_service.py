@@ -361,6 +361,21 @@ class UserService:
                                     # Handle email update - if email is being updated, update customer email too
                                     if "email" in update_data:
                                         customer_update_data["email"] = update_data["email"]
+                                    # Handle status update - sync user status to customer status
+                                    if "status" in update_data:
+                                        user_status = update_data["status"]
+                                        # Map user status to customer status
+                                        # UserStatus: ACTIVE, INACTIVE, SUSPENDED, PENDING
+                                        # CustomerStatus: ACTIVE, INACTIVE, SUSPENDED, PROSPECT
+                                        if user_status == "inactive":
+                                            customer_update_data["status"] = "inactive"
+                                        elif user_status == "active":
+                                            customer_update_data["status"] = "active"
+                                        elif user_status == "suspended":
+                                            customer_update_data["status"] = "suspended"
+                                        # PENDING in user status doesn't map directly, but we'll use INACTIVE
+                                        elif user_status == "pending":
+                                            customer_update_data["status"] = "inactive"
                                     
                                     # Only update if there are relevant fields to sync
                                     if customer_update_data:
@@ -393,11 +408,19 @@ class UserService:
             logger.error(f"Error updating user: {e}")
             raise
 
-    async def delete_user(self, user_id: str) -> bool:
-        """Delete user (soft delete by setting status to inactive)"""
+    async def delete_user(self, user_id: str, auth_token: Optional[str] = None) -> bool:
+        """Delete user (soft delete by setting status to inactive) and sync to sales service"""
         try:
             db = get_database()
             users_collection = db.users
+
+            # Get user info before deletion to check role and email
+            user_before_delete = await users_collection.find_one({"_id": ObjectId(user_id)})
+            user_email = None
+            user_role = None
+            if user_before_delete:
+                user_email = user_before_delete.get("email")
+                user_role = user_before_delete.get("role")
 
             result = await users_collection.update_one(
                 {"_id": ObjectId(user_id)},
@@ -415,10 +438,10 @@ class UserService:
                     # Get the deactivated user's info
                     deactivated_user = await self.get_user_by_id(user_id)
                     user_name = "Unknown user"
-                    user_email = ""
                     if deactivated_user:
                         user_name = f"{deactivated_user.first_name} {deactivated_user.last_name}".strip()
-                        user_email = deactivated_user.email
+                        if not user_email:
+                            user_email = deactivated_user.email
                     
                     # Get performer info
                     performer_name = "An administrator"
@@ -436,13 +459,36 @@ class UserService:
                         performer_name=performer_name,
                         action="deactivated",
                         subject_user_name=user_name,
-                        subject_user_email=user_email,
+                        subject_user_email=user_email or "",
                         details="User account has been deactivated",
                         priority="high",
-                        auth_token=None  # ✅ TODO: Need to pass auth_token through delete_user method
+                        auth_token=auth_token
                     )
                 except Exception as e:
                     logger.warning(f"Failed to send notification for user deletion: {e}")
+
+                # If user role is Customer, sync deletion to customer record in sales service
+                if user_role and (user_role == UserRole.CUSTOMER.value or str(user_role).lower() == "customer") and auth_token and user_email:
+                    try:
+                        # Get customer by email
+                        customer = await sales_service_client.get_customer_by_email(user_email, token=auth_token)
+                        if customer:
+                            customer_id = customer.get("id") or customer.get("_id")
+                            if customer_id:
+                                # Delete customer (soft delete)
+                                delete_success = await sales_service_client.delete_customer(str(customer_id), token=auth_token)
+                                if delete_success:
+                                    logger.info(f"Customer record deleted successfully for user {user_email}")
+                                else:
+                                    logger.warning(f"Failed to delete customer record for user {user_email}")
+                            else:
+                                logger.warning(f"Customer record found but missing ID for user {user_email}. User deletion completed but customer sync skipped.")
+                        else:
+                            logger.warning(f"Customer record not found for user {user_email}. User deletion completed but customer sync skipped.")
+                    except Exception as customer_sync_error:
+                        # Log error but don't fail user deletion
+                        logger.error(f"Error syncing customer deletion for user: {customer_sync_error}")
+                        logger.warning(f"User deletion completed but customer record deletion sync failed. Customer record can be deleted manually.")
 
             return result.matched_count > 0
 

@@ -190,13 +190,6 @@ const baseNavigation: NavItem[] = [
         requiredPermissions: [Permission.SALES_READ],
       },
       { 
-        name: 'Quotes', 
-        path: '/dashboard/sales/quotes', 
-        icon: FileText,
-        requiredPermissions: [Permission.SALES_READ],
-        excludedRole: [UserRole.CUSTOMER],
-      },
-      { 
         name: 'Invoices', 
         path: '/dashboard/sales/invoices', 
         icon: Receipt,

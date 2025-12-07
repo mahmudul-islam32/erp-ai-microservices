@@ -22,7 +22,6 @@ export const SalesSettingsPage: React.FC = () => {
     default_payment_terms: 'net_30',
     default_shipping_method: '',
     default_tax_rate: 0,
-    quote_validity_days: 30,
     auto_generate_invoice: false,
     invoice_due_days: 30,
   });
@@ -46,7 +45,6 @@ export const SalesSettingsPage: React.FC = () => {
           default_payment_terms: salesSetting.sales.default_payment_terms ?? 'net_30',
           default_shipping_method: salesSetting.sales.default_shipping_method ?? '',
           default_tax_rate: salesSetting.sales.default_tax_rate ?? 0,
-          quote_validity_days: salesSetting.sales.quote_validity_days ?? 30,
           auto_generate_invoice: salesSetting.sales.auto_generate_invoice ?? false,
           invoice_due_days: salesSetting.sales.invoice_due_days ?? 30,
         });
@@ -151,15 +149,6 @@ export const SalesSettingsPage: React.FC = () => {
                 min={0}
                 max={100}
                 helperText="Default tax rate applied to orders"
-              />
-              <Input
-                label="Quote Validity (Days)"
-                type="number"
-                value={formData.quote_validity_days}
-                onChange={(e) => updateFormData('quote_validity_days', parseInt(e.target.value))}
-                min={1}
-                max={365}
-                helperText="Number of days quotes remain valid"
               />
               <Input
                 label="Invoice Due Days"
