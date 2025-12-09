@@ -1,295 +1,266 @@
 import React, { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { fetchAttendanceSummary, fetchAttendanceRecords } from '../store/hrmSlice';
-import { Button } from '../../../shared/components/ui/Button';
-import { Card } from '../../../shared/components/ui/Card';
-import { Input } from '../../../shared/components/ui/Input';
-import { 
-  ClockIcon, 
-  CalendarDaysIcon, 
-  UserGroupIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { AppDispatch, RootState } from '../../../app/store';
+import {
+  fetchAttendanceRecords,
+} from '../store/hrmSlice';
+import { AttendanceTable } from '../components/AttendanceTable';
+import { AttendanceFilters, IAttendanceFilters } from '../components/AttendanceFilters';
+import {
+  PageHeader,
+  StatCard,
+  BulkActionsBar,
+  DataTableContainer,
+  DeleteConfirmationModal,
+} from '../../../shared/components/ui';
+import { Attendance } from '../types';
+import { attendanceApi } from '../services/hrmApi';
+import { toast } from 'sonner';
+import { Clock, CheckCircle, XCircle, AlertCircle, Download, Plus } from 'lucide-react';
+import { usePermissions } from '../../../shared/hooks/usePermissions';
+import { Permission } from '../../users/types';
+import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 
 export const AttendancePage: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { attendance, attendanceSummary, isLoading, error } = useAppSelector((state) => state.hrm.attendance);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterDate, setFilterDate] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { attendance, loading } = useSelector((state: RootState) => state.hrm.attendance);
+  const { hasPermission } = usePermissions();
+  const { defaultItemsPerPage } = usePaginationSettings();
+
+  const [attendanceToDelete, setAttendanceToDelete] = useState<Attendance | null>(null);
+  const [selectedAttendance, setSelectedAttendance] = useState<string[]>([]);
+  const [filteredAttendance, setFilteredAttendance] = useState<Attendance[]>(attendance);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
+  const [filters, setFilters] = useState<IAttendanceFilters>({
+    skip: 0,
+    limit: 50,
+  });
+  
+  const canCreate = hasPermission(Permission.HR_CREATE);
+  const canDelete = hasPermission(Permission.HR_DELETE);
+  const canUpdate = hasPermission(Permission.HR_UPDATE);
+
+  // Update itemsPerPage when settings change
+  useEffect(() => {
+    if (defaultItemsPerPage && itemsPerPage !== defaultItemsPerPage) {
+      setItemsPerPage(defaultItemsPerPage);
+      setCurrentPage(1);
+    }
+  }, [defaultItemsPerPage]);
 
   useEffect(() => {
-    dispatch(fetchAttendanceRecords());
-    dispatch(fetchAttendanceSummary());
-  }, [dispatch]);
+    dispatch(fetchAttendanceRecords({
+      skip: filters.skip,
+      limit: filters.limit,
+      employee_id: filters.employee_id,
+      date_from: filters.date_from,
+      date_to: filters.date_to,
+    }));
+  }, [dispatch, filters.skip, filters.limit, filters.employee_id, filters.date_from, filters.date_to]);
 
-  const filteredAttendance = (attendance || []).filter(record => {
-    const matchesSearch = record.employee_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDate = !filterDate || record.date.includes(filterDate);
-    const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
-    return matchesSearch && matchesDate && matchesStatus;
-  });
+  useEffect(() => {
+    // Client-side filtering for search and status
+    let filtered = attendance;
 
-  const formatTime = (time: string) => {
-    return new Date(time).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(
+        (record) =>
+          record.employee_name?.toLowerCase().includes(searchLower) ||
+          record.employee_id?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (filters.status) {
+      filtered = filtered.filter((record) => record.status === filters.status);
+    }
+
+    setFilteredAttendance(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
+  }, [attendance, filters.search, filters.status]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredAttendance.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAttendance = filteredAttendance.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedAttendance([]); // Clear selections when changing pages
   };
 
-  const getStatusIcon = (type: string) => {
-    switch (type) {
-      case 'present':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case 'late':
-        return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
-      case 'absent':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />;
-      default:
-        return <ClockIcon className="h-5 w-5 text-gray-500" />;
+  const handleItemsPerPageChange = (perPage: number) => {
+    setItemsPerPage(perPage);
+    setCurrentPage(1); // Reset to first page
+    setSelectedAttendance([]); // Clear selections
+  };
+
+  const handleEdit = (attendance: Attendance) => {
+    navigate(`/dashboard/hrm/attendance/${attendance.id}/edit`);
+  };
+
+  const handleView = (attendance: Attendance) => {
+    navigate(`/dashboard/hrm/attendance/${attendance.id}`);
+  };
+
+  const handleDelete = (attendance: Attendance) => {
+    setAttendanceToDelete(attendance);
+  };
+
+  const confirmDelete = async () => {
+    if (attendanceToDelete) {
+      // TODO: Add delete attendance API call
+      toast.error('Delete functionality not yet implemented');
+      setAttendanceToDelete(null);
     }
   };
 
-  const getStatusColor = (type: string) => {
-    switch (type) {
-      case 'present':
-        return 'bg-green-100 text-green-800';
-      case 'late':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'absent':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const handleBulkDelete = async () => {
+    if (selectedAttendance.length === 0) return;
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedAttendance.length} attendance record(s)?`)) {
+      // TODO: Add bulk delete API call
+      toast.error('Bulk delete functionality not yet implemented');
+      setSelectedAttendance([]);
     }
   };
+
+  const handleExport = () => {
+    const csv = exportToCSV(filteredAttendance);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `attendance_${new Date().toISOString()}.csv`;
+    a.click();
+    toast.success('Attendance records exported successfully');
+  };
+
+  const exportToCSV = (records: Attendance[]): string => {
+    const headers = ['Employee ID', 'Employee Name', 'Date', 'Clock In', 'Clock Out', 'Total Hours', 'Status'];
+    const rows = records.map(record => [
+      record.employee_id,
+      record.employee_name || '',
+      new Date(record.date).toLocaleDateString(),
+      record.clock_in_time || '-',
+      record.clock_out_time || '-',
+      record.total_hours?.toString() || '-',
+      record.status
+    ]);
+    return [headers, ...rows].map(row => row.join(',')).join('\n');
+  };
+
+  // Calculate statistics
+  const totalRecords = attendance.length;
+  const presentRecords = attendance.filter((r) => r.status === 'present').length;
+  const absentRecords = attendance.filter((r) => r.status === 'absent').length;
+  const lateRecords = attendance.filter((r) => r.status === 'late').length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Attendance Tracking</h1>
-          <p className="text-gray-600">Monitor employee attendance and working hours</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <ClockIcon className="h-4 w-4" />
-            Clock In/Out
-          </Button>
-          <Button className="flex items-center gap-2">
-            <PlusIcon className="h-4 w-4" />
-            Add Record
-          </Button>
-        </div>
+      <PageHeader
+        title="Attendance Management"
+        description="Track and manage employee attendance records"
+        actions={[
+          {
+            label: 'Export',
+            onClick: handleExport,
+            variant: 'outline',
+            icon: Download,
+          },
+          ...(canCreate ? [{
+            label: 'Add Attendance',
+            onClick: () => navigate('/dashboard/hrm/attendance/create'),
+            variant: 'primary' as const,
+            icon: Plus,
+          }] : []),
+        ]}
+      />
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          label="Total Records"
+          value={totalRecords}
+          icon={Clock}
+          iconVariant="primary"
+        />
+        <StatCard
+          label="Present"
+          value={presentRecords}
+          icon={CheckCircle}
+          iconVariant="success"
+        />
+        <StatCard
+          label="Absent"
+          value={absentRecords}
+          icon={XCircle}
+          iconVariant="danger"
+        />
+        <StatCard
+          label="Late"
+          value={lateRecords}
+          icon={AlertCircle}
+          iconVariant="warning"
+        />
       </div>
 
-      {/* Summary Cards */}
-      {attendanceSummary && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircleIcon className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Present Today</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {attendanceSummary.present_today}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Late Today</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {attendanceSummary.late_today}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <XCircleIcon className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Absent Today</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {attendanceSummary.absent_today}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <ClockIcon className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Avg Hours</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {attendanceSummary.average_hours.toFixed(1)}h
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
       {/* Filters */}
-      <Card className="p-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search employees..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="w-40"
-            />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="present">Present</option>
-              <option value="late">Late</option>
-              <option value="absent">Absent</option>
-            </select>
-            <Button variant="outline" className="flex items-center gap-2">
-              <FunnelIcon className="h-4 w-4" />
-              More Filters
-            </Button>
-          </div>
-        </div>
-      </Card>
+      <AttendanceFilters
+        filters={filters}
+        onFiltersChange={(newFilters) => setFilters(newFilters)}
+      />
+
+      {/* Bulk Actions */}
+      <BulkActionsBar
+        selectedCount={selectedAttendance.length}
+        actions={[
+          ...(canDelete ? [{
+            label: 'Delete',
+            onClick: handleBulkDelete,
+            variant: 'danger' as const,
+          }] : []),
+        ]}
+        onClear={() => setSelectedAttendance([])}
+      />
 
       {/* Attendance Table */}
-      <Card className="overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Attendance Records</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Employee
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Clock In
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Clock Out
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hours Worked
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    Loading...
-                  </td>
-                </tr>
-              ) : filteredAttendance.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    No attendance records found
-                  </td>
-                </tr>
-              ) : (
-                filteredAttendance.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <UserGroupIcon className="h-6 w-6 text-gray-600" />
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {record.employee_name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {record.employee_id}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(record.date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record.clock_in ? formatTime(record.clock_in) : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record.clock_out ? formatTime(record.clock_out) : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record.hours_worked}h
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getStatusIcon(record.attendance_type)}
-                        <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.attendance_type)}`}>
-                          {record.attendance_type}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          View
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <DataTableContainer
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredAttendance.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        isLoading={loading}
+      >
+        <AttendanceTable
+          attendance={paginatedAttendance}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          selectedAttendance={selectedAttendance}
+          onSelectionChange={setSelectedAttendance}
+          isLoading={loading}
+        />
+      </DataTableContainer>
+
+      {/* Delete Modal */}
+      <DeleteConfirmationModal
+        isOpen={!!attendanceToDelete}
+        onClose={() => setAttendanceToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Attendance Record"
+        message="Are you sure you want to delete this attendance record?"
+        itemName={attendanceToDelete ? `${attendanceToDelete.employee_name} - ${new Date(attendanceToDelete.date).toLocaleDateString()}` : undefined}
+        loading={loading}
+      />
     </div>
   );
 };

@@ -75,7 +75,8 @@ export const PayrollForm: React.FC<PayrollFormProps> = ({
   const employeeId = watch('employee_id');
   useEffect(() => {
     if (employeeId) {
-      const employee = employees.find(e => e.id === employeeId || e.employee_id === employeeId);
+      // Find employee by employee_id (not MongoDB _id)
+      const employee = employees.find(e => e.employee_id === employeeId);
       if (employee) {
         setSelectedEmployee(employee);
         if (!isEdit && !initialData?.basic_salary) {
@@ -148,7 +149,7 @@ export const PayrollForm: React.FC<PayrollFormProps> = ({
               options={[
                 { value: '', label: 'Select an employee' },
                 ...employees.map((emp) => ({
-                  value: emp.id || emp.employee_id,
+                  value: emp.employee_id, // Always use employee_id, not MongoDB _id
                   label: `${emp.full_name || `${emp.first_name} ${emp.last_name}`} (${emp.employee_id})`
                 }))
               ]}

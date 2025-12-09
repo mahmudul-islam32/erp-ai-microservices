@@ -1,0 +1,461 @@
+@import 'colors.css';
+@import 'sizing.css';
+@import 'components.css';
+
+/**
+ * SN24 Design Language
+ * 
+ * IMPORTANT: Do not use tokens directly from colors.css or sizing.css in your components.
+ * Always use the semantic tokens defined in this file to ensure consistency and ease 
+ * of updates across the application.
+ * 
+ * Example:
+ * ✅ DO: Use `var(--text-primary)`, `var(--spacing-inline-medium)`, `var(--gap-large)`
+ * ❌ DON'T: Use `var(--color-dark-blue)`, `var(--space-md)`, `var(--space-lg)`
+ */
+
+:root {
+  /* ================================
+     COLOR TOKENS - Aligned with Brand Guidelines & UX Best Practices
+     ================================ */
+
+  /* Text colors - use for typography */
+  --text-primary: var(--color-gray-darker); /* Main text color for body content */
+  --text-secondary: var(--color-gray-dark); /* Secondary text, subtitles, helper text */
+  --text-tertiary: var(--color-gray); /* Low-emphasis text */
+  --text-inverse: var(--color-white); /* Text on dark backgrounds */
+  --text-disabled: var(--color-gray-light); /* Text for disabled elements */
+  --text-brand: var(--color-primary); /* Brand-colored text */
+  --text-accent: var(--color-accent); /* Accent text for emphasis */
+  --text-link: var(--color-primary); /* Text for links in normal state */
+  --text-link-hover: var(--color-secondary); /* Text for links in hover state */
+
+  /* Status/feedback colors - use for alerts and states */
+  --status-success: var(--color-success);
+  --status-warning: var(--color-warning);
+  --status-error: var(--color-error);
+  --status-info: var(--color-info);
+
+  /* Background colors - use for containing elements */
+  --background-main: var(--color-white); /* Main background color */
+  --background-primary: var(--color-primary); /* Dark background color to highlight sections/containers */
+  --background-secondary: var(--color-gray-lightest); /* Secondary/alternate backgrounds */
+  --background-tertiary: var(--color-gray-lighter); /* Tertiary backgrounds, e.g. alternate table rows */
+  --background-brand: var(--color-primary); /* Brand color backgrounds */
+  --background-accent: var(--color-accent); /* Accent color backgrounds, use sparingly */
+  --background-disabled: var(--color-gray-lighter); /* Background for disabled elements */
+  --background-hover: var(--color-gray-lightest); /* Background for hover states */
+  --background-success: hsla(121, 65%, 32%, 0.1); /* Light success background */
+  --background-warning: hsla(40, 100%, 50%, 0.1); /* Light warning background */
+  --background-error: hsla(14, 85%, 48%, 0.1); /* Light error background */
+  --background-info: hsla(200, 80%, 50%, 0.1); /* Light info background */
+
+  /* Overlay colors - use for modals, popups, and overlays */
+  --background-overlay: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay for modals and dialogs */
+  --background-overlay-light: rgba(0, 0, 0, 0.2); /* Lighter overlay for less emphasis */
+  --background-overlay-dark: rgba(0, 0, 0, 0.7); /* Darker overlay for more emphasis */
+
+  /* Border colors - use for UI boundaries and separators */
+  --border-color: var(--color-gray-lighter); /* Standard border color for UI elements */
+  --border-color-focus: var(--color-primary); /* Border color for focused elements */
+  --border-color-hover: var(--color-gray); /* Border color for hover states */
+  --border-color-disabled: var(--color-gray-light); /* Border color for disabled elements */
+  --border-color-error: var(--color-error); /* Border color for error states */
+  --border-color-success: var(--color-success); /* Border color for success states */
+
+  /* Interaction colors - use for states */
+  --focus-ring-color: var(--color-secondary); /* Color for focus indicators */
+  --hover-color: var(--color-secondary); /* Default hover state color */
+  --selected-color: var(--color-primary); /* Color for selected elements that aren't buttons */
+  --selected-border-color: var(--color-primary); /* Border color for selected elements */
+
+  /* ================================
+     BORDER TOKENS
+     ================================ */
+  /* Borders - use for separators, outlines, and structural elements */
+  --border-default: 2px solid var(--border-color); /* default border style */
+  --border-focus: 2px solid var(--focus-ring-color); /* for emphasis */
+  --border-disabled: 2px solid var(--border-color-disabled); /* for disabled elements */
+  --border-light: 1px solid var(--border-color); /* for light borders */
+
+  --border-showcase: 2px solid var(--border-color); /* for showcase elements */
+
+  /* ================================
+     TYPOGRAPHY
+     ================================ */
+  /* Font families - use consistently for text elements */
+  --font-family-primary: 'Roboto', sans-serif; /* For most text */
+  --font-family-secondary: 'Rubik', sans-serif; /* For headings or accents */
+  --font-family-mono: monospace;
+
+  /* Font weights - use to establish hierarchy */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Line heights - use for readability */
+  --line-height-base: 1.5;
+
+  /* Base font size */
+  --font-size-body: var(--font-size-md);
+
+  /* Headings (mobile & desktop) - use for consistent type scaling */
+  --heading-h1-mobile: var(--font-size-4xl);
+  --heading-h2-mobile: var(--font-size-2xl);
+  --heading-h3-mobile: var(--font-size-xl);
+  --heading-h4-mobile: var(--font-size-lg);
+  --heading-h5-mobile: var(--font-size-md);
+  --heading-h6-mobile: var(--font-size-sm);
+
+  --heading-h1-desktop: var(--font-size-6xl);
+  --heading-h2-desktop: var(--font-size-4xl);
+  --heading-h3-desktop: var(--font-size-2xl);
+  --heading-h4-desktop: var(--font-size-xl);
+  --heading-h5-desktop: var(--font-size-lg);
+  --heading-h6-desktop: var(--font-size-md);
+
+  /* ================================
+     SPACING TOKENS
+     ================================ */
+  /* 
+    * COMPREHENSIVE SPACING GUIDE
+    *
+    * Our spacing system follows a 4px grid system (0.25rem increments).
+    * 
+    * xxsmall = 4px (0.25rem)  - Use for tiny elements, tight spaces, fine adjustments
+    * xsmall  = 8px (0.5rem)   - Use for small spacing needs, form field padding, small gaps
+    * small   = 12px (0.75rem) - Use for standard component padding, closer element relationships
+    * medium  = 16px (1rem)    - The default spacing unit, standard spacing between related elements
+    * large   = 24px (1.5rem)  - Use for separating groups of related elements, section padding
+    * xlarge  = 32px (2rem)    - Use for major layout sections, visual hierarchy
+    * 2xlarge = 40px (2.5rem)  - Use for major content blocks, substantial separation
+    * 3xlarge = 64px (4rem)    - Use for page-level section separation, maximum spacing needs
+    *
+    * SPACING TYPES AND THEIR USE CASES:
+    *
+    * 1. INLINE spacing (horizontal):
+    *    - Use for horizontal separation between elements in a row
+    *    - Examples: Space between buttons in a toolbar, column gaps in a grid
+    *    - Best for: Navigation items, form fields in a row, icon spacing in buttons
+    *
+    * 2. STACK spacing (vertical):
+    *    - Use for vertical separation between stacked elements
+    *    - Examples: Paragraphs, list items, form field groups
+    *    - Best for: Content sections, form layout, vertical lists
+    *
+    * 3. INSET spacing (padding):
+    *    - Use for internal padding within a container
+    *    - Examples: Padding inside cards, buttons, form fields
+    *    - Best for: Container elements where content needs breathing room
+    *
+    * 4. SQUISH spacing (compressed padding):
+    *    - Use when vertical padding should be less than horizontal padding
+    *    - Examples: Buttons, pills, tags, banners
+    *    - Best for: Interactive elements that need more horizontal space than vertical
+  */
+
+  /* 
+    * Inline spacing - use for horizontal spacing (left/right)
+    * 
+    * Examples:
+    * --spacing-inline-xxsmall: Tight button icon padding, super compact UI elements
+    * --spacing-inline-xsmall: Compact dropdown item padding, form field horizontal padding
+    * --spacing-inline-small: Standard button horizontal padding, icon spacing
+    * --spacing-inline-medium: Default spacing between related elements, standard container padding
+    * --spacing-inline-large: Spacing between groups of related elements, wider content spacing
+    * --spacing-inline-xlarge: Section padding, container padding on larger screens
+    * --spacing-inline-2xlarge: Sidebar width, major layout element spacing
+    * --spacing-inline-3xlarge: Maximum content width, large hero section padding
+  */
+  --spacing-inline-xxsmall: var(--space-xxs);
+  --spacing-inline-xsmall: var(--space-xs);
+  --spacing-inline-small: var(--space-sm);
+  --spacing-inline-medium: var(--space-md);
+  --spacing-inline-large: var(--space-lg);
+  --spacing-inline-xlarge: var(--space-xl);
+  --spacing-inline-2xlarge: var(--space-2xl);
+  --spacing-inline-3xlarge: var(--space-3xl);
+
+  /* 
+    * Stack spacing - use for vertical spacing (top/bottom)
+    * 
+    * Examples:
+    * --spacing-stack-xxsmall: Tiny vertical spacing between tightly related items
+    * --spacing-stack-xsmall: Form label to input spacing, tight list items
+    * --spacing-stack-small: Standard spacing between form elements, paragraph spacing
+    * --spacing-stack-medium: Default spacing between components, text blocks
+    * --spacing-stack-large: Section spacing, header to content spacing
+    * --spacing-stack-xlarge: Major content block spacing, card group spacing
+    * --spacing-stack-2xlarge: Section to section spacing on mobile
+    * --spacing-stack-3xlarge: Major page section separation on desktop
+  */
+  --spacing-stack-xxsmall: var(--space-xxs);
+  --spacing-stack-xsmall: var(--space-xs);
+  --spacing-stack-small: var(--space-sm);
+  --spacing-stack-medium: var(--space-md);
+  --spacing-stack-large: var(--space-lg);
+  --spacing-stack-xlarge: var(--space-xl);
+  --spacing-stack-2xlarge: var(--space-2xl);
+  --spacing-stack-3xlarge: var(--space-3xl);
+
+  /* 
+    * Inset spacing - use for padding on all sides of an element
+    * 
+    * Examples:
+    * --spacing-inset-xxsmall: Very compact UI elements, small badges, small tags
+    * --spacing-inset-xsmall: Input fields, compact buttons, dropdown items
+    * --spacing-inset-small: Standard buttons, smaller cards, form elements
+    * --spacing-inset-medium: Standard cards, modals, larger interactive elements
+    * --spacing-inset-large: Feature cards, promotional content, emphasis elements
+    * --spacing-inset-xlarge: Hero sections, large prominent UI elements, containers
+  */
+  --spacing-inset-xxsmall: var(--space-xxs);
+  --spacing-inset-xsmall: var(--space-xs);
+  --spacing-inset-small: var(--space-sm);
+  --spacing-inset-medium: var(--space-md);
+  --spacing-inset-large: var(--space-lg);
+  --spacing-inset-xlarge: var(--space-xl);
+
+  /* 
+    * Squish spacing - use for compressed padding (less on top/bottom than left/right)
+    * Ideal for horizontal elements like buttons, pills, tags, and banners.
+    * 
+    * Examples:
+    * --spacing-squish-small: Compact buttons, tags, small indicators (4px top/bottom, 8px left/right)
+    * --spacing-squish-medium: Primary buttons, pills, tabs (8px top/bottom, 16px left/right)
+    * --spacing-squish-large: Large buttons, promotional banners (12px top/bottom, 24px left/right)
+  */
+  --spacing-squish-small: var(--space-xxs) var(--space-xs);
+  --spacing-squish-medium: var(--space-xs) var(--space-md);
+  --spacing-squish-large: var(--space-sm) var(--space-lg);
+
+  /* ================================
+     ELEVATION / SHADOWS
+     ================================ */
+  /* Elevation tokens - use for shadow/depth */
+  --box-shadow: var(--elevation-2); /* Default shadow for elements */
+  --box-shadow-hover: var(--elevation-hover); /* Shadow for hover states */
+  --box-shadow-focus: 0 0 0 1px var(--focus-ring-color); /* Shadow for focus states */
+  --card-shadow: var(--elevation-2); /* Shadow for card elements */
+  --box-shadow-light: var(--elevation-1); /* Light shadow for subtle depth */
+
+  /* ================================
+     CARD TOKENS
+     ================================ */
+  /* Card tokens - use for styling card components */
+  --card-radius: var(--border-radius-sm); /* Corner radius for cards */
+  --card-padding: var(--spacing-inset-medium); /* Default padding inside cards */
+  --card-background: var(--background-main); /* Default background for cards */
+  /* Interactive Card-specific tokens */
+  --card-hover-border-color: var(--border-color-hover);
+  --card-hover-shadow: var(--box-shadow-hover);
+
+  /* ================================
+     LAYOUT / CONTAINERS
+     ================================ */
+  /* Container tokens - use for layout structuring */
+  --container-padding: var(--spacing-inset-xlarge); /* Default container padding */
+  --container-max-width: var(--container-max-width-desktop); /* Max container width */
+  --configure-page-max-width: var(--container-max-width-xl-desktop); /* Max width for configure page */
+  --modal-size-sm: 400px; /* Small modal size */
+  --modal-size-md: 600px; /* Medium modal size */
+  --modal-size-lg: 800px; /* Large modal size */
+  --card-width: 300px; /* Default card width for grid layouts */
+
+  /* Layout tokens */
+  --layout-padding: var(--spacing-inset-medium); /* Default padding for layout containers */
+  --layout-margin: var(--spacing-stack-medium); /* Default margin for layout containers */
+  --layout-gap: var(--spacing-inline-medium); /* Default gap between layout elements */
+
+  /* Header dimensions */
+  --header-height: 100px; /* Main header height on desktop */
+  --header-height-mobile: 60px; /* Main header height on mobile */
+
+  /* Page spacing tokens - use for consistent page layouts */
+  --page-spacing-top: max(2.5rem, env(safe-area-inset-top)); /* Top spacing for pages */
+  --page-spacing-bottom: max(5rem, env(safe-area-inset-bottom)); /* Bottom spacing for pages */
+
+  /* ================================
+     CONTROLS (Input, Select, Textarea)
+     ================================ */
+  /* Form control tokens - use consistently across all input elements */
+  --control-font-size: var(--font-size-md); /* Font size for form controls */
+  --control-padding: var(--spacing-inset-xsmall); /* Default padding inside controls */
+  --control-label-gap: var(--spacing-stack-xxsmall); /* Gap between label and control */
+  --control-border: var(--border-default); /* Default border for controls */
+  --control-border-radius: var(--border-radius-sm); /* Corner radius for controls */
+  --control-background: var(--background-main); /* Background for controls */
+  --control-focus-border: var(--focus-ring-color); /* Border color when focused */
+  --control-disabled-bg: var(--background-disabled); /* Background when disabled */
+  --control-disabled-text: var(--text-disabled); /* Text color when disabled */
+  --control-border-color-hover: var(--color-primary-hover);
+  --control-border-color-focus: var(--color-primary-focus);
+  --control-border-color-disabled: var(--color-disabled);
+  --control-label-required-color: var(--color-error);
+
+  /* ================================
+     CONTROL LABELS
+     ================================ */
+  /* Label tokens - use for form element labels */
+  --label-color: var(--color-blue-medium); /* Color for form labels */
+  --label-font-size: var(--font-size-sm); /* Font size for form labels */
+  --label-font-weight: var(--font-weight-medium); /* Font weight for form labels */
+  --label-margin-bottom: var(--control-label-gap); /* Bottom margin for form labels */
+
+  /* ================================
+     BUTTONS
+     ================================ */
+  /* Button tokens - use for all button styling */
+  --button-primary: var(--color-primary); /* Background for primary buttons */
+  --button-secondary: var(--color-secondary); /* Background for secondary buttons */
+  --button-accent: var(--color-accent); /* Background for accent/highlight buttons */
+  --button-danger: var(--status-error); /* Background for danger/destructive buttons */
+  --button-danger-hover: var(--color-error-dark); /* Hover state for danger buttons */
+  --button-text: var(--text-inverse); /* Text color for buttons */
+  --button-text-disabled: var(--text-disabled); /* Text color for disabled buttons */
+  --button-hover: var(--hover-color); /* Button hover state color */
+  --button-disabled: var(--color-gray-light); /* Background for disabled buttons */
+  --button-outline: 2px solid var(--color-primary); /* For outline buttons */
+
+  /* Button disabled state tokens */
+  --button-disabled-background: var(--color-gray-lighter); /* Background for all disabled buttons */
+  --button-disabled-text: var(--color-gray-dark); /* Text color for all disabled buttons - darker for better contrast */
+  --button-disabled-border: var(--button-border-width) var(--button-border-style) var(--color-gray-light); /* Border for all disabled buttons */
+  --button-disabled-opacity: 1; /* Removed opacity for cleaner look */
+
+  /* Button border tokens */
+  --button-border-width: 2px; /* Default border width for buttons */
+  --button-border-style: solid; /* Default border style for buttons */
+  --button-border-primary: var(--button-border-width) var(--button-border-style) var(--button-primary); /* Border for primary buttons */
+  --button-border-secondary: var(--button-border-width) var(--button-border-style) var(--button-secondary); /* Border for secondary buttons */
+  --button-border-tertiary: var(--button-border-width) var(--button-border-style) var(--border-color); /* Border for tertiary buttons */
+  --button-border-danger: var(--button-border-width) var(--button-border-style) var(--status-error); /* Border for danger buttons */
+  --button-border-disabled: var(--button-border-width) var(--button-border-style) var(--button-disabled); /* Border for disabled buttons */
+
+  /* Tertiary button specific tokens */
+  --button-tertiary-background: var(--background-main); /* Background for tertiary buttons */
+  --button-tertiary-text: var(--text-primary); /* Text color for tertiary buttons */
+  --button-tertiary-hover-text: var(--button-hover); /* Text color for tertiary buttons on hover */
+
+  --button-font-size: var(--font-size-md); /* Default button text size */
+  --button-padding: var(--spacing-inset-small); /* Default padding around button text */
+  --button-border-radius: var(--border-radius-sm); /* Default button corner radius */
+
+  /* Button size variations */
+  --button-padding-sm: var(--spacing-squish-small);
+  --button-padding-md: var(--spacing-squish-medium);
+  --button-padding-lg: var(--spacing-squish-large);
+
+  /* ================================
+     TOASTS
+     ================================ */
+  /* Toast notification colors - use for feedback messages */
+  --toast-success: var(--status-success); /* Success notifications */
+  --toast-error: var(--status-error); /* Error notifications */
+  --toast-info: var(--status-info); /* Informational notifications */
+  --toast-warning: var(--status-warning); /* Warning notifications */
+  --toast-background: var(--color-white); /* Default toast background */
+  --toast-text: var(--text-primary); /* Default toast text color */
+  --toast-border-radius: var(--border-radius-sm); /* Toast corner radius */
+  --toast-padding: var(--spacing-inset-small); /* Padding inside toasts */
+
+  /* ================================
+     TOOLTIP
+     ================================ */
+  /* Tooltip tokens - use for tooltips and popovers */
+  --tooltip-padding: var(--spacing-squish-small); /* Padding within tooltips */
+  --tooltip-font-size: var(--font-size-xs); /* Font size for tooltip text */
+  --tooltip-border-radius: var(--border-radius-sm); /* Corner radius for tooltips */
+  --tooltip-background: var(--color-gray-darker); /* Default tooltip background */
+  --tooltip-text: var(--color-white); /* Default tooltip text color */
+  --tooltip-background-error: var(--status-error); /* Background for error tooltips */
+  --tooltip-background-success: var(--status-success); /* Background for success tooltips */
+  --tooltip-background-warning: var(--status-warning); /* Background for warning tooltips */
+  --tooltip-background-info: var(--status-info); /* Background for info tooltips */
+  --tooltip-shadow: var(--elevation-2); /* Shadow for tooltips */
+  --tooltip-max-width: 240px; /* Maximum width for tooltips */
+
+  /* ================================
+     ICONS
+     ================================ */
+  /* Icon tokens - use for consistent icon styling */
+  --icon-color-primary: var(--color-primary); /* Default color for icons */
+  --icon-color-secondary: var(--color-white); /* Secondary color for icons */
+  --icon-color-accent: var(--color-accent); /* Accent color for icons */
+  --icon-color-success: var(--status-success); /* Success state icons */
+  --icon-color-warning: var(--status-warning); /* Warning state icons */
+  --icon-color-error: var(--status-error); /* Error state icons */
+  --icon-color-info: var(--status-info); /* Info state icons */
+  --icon-size-sm: 16px; /* Small icons (e.g., in buttons) */
+  --icon-size-md: 20px; /* Medium icons (standard size) */
+  --icon-size-lg: 24px; /* Large icons (for emphasis) */
+
+  /* ================================
+     GAP TOKENS
+     ================================ */
+  /* 
+    * Gap tokens - use for CSS grid and flexbox gaps 
+    *
+    * Our gap system follows the same 4px grid system as spacing tokens.
+    *
+    * WHEN TO USE GAP TOKENS:
+    * Use gap tokens exclusively for the `gap`, `column-gap`, or `row-gap` properties
+    * in flex and grid layouts. Don't use them for margins or paddings.
+    *
+    * GUIDANCE FOR EACH TOKEN:
+    *
+    * --gap-xxsmall (4px): 
+    *   - For very compact interface elements
+    *   - When elements need minimal separation but should still be visually distinct
+    *   - Example: Icons in a compact toolbar, tightly packed form checkboxes
+    *
+    * --gap-xsmall (8px):
+    *   - For standard compact layouts
+    *   - Most common for form fields, menu items, and tight card layouts
+    *   - Example: Form input groups, navigation items in a sidebar
+    *
+    * --gap-small (12px):
+    *   - For related items with a little more breathing room
+    *   - Good default for most component internal layouts
+    *   - Example: List items, card content, related button groups
+    *
+    * --gap-medium (16px):
+    *   - The standard gap for most layouts
+    *   - Provides comfortable spacing between related content
+    *   - Example: Cards in a grid, main navigation items, content sections
+    *
+    * --gap-large (24px):
+    *   - For clear separation between distinct groups of content
+    *   - When you need to establish more prominent visual hierarchy
+    *   - Example: Main sections in a page, large card grids, feature lists
+    *
+    * --gap-xlarge (32px):
+    *   - For major content separation
+    *   - Best used in larger layouts and between major page sections
+    *   - Example: Page-level section dividers, large marketing layouts
+  */
+  --gap-xxsmall: var(--space-xxs);
+  --gap-xsmall: var(--space-xs);
+  --gap-small: var(--space-sm);
+  --gap-medium: var(--space-md);
+  --gap-large: var(--space-lg);
+  --gap-xlarge: var(--space-xl);
+
+  /* ================================
+     TRANSITIONS
+     ================================ */
+  /* Transition tokens - use for animations and effects */
+  --transition-duration: 300ms; /* Default transition duration */
+  --transition-timing-function: ease-in-out; /* Default timing function */
+  --transition-delay: 0ms; /* Default transition delay */
+  --transition-fast: 150ms ease-in-out; /* Fast transitions (e.g., hover states) */
+  --transition-medium: 250ms ease; /* Medium transitions (most animations) */
+  --transition-slow: 400ms ease; /* Slow transitions (emphasis animations) */
+
+  /* ================================
+     STATES / EFFECTS
+     ================================ */
+  /* Effect tokens - use for consistent animations and states */
+  --disabled-opacity: 0.5; /* Opacity level for disabled elements */
+}

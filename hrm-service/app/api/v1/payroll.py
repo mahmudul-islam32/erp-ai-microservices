@@ -84,3 +84,13 @@ async def get_payroll_summary(
     """Get payroll summary for a period"""
     service = PayrollService()
     return await service.get_payroll_summary(pay_period_start, pay_period_end)
+
+@router.delete("/{payroll_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_payroll(
+    payroll_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete payroll"""
+    service = PayrollService()
+    await service.delete_payroll(payroll_id, current_user["user_id"])
+    return None
