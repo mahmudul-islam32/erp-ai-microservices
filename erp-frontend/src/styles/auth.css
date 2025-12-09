@@ -1,0 +1,97 @@
+.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(
+    to bottom right,
+    var(--background-secondary),
+    var(--color-secondary-lighter)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-inset-medium);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: var(--modal-size-md);
+  background-color: var(--background-main);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--spacing-stack-xlarge);
+}
+
+.auth-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background-color: var(--background-primary);
+  color: var(--text-inverse);
+  border-radius: var(--border-radius-circle);
+  margin-bottom: var(--spacing-stack-medium);
+}
+
+.auth-title {
+  font-size: var(--heading-h2-mobile);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-stack-xsmall) 0;
+}
+
+.auth-subtitle {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-medium);
+}
+
+.auth-error-message {
+  background-color: var(--background-error);
+  border: 1px solid var(--border-color-error);
+  color: var(--status-error);
+  padding: var(--spacing-inset-small);
+  border-radius: var(--control-border-radius);
+  font-size: var(--font-size-sm);
+}
+
+.auth-error {
+  color: var(--status-error);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-stack-xxsmall);
+  margin-bottom: 0;
+}
+
+.auth-footer {
+  margin-top: var(--spacing-stack-large);
+  text-align: center;
+}
+
+.auth-footer-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-stack-xxsmall) 0;
+}
+
+.auth-footer-credentials {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .auth-title {
+    font-size: var(--heading-h2-desktop);
+  }
+}

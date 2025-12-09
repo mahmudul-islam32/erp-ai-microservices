@@ -28,14 +28,30 @@ export const Card: React.FC<CardProps> = ({
     lg: 'shadow-lg',
   };
 
+  const paddingMap = {
+    none: '0',
+    sm: 'var(--spacing-inset-small)',
+    md: 'var(--spacing-inset-medium)',
+    lg: 'var(--card-padding)',
+  };
+
+  const shadowMap = {
+    none: 'none',
+    sm: 'var(--box-shadow-light)',
+    md: 'var(--box-shadow)',
+    lg: 'var(--box-shadow-hover)',
+  };
+
   return (
     <div
-      className={clsx(
-        'bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700',
-        paddings[padding],
-        shadows[shadow],
-        className
-      )}
+      className={clsx('rounded-lg border', className)}
+      style={{
+        backgroundColor: 'var(--card-background)',
+        borderRadius: 'var(--card-radius)',
+        padding: paddingMap[padding],
+        boxShadow: shadowMap[shadow],
+        border: 'var(--border-default)',
+      }}
       {...props}
     >
       {children}
@@ -59,19 +75,38 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
 }) => {
   return (
     <div
-      className={clsx('flex items-start justify-between mb-4', className)}
+      className={clsx('flex items-start justify-between', className)}
+      style={{ marginBottom: 'var(--spacing-stack-medium)' }}
       {...props}
     >
       <div className="flex-1">
         {title && (
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+          <h3
+            className="font-semibold"
+            style={{
+              fontSize: 'var(--font-size-lg)',
+              color: 'var(--text-primary)',
+              margin: 0,
+            }}
+          >
+            {title}
+          </h3>
         )}
         {subtitle && (
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subtitle}</p>
+          <p
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--text-secondary)',
+              marginTop: 'var(--spacing-stack-xxsmall)',
+              marginBottom: 0,
+            }}
+          >
+            {subtitle}
+          </p>
         )}
         {children}
       </div>
-      {actions && <div className="ml-4">{actions}</div>}
+      {actions && <div style={{ marginLeft: 'var(--spacing-inline-medium)' }}>{actions}</div>}
     </div>
   );
 };
@@ -109,11 +144,12 @@ export const CardFooter: React.FC<CardFooterProps> = ({
 
   return (
     <div
-      className={clsx(
-        'flex items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-700',
-        alignments[align],
-        className
-      )}
+      className={clsx('flex items-center', alignments[align], className)}
+      style={{
+        marginTop: 'var(--spacing-stack-medium)',
+        paddingTop: 'var(--spacing-stack-medium)',
+        borderTop: 'var(--border-default)',
+      }}
       {...props}
     >
       {children}

@@ -208,48 +208,103 @@ export const ProfileSettingsPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ padding: 'var(--spacing-inset-medium)' }}>
       <PageHeader 
         title="Profile Settings" 
         subtitle="Manage your profile information and password" 
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div
+        className="grid grid-cols-1 lg:grid-cols-3"
+        style={{ gap: 'var(--gap-large)' }}
+      >
         {/* Profile Information */}
-        <div className="lg:col-span-2 space-y-6">
+        <div
+          className="lg:col-span-2"
+          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-large)' }}
+        >
           {/* Profile Image */}
           <Card>
             <CardHeader title="Profile Picture" />
             <CardContent>
-              <div className="flex items-center gap-6">
-                <div className="relative">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--gap-large)',
+                }}
+              >
+                <div style={{ position: 'relative' }}>
                   {formData.profile_image ? (
                     <img
                       src={formData.profile_image}
                       alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+                      style={{
+                        width: '96px',
+                        height: '96px',
+                        borderRadius: 'var(--border-radius-circle)',
+                        objectFit: 'cover',
+                        border: 'var(--border-default)',
+                      }}
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-primary-600 flex items-center justify-center text-white text-2xl font-bold border-2 border-slate-200 dark:border-slate-700">
+                    <div
+                      style={{
+                        width: '96px',
+                        height: '96px',
+                        borderRadius: 'var(--border-radius-circle)',
+                        backgroundColor: 'var(--button-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--text-inverse)',
+                        fontSize: 'var(--font-size-2xl)',
+                        fontWeight: 'var(--font-weight-bold)',
+                        border: 'var(--border-default)',
+                      }}
+                    >
                       {getInitials()}
                     </div>
                   )}
                   <label
                     htmlFor="profile-image-upload"
-                    className="absolute bottom-0 right-0 p-2 bg-primary-600 text-white rounded-full cursor-pointer hover:bg-primary-700 transition-colors"
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      padding: 'var(--spacing-inset-xsmall)',
+                      backgroundColor: 'var(--button-primary)',
+                      color: 'var(--text-inverse)',
+                      borderRadius: 'var(--border-radius-circle)',
+                      cursor: 'pointer',
+                      transition: 'background-color var(--transition-fast)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--button-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--button-primary)';
+                    }}
                   >
-                    <Camera className="h-4 w-4" />
+                    <Camera size={16} />
                     <input
                       id="profile-image-upload"
                       type="file"
                       accept="image/*"
-                      className="hidden"
+                      style={{ display: 'none' }}
                       onChange={handleImageUpload}
                     />
                   </label>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <div style={{ flex: 1 }}>
+                  <p
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--text-secondary)',
+                      marginBottom: 'var(--spacing-stack-xsmall)',
+                      marginTop: 0,
+                    }}
+                  >
                     Upload a profile picture. Maximum file size: 5MB
                   </p>
                   <Button
@@ -272,7 +327,10 @@ export const ProfileSettingsPage: React.FC = () => {
           <Card>
             <CardHeader title="Personal Information" />
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                className="grid grid-cols-1 md:grid-cols-2"
+                style={{ gap: 'var(--gap-medium)' }}
+              >
                 <Input
                   label="First Name"
                   value={formData.first_name}
@@ -317,7 +375,7 @@ export const ProfileSettingsPage: React.FC = () => {
           <Card>
             <CardHeader title="Change Password" />
             <CardContent>
-              <div className="space-y-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-medium)' }}>
                 <Input
                   label="Current Password"
                   type="password"
@@ -353,26 +411,57 @@ export const ProfileSettingsPage: React.FC = () => {
         </div>
 
         {/* Account Info Sidebar */}
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-large)' }}>
           <Card>
             <CardHeader title="Account Information" />
             <CardContent>
-              <div className="space-y-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-medium)' }}>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Role</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+                    Role
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-medium)',
+                      color: 'var(--text-primary)',
+                      marginTop: 'var(--spacing-stack-xxsmall)',
+                      marginBottom: 0,
+                    }}
+                  >
                     {user?.role || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1 capitalize">
+                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+                    Status
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-medium)',
+                      color: 'var(--text-primary)',
+                      marginTop: 'var(--spacing-stack-xxsmall)',
+                      marginBottom: 0,
+                      textTransform: 'capitalize',
+                    }}
+                  >
                     {user?.status || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Member Since</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+                    Member Since
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-medium)',
+                      color: 'var(--text-primary)',
+                      marginTop: 'var(--spacing-stack-xxsmall)',
+                      marginBottom: 0,
+                    }}
+                  >
                     {user?.created_at
                       ? new Date(user.created_at).toLocaleDateString()
                       : 'N/A'}
@@ -380,8 +469,18 @@ export const ProfileSettingsPage: React.FC = () => {
                 </div>
                 {user?.last_login && (
                   <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Last Login</p>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+                      Last Login
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 'var(--font-size-sm)',
+                        fontWeight: 'var(--font-weight-medium)',
+                        color: 'var(--text-primary)',
+                        marginTop: 'var(--spacing-stack-xxsmall)',
+                        marginBottom: 0,
+                      }}
+                    >
                       {new Date(user.last_login).toLocaleString()}
                     </p>
                   </div>

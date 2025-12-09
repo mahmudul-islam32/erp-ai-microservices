@@ -32,6 +32,7 @@ export const AppearanceSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<AppearanceSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
   
   const canRead = hasPermission(Permission.SETTINGS_READ);
   const canUpdate = hasPermission(Permission.SETTINGS_UPDATE);
@@ -227,8 +228,13 @@ export const AppearanceSettingsPage: React.FC = () => {
     }));
   };
 
-  const resetToDefaults = () => {
-    setFormData({
+  const resetToDefaults = async () => {
+    if (!canUpdate) {
+      toast.error('You do not have permission to update appearance settings');
+      return;
+    }
+
+    const defaultFormData: AppearanceSettings = {
       font_family: 'Inter',
       font_size_base: '14px',
       font_size_small: '12px',
@@ -262,8 +268,37 @@ export const AppearanceSettingsPage: React.FC = () => {
       pagination_border_color: undefined,
       pagination_items_per_page_options: undefined,
       custom_css: '',
-    });
-    toast.info('Reset to default values');
+    };
+
+    // Update local state
+    setFormData(defaultFormData);
+
+    // Save to backend
+    setResetting(true);
+    try {
+      const updated = await settingsApi.update(SettingsCategory.APPEARANCE, {
+        appearance: defaultFormData,
+      });
+
+      if (updated.appearance) {
+        setSettings(updated.appearance);
+        applyAppearanceSettings(updated.appearance);
+        
+        // Refresh the appearance context
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await refresh();
+        
+        toast.success('Settings reset to defaults and saved successfully');
+      } else {
+        toast.error('Settings reset but appearance data not returned');
+      }
+    } catch (error: any) {
+      console.error('Error resetting appearance settings:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to reset appearance settings';
+      toast.error(errorMessage);
+    } finally {
+      setResetting(false);
+    }
   };
 
   if (loading) {
@@ -862,10 +897,17 @@ export const AppearanceSettingsPage: React.FC = () => {
         {canUpdate && (
           <CardFooter>
             <div className="flex items-center justify-between w-full">
-              <Button variant="outline" onClick={resetToDefaults}>
-                Reset to Defaults
+              <Button variant="outline" onClick={resetToDefaults} disabled={saving || resetting}>
+                {resetting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Resetting...
+                  </>
+                ) : (
+                  'Reset to Defaults'
+                )}
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving || resetting}>
                 {saving ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
