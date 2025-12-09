@@ -1,3 +1,4 @@
+import path from 'path'
 import { defineConfig, UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -7,6 +8,11 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react()],
     // Base path for GitHub Pages (set VITE_BASE=/repo-name/ in CI)
     base: process.env.VITE_BASE || '/',
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
     server: {
       host: true,
       port: 5173,

@@ -4,13 +4,101 @@ on:
   push:
     branches: [main, master]
   workflow_dispatch:
+  # Optional: Separate workflow for infrastructure changes
+  # push:
+  #   paths:
+  #     - 'terraform/**'
+  #     - '.github/workflows/deploy.yml'
 
 env:
   AWS_REGION: us-east-1
   REGISTRY: ghcr.io
   IMAGE_PREFIX: mahmudul-islam32/erp
+  TF_VERSION: 1.6.0
 
 jobs:
+  # Terraform Infrastructure Job (runs on infrastructure changes or manual trigger)
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[terraform]')
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -out=tfplan
+        continue-on-error: true
+
+      - name: Terraform Plan Status
+        if: steps.terraform-plan.outcome == 'failure'
+        run: exit 1
+
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.apply_terraform == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+
+      - name: Get EC2 IP
+        id: terraform-output
+        working-directory: ./terraform
+        run: |
+          echo "instance_ip=$(terraform output -raw elastic_ip || terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
@@ -81,15 +169,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get EC2 IP from Terraform (if available)
+        id: get-ec2-ip
+        run: |
+          if [ -f terraform/terraform.tfstate ]; then
+            cd terraform
+            EC2_IP=$(terraform output -raw elastic_ip 2>/dev/null || terraform output -raw instance_public_ip 2>/dev/null || echo "")
+            if [ -n "$EC2_IP" ]; then
+              echo "ip=$EC2_IP" >> $GITHUB_OUTPUT
+              echo "✅ Found EC2 IP from Terraform: $EC2_IP"
+            else
+              echo "⚠️ Could not get IP from Terraform, using secret"
+            fi
+          else
+            echo "⚠️ Terraform state not found, using EC2_HOST secret"
+          fi
+
       - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
+          HOST: ${{ steps.get-ec2-ip.outputs.ip || secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER || 'ubuntu' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
           IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
         run: |
+          if [ -z "$HOST" ]; then
+            echo "❌ Error: EC2 host not found. Please set EC2_HOST secret or run Terraform first."
+            exit 1
+          fi
+          
           echo "$PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
           
@@ -178,4 +287,3 @@ jobs:
           else
             echo "❌ Deployment failed!"
           fi
-

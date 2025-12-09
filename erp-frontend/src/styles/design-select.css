@@ -1,0 +1,99 @@
+.design-select {
+  display: inline-block;
+  vertical-align: top;
+  min-width: fit-content;
+  width: auto;
+}
+
+.design-select--full-width {
+  display: block;
+  width: 100%;
+}
+
+.design-select__label-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--space-xs);
+  color: var(--label-color);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.design-select--full-width .design-select__wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.design-select__label {
+  margin-bottom: var(--label-margin-bottom);
+  color: var(--label-color);
+  font-size: var(--label-font-size);
+  font-weight: var(--label-font-weight);
+  display: block;
+}
+
+.design-select__field-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.design-select__wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: fit-content;
+  flex: 1;
+}
+
+.design-select__field {
+  width: 100%;
+  padding: var(--control-padding);
+  padding-right: calc(var(--spacing-inline-large) + 10px);
+  border: var(--border-default);
+  border-radius: var(--control-border-radius);
+  background-color: var(--control-background);
+  color: var(--text-primary);
+  font-size: var(--control-font-size);
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  max-width: 100%;
+}
+
+.design-select:not(.design-select--full-width) .design-select__field {
+  width: auto;
+}
+
+.design-select__field:focus {
+  outline: none;
+  border-color: var(--control-focus-border);
+  box-shadow: var(--box-shadow-focus);
+}
+
+.design-select__field:hover:not(:focus) {
+  border-color: var(--border-color-hover);
+}
+
+.design-select__icon {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-inline-xsmall);
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.design-select__required-asterisk {
+  color: var(--control-label-required-color);
+  margin-left: var(--spacing-inline-xxsmall);
+}

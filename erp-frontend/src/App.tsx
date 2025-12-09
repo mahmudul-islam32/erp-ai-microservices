@@ -86,6 +86,7 @@ import { EmployeeDetailPage } from './features/hrm/pages/EmployeeDetailPage';
 import { CreatePayrollPage } from './features/hrm/pages/CreatePayrollPage';
 import { EditPayrollPage } from './features/hrm/pages/EditPayrollPage';
 import { PayrollDetailPage } from './features/hrm/pages/PayrollDetailPage';
+import { CreateAttendancePage } from './features/hrm/pages/CreateAttendancePage';
 
 // Settings
 import { SettingsPage } from './features/dashboard/pages/SettingsPage';
@@ -504,6 +505,14 @@ function App() {
               element={
                 <PermissionRoute requiredPermission={Permission.HR_READ}>
                   <AttendancePage />
+                </PermissionRoute>
+              } 
+            />
+            <Route 
+              path="hrm/attendance/create" 
+              element={
+                <PermissionRoute requiredPermission={Permission.HR_CREATE}>
+                  <CreateAttendancePage />
                 </PermissionRoute>
               } 
             />
