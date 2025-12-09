@@ -1,0 +1,147 @@
+---
+alwaysApply: true
+description: Guidelines for formatting markdown documentation to improve readability and scannability
+author: Himel Das
+---
+
+# Documentation Formatting Rule
+
+## Core Principle
+
+When writing documentation in markdown files, use formatting (bold, italic, lists, etc.) to make content easy to scan and read. Good formatting helps readers quickly identify key concepts, examples, and important information.
+
+## Formatting Guidelines
+
+### Key Terms and Concepts
+
+**Always bold key terms** when first introduced or when they're central to the explanation:
+- Core concepts and important terms
+- Technical terms that are being defined or explained
+- Important phrases and definitions
+
+### Progressions and Sequences
+
+Use arrow notation for showing progression or relationships:
+- **Step 1** → **Step 2** → **Step 3**
+- **Definition** → **Explanation** → **Example**
+- **Input** → **Process** → **Output**
+
+### Examples and Code
+
+- Precede examples with **Example:** in bold when the example is separate from the main flow
+- Use backticks for code snippets, filenames, and technical terms: `` `config.json` ``, `` `variable_name` ``
+- Use inline code for technical terms in contexts where they're code entities or data structures
+
+### Power Notation
+
+**Always use superscript format** for all power notations instead of caret notation:
+- ✅ Use: `10⁴`, `10⁵`, `N²`, `N³`, `2ⁿ`
+- ❌ Avoid: `10^4`, `10^5`, `N^2`, `N^3`, `2^N`
+
+This applies to:
+- Numeric powers: `10⁴`, `2³¹`, `10⁸`
+- Variable powers in Big O notation: `O(N²)`, `O(N³)`, `O(2ⁿ)`
+- Mathematical expressions: `N²log(N)`, `2ⁿ + N²`
+- All contexts where powers appear in documentation
+
+### Lists
+
+Convert series of related examples or points into bulleted lists:
+- Makes multiple examples easier to scan
+- Bold the key term at the start of each bullet when listing different types or examples
+- Keep list items parallel in structure
+
+### Exercise Questions and Answer Options
+
+When formatting multiple-choice questions or exercises with answer options, use checkbox symbols to indicate correct and incorrect answers:
+
+**Format:**
+- Use **`**Answer**`** as a section header (bold)
+- List all options as bullet points with checkbox symbols:
+  - ✓ (checkmark) for correct answers
+  - □ (empty box) for incorrect/unselected answers
+- Each option should be on its own line with the checkbox symbol at the start
+
+**Example:**
+```
+**Answer**
+- □ Option A
+- ✓ Option B
+- □ Option C
+- □ Option D
+
+**Explanation**: Brief explanation of why Option B is correct.
+```
+
+**Guidelines:**
+- Always include all answer options, not just the correct one
+- Use consistent checkbox symbols throughout the document
+- Place the **Answer** section immediately after the question
+- If an explanation is provided, directly incorporate it as-is after the **Answer** section
+- Use **`**Explanation**`** as a section header (bold) when including explanations
+
+### Emphasis
+
+Use *italic* for:
+- Emphasis on specific actions or temporal aspects: "*as they occur*", "*in real-time*"
+- Drawing attention to how something works differently than expected
+- Soft emphasis that doesn't require bold
+
+Use **bold** for:
+- Key terms and concepts
+- Section labels (like "Example:", "Definition:", "Note:")
+- Important phrases or definitions
+
+### Structure
+
+- Use clear hierarchy: `#` for main sections, `##` for subsections, `###` for sub-subsections
+- Separate examples from explanations with blank lines
+- Use lists when you have 3+ related items instead of cramming them into a paragraph
+
+## Formatting Checklist
+
+When formatting documentation, ensure:
+
+✅ Key terms are bolded
+✅ Progressions use arrow notation
+✅ Examples are clearly labeled with bold "Example:" if separate
+✅ Multiple related examples are in a bulleted list
+✅ Code snippets and technical terms use backticks
+✅ Important distinctions are emphasized with bold or italic
+✅ Power notations use superscript format (10⁴, N², 2ⁿ) instead of caret notation
+✅ Exercise answer options use checkbox symbols (✓ for correct, □ for incorrect)
+✅ The text is easy to scan visually
+
+## Examples
+
+### ❌ Poorly Formatted
+
+```
+The application uses a three-stage processing pipeline. First, raw data is collected from various sources. This data goes through validation where invalid entries are filtered out. Finally, the validated data is transformed and stored in the database.
+
+The system supports several data formats. JSON format is used for API responses. CSV format is used for bulk data imports. XML format is still supported for legacy systems. YAML format is used for configuration files.
+
+For example, when a user submits a form, the data is first validated. If validation passes, it gets processed and stored. The user receives a confirmation message. If validation fails, an error is shown.
+```
+
+### ✅ Well Formatted
+
+```
+The application uses a three-stage processing pipeline: **Raw Data Collection** → **Validation** → **Transformation & Storage**. First, raw data is collected from various sources. This data goes through validation where invalid entries are filtered out. Finally, the validated data is transformed and stored in the database.
+
+The system supports several data formats:
+
+- **JSON** format is used for API responses
+- **CSV** format is used for bulk data imports
+- **XML** format is still supported for legacy systems
+- **YAML** format is used for configuration files
+
+**Example:** When a user submits a form, the data is first validated. If validation passes, it gets processed and stored. The user receives a confirmation message. If validation fails, an error is shown.
+```
+
+## Remember
+
+- Formatting should enhance readability, not distract from content
+- Be consistent with formatting choices throughout the document
+- When in doubt, bold key terms and use lists for multiple examples
+- The goal is to make documentation scannable while maintaining clarity and readability

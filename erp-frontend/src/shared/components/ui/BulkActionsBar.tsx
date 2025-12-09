@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import { DesignButton, DesignButtonProps } from './DesignButton';
 
 export interface BulkAction {
   label: string;
@@ -58,41 +59,54 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
 }) => {
   if (selectedCount === 0) return null;
 
-  const variantStyles = {
-    default: 'text-primary-600 hover:text-primary-900',
-    danger: 'text-red-600 hover:text-red-900',
-    primary: 'text-primary-600 hover:text-primary-900 font-semibold',
+  const variantMap: Record<BulkAction['variant'] | 'default', DesignButtonProps['variant']> = {
+    default: 'tertiary',
+    primary: 'primary',
+    danger: 'danger',
   };
 
   return (
-    <div className={clsx(
-      'bg-primary-50 border border-primary-200 rounded-lg p-4',
-      className
-    )}>
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-primary-800">
+    <div
+      className={clsx(className)}
+      style={{
+        backgroundColor: 'var(--background-secondary)',
+        border: 'var(--border-default)',
+        borderRadius: 'var(--card-radius)',
+        padding: 'var(--spacing-inset-medium)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 'var(--gap-medium)',
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--text-primary)',
+          }}
+        >
           {message || `${selectedCount} item(s) selected`}
         </p>
-        <div className="flex items-center space-x-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-small)' }}>
           {actions.map((action, index) => (
-            <button
+            <DesignButton
               key={index}
+              variant={variantMap[action.variant || 'default']}
+              size="small"
               onClick={action.onClick}
-              className={clsx(
-                'text-sm transition-colors',
-                variantStyles[action.variant || 'default']
-              )}
             >
               {action.label}
-            </button>
+            </DesignButton>
           ))}
           {onClear && (
-            <button
-              onClick={onClear}
-              className="text-sm text-primary-600 hover:text-primary-900"
-            >
+            <DesignButton variant="link" size="small" onClick={onClear}>
               Clear Selection
-            </button>
+            </DesignButton>
           )}
         </div>
       </div>

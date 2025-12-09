@@ -1,0 +1,39 @@
+:root {
+  /* Semantic UI Colors */
+  --color-primary: hsl(220 48% 28%); /* Default for primary actions, main UI elements */
+  --color-secondary: hsl(220 48% 40%); /* Lighter blue variant for secondary actions */
+  --color-secondary-lighter: hsl(220 48% 95%); /* Very light blue for backgrounds */
+  --color-secondary-light: hsl(220 48% 80%); /* Light blue for borders */
+  --color-secondary-dark: hsl(220 48% 30%); /* Darker blue for text */
+  --color-accent: hsl(56 100% 50%); /* Brand accent, use sparingly for highlights */
+
+  /* Feedback Colors */
+  --color-success: hsl(121 65% 32%); /* Success states, confirmations */
+  --color-warning: hsl(40 100% 50%); /* Warnings, caution states */
+  --color-warning-lighter: hsl(40 100% 95%); /* Very light yellow/orange for backgrounds */
+  --color-warning-light: hsl(40 100% 80%); /* Light yellow/orange for borders */
+  --color-warning-dark: hsl(40 100% 40%); /* Darker yellow/orange for text */
+  --color-danger: hsl(14 85% 48%); /* Errors, destructive actions (alias for error) */
+  --color-danger-lighter: hsl(14 85% 95%); /* Very light red for backgrounds */
+  --color-danger-light: hsl(14 85% 80%); /* Light red for borders */
+  --color-danger-dark: hsl(14 85% 40%); /* Darker red for text */
+  --color-error: hsl(14 85% 48%); /* Errors, destructive actions */
+  --color-error-dark: hsl(0 79% 43%); /* Darker error color for hover states on destructive actions */
+  --color-info: hsl(200 80% 50%); /* Informational elements */
+
+  /* Neutral Colors */
+  --color-gray-lightest: hsl(220 20% 97%); /* Background, subtle distinctions */
+  --color-gray-lighter: hsl(220 15% 90%); /* Table alternating rows, form backgrounds */
+  --color-gray-light: hsl(220 10% 80%); /* Disabled elements, subtle borders */
+  --color-gray: hsl(220 5% 60%); /* Secondary text, placeholder text */
+  --color-gray-dark: hsl(220 10% 40%); /* Medium-emphasis text */
+  --color-gray-darker: hsl(220 15% 20%); /* High-emphasis text */
+
+  /* Base Colors */
+  --color-white: hsl(0 0% 100%); /* Text on dark backgrounds, white space */
+  --color-black: hsl(0 0% 0%); /* For high contrast when needed */
+
+  /* UI-Specific Colors */
+  --color-dark-blue: hsl(220 44% 14%); /* Deep blue for contrast elements */
+  --color-blue-medium: hsl(225 51% 29%); /* Medium emphasis blue elements */
+}

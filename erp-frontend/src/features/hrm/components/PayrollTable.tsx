@@ -254,31 +254,32 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
+                    {/* View Button - uses appearance settings dynamically */}
                     <IconButton
-                      icon={<Eye className="h-4 w-4" />}
+                      icon={Eye}
+                      variant="outline"
                       onClick={() => onView(payroll)}
-                      variant="ghost"
-                      size="sm"
-                      tooltip="View"
+                      title="View Details"
                     />
+
+                    {/* Edit Button - only show if user has permission */}
                     {canEdit && (
                       <IconButton
-                        icon={<Edit className="h-4 w-4" />}
+                        icon={Edit}
+                        variant="primary"
                         onClick={() => onEdit(payroll)}
-                        variant="ghost"
-                        size="sm"
-                        tooltip="Edit"
+                        title="Edit Payroll"
                       />
                     )}
+
+                    {/* Delete Button - only show if user has permission */}
                     {canDelete && (
                       <IconButton
-                        icon={<Trash2 className="h-4 w-4" />}
+                        icon={Trash2}
+                        variant="danger"
                         onClick={() => onDelete(payroll)}
-                        variant="ghost"
-                        size="sm"
-                        tooltip="Delete"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Delete Payroll"
                       />
                     )}
                   </div>

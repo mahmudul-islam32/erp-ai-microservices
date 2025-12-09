@@ -642,8 +642,17 @@ const hrmSlice = createSlice({
       .addCase(fetchAttendance.fulfilled, (state, action) => {
         state.attendance.currentAttendance = action.payload;
       })
+      .addCase(fetchAttendanceRecords.pending, (state) => {
+        state.attendance.loading = true;
+        state.attendance.error = null;
+      })
       .addCase(fetchAttendanceRecords.fulfilled, (state, action) => {
+        state.attendance.loading = false;
         state.attendance.attendance = action.payload;
+      })
+      .addCase(fetchAttendanceRecords.rejected, (state, action) => {
+        state.attendance.loading = false;
+        state.attendance.error = action.error.message || 'Failed to fetch attendance records';
       })
       .addCase(fetchAttendanceHistory.fulfilled, (state, action) => {
         state.attendance.attendance = action.payload;

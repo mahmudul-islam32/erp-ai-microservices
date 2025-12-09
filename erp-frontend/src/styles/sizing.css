@@ -1,0 +1,89 @@
+:root {
+  /* ================================
+     SPACING SCALE (4px system)
+     ================================ */
+  --space-xxs: 0.25rem; /* 4px */
+  --space-xs: 0.5rem; /* 8px */
+  --space-sm: 0.75rem; /* 12px */
+  --space-md: 1rem; /* 16px */
+  --space-lg: 1.5rem; /* 24px */
+  --space-xl: 2rem; /* 32px */
+  --space-2xl: 2.5rem; /* 40px */
+  --space-3xl: 4rem; /* 64px */
+
+  /* Spacing Utilities */
+  --space-gap-sm: var(--space-md);
+  --space-container: var(--space-xl);
+  --space-section: var(--space-2xl);
+  --space-auto: auto;
+
+  /* ================================
+     GRID SYSTEM
+     ================================ */
+  --grid-columns: 12;
+  --grid-gutter-mobile: 1rem; /* 16px */
+  --grid-gutter-tablet: 1.5rem; /* 24px */
+  --grid-gutter-desktop: 2rem; /* 32px */
+
+  --container-max-width-mobile: 100%;
+  --container-max-width-tablet: 90%;
+  --container-max-width-desktop: 1280px;
+  --container-max-width-xl-desktop: 1400px;
+
+  /* ================================
+     TYPOGRAPHY SCALE
+     ================================ */
+  --font-size-xxs: 0.625rem; /* 10px */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-md: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.75rem; /* 28px */
+  --font-size-4xl: 2rem; /* 32px */
+  --font-size-5xl: 2.5rem; /* 40px */
+  --font-size-6xl: 3rem; /* 48px */
+
+  /* Responsive Headings (fluid with clamp) */
+  --font-size-h1: clamp(2rem, 5vw, 3rem); /* 32px → 48px */
+  --font-size-h2: clamp(1.5rem, 4vw, 2rem); /* 24px → 32px */
+  --font-size-h3: clamp(1.25rem, 3.5vw, 1.5rem); /* 20px → 24px */
+  --font-size-h4: clamp(1rem, 3vw, 1.25rem); /* 16px → 20px */
+
+  /* Additional Typography Tokens */
+  --font-size-body: var(--font-size-md);
+  --line-height-base: 1.5;
+
+  /* ================================
+     BORDER RADIUS
+     ================================ */
+  --border-radius-sm: 0.25rem; /* 4px */
+  --border-radius-md: 0.5rem; /* 8px */
+  --border-radius-lg: 0.75rem; /* 12px */
+  --border-radius-xl: 1.25rem; /* 20px */
+  --border-radius-circle: 50%;
+
+  /* ================================
+     ELEVATION / SHADOWS
+     ================================ */
+  --elevation-none: none;
+  --elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.1);
+  --elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.15);
+  --elevation-3: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  --elevation-hover: 0 0.125rem 0.9375rem rgba(0, 0, 0, 0.15);
+
+  /* ================================
+     BREAKPOINTS
+     Note: These values can't be used directly in media queries as CSS variables aren't 
+     supported there. Use these values as references when writing media queries.
+     Example: 
+     @media (min-width: 768px) { /* tablet breakpoint from --breakpoint-tablet
+     ================================ */
+  --breakpoint-mobile: 375px; /* Small mobile devices */
+  --breakpoint-mobile-lg: 480px; /* Large mobile devices */
+  --breakpoint-tablet: 768px; /* Tablets and small laptops */
+  --breakpoint-desktop: 1024px; /* Desktop screens */
+  --breakpoint-desktop-lg: 1280px; /* Large desktop screens */
+  --breakpoint-desktop-xl: 1440px; /* Extra large desktop screens */
+}

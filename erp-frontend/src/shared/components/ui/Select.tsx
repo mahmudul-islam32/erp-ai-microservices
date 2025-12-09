@@ -1,5 +1,5 @@
 import React from 'react';
-import { clsx } from 'clsx';
+import { DesignSelect, Option } from './DesignSelect';
 
 export interface SelectOption {
   value: string;
@@ -22,48 +22,52 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       options,
       className,
       id,
+      value,
+      onChange,
+      required,
       ...props
     },
     ref
   ) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const stringValue = value === undefined || value === null ? '' : String(value);
+
+    const handleChange = (newValue: string) => {
+      if (onChange) {
+        const syntheticEvent = {
+          target: { value: newValue },
+        } as React.ChangeEvent<HTMLSelectElement>;
+        onChange(syntheticEvent);
+      }
+    };
+
+    const designOptions: Option[] = options.map((opt) => ({
+      value: opt.value,
+      label: opt.label,
+    }));
 
     return (
       <div className="w-full">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {label}
-          </label>
-        )}
-        <select
-          ref={ref}
+        <DesignSelect
           id={inputId}
-          className={clsx(
-            'block w-full rounded-md border shadow-sm transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-offset-0',
-            error
-              ? 'border-danger-300 text-danger-900 focus:ring-danger-500 focus:border-danger-500'
-              : 'border-slate-300 focus:ring-primary-500 focus:border-primary-500',
-            'disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed',
-            'px-3 py-2 text-sm',
-            className
-          )}
+          label={label || ''}
+          value={stringValue}
+          required={required}
+          options={designOptions}
+          onChange={handleChange}
+          className={className}
+          fullWidth
           {...props}
-        >
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        />
         {error && (
-          <p className="mt-1 text-sm text-danger-600">{error}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--status-error)' }}>
+            {error}
+          </p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-slate-500">{helperText}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {helperText}
+          </p>
         )}
       </div>
     );

@@ -31,12 +31,16 @@ class AttendanceService:
             if employee_id:
                 filter_dict["employee_id"] = employee_id
             if date_from:
-                filter_dict["date"] = {"$gte": date_from}
+                # Convert date to datetime for MongoDB query
+                date_from_datetime = datetime.combine(date_from, time.min)
+                filter_dict["date"] = {"$gte": date_from_datetime}
             if date_to:
+                # Convert date to datetime for MongoDB query
+                date_to_datetime = datetime.combine(date_to, time.max)
                 if "date" in filter_dict:
-                    filter_dict["date"]["$lte"] = date_to
+                    filter_dict["date"]["$lte"] = date_to_datetime
                 else:
-                    filter_dict["date"] = {"$lte": date_to}
+                    filter_dict["date"] = {"$lte": date_to_datetime}
             
             # Get attendance records
             cursor = self.db.attendance.find(filter_dict).skip(skip).limit(limit).sort("date", -1)
@@ -49,14 +53,25 @@ class AttendanceService:
                 del record["_id"]
                 
                 # Convert datetime fields to time if they exist
+                # MongoDB stores time as ISO format strings, convert back to time objects
                 if "clock_in_time" in record and record["clock_in_time"]:
-                    if isinstance(record["clock_in_time"], datetime):
+                    if isinstance(record["clock_in_time"], str):
+                        record["clock_in_time"] = time.fromisoformat(record["clock_in_time"])
+                    elif isinstance(record["clock_in_time"], datetime):
                         record["clock_in_time"] = record["clock_in_time"].time()
                 if "clock_out_time" in record and record["clock_out_time"]:
-                    if isinstance(record["clock_out_time"], datetime):
+                    if isinstance(record["clock_out_time"], str):
+                        record["clock_out_time"] = time.fromisoformat(record["clock_out_time"])
+                    elif isinstance(record["clock_out_time"], datetime):
                         record["clock_out_time"] = record["clock_out_time"].time()
                 if "date" in record and isinstance(record["date"], datetime):
                     record["date"] = record["date"].date()
+                # Convert status string to enum if needed
+                if "status" in record and isinstance(record["status"], str):
+                    try:
+                        record["status"] = AttendanceStatus(record["status"])
+                    except ValueError:
+                        record["status"] = AttendanceStatus.PRESENT
                 
                 result.append(AttendanceResponse(**record))
             
@@ -76,12 +91,16 @@ class AttendanceService:
             current_time = clock_in_time or datetime.now().time()
             
             # Check if already clocked in today
+            # Convert date to datetime for MongoDB query (MongoDB stores dates as datetime)
+            today_datetime = datetime.combine(today, time.min)
             existing_attendance = await self.db.attendance.find_one({
                 "employee_id": employee_id,
-                "date": today
+                "date": today_datetime
             })
             
-            if existing_attendance and existing_attendance.get("clock_in_time"):
+            # Check if clock_in_time exists (could be string from MongoDB)
+            clock_in_exists = existing_attendance and existing_attendance.get("clock_in_time")
+            if clock_in_exists:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Already clocked in today"
@@ -96,12 +115,14 @@ class AttendanceService:
                 )
             
             # Create or update attendance record
+            # Use today_datetime already defined above for MongoDB storage (MongoDB can't encode date objects directly)
+            # Convert time to string for MongoDB storage (MongoDB can't encode time objects directly)
             attendance_doc = {
                 "employee_id": employee_id,
                 "employee_name": f"{employee['first_name']} {employee['last_name']}",
-                "date": today,
-                "clock_in_time": current_time,
-                "status": AttendanceStatus.PRESENT,
+                "date": today_datetime,  # Store as datetime for MongoDB compatibility
+                "clock_in_time": current_time.isoformat() if isinstance(current_time, time) else str(current_time),  # Store as string for MongoDB compatibility
+                "status": AttendanceStatus.PRESENT.value,  # Store enum value as string for MongoDB compatibility
                 "records": [{
                     "type": "clock_in",
                     "timestamp": datetime.combine(today, current_time),
@@ -118,11 +139,11 @@ class AttendanceService:
             if existing_attendance:
                 # Update existing record
                 await self.db.attendance.update_one(
-                    {"employee_id": employee_id, "date": today},
+                    {"employee_id": employee_id, "date": today_datetime},
                     {
                         "$set": {
-                            "clock_in_time": current_time,
-                            "status": AttendanceStatus.PRESENT,
+                            "clock_in_time": current_time.isoformat() if isinstance(current_time, time) else str(current_time),  # Store as string for MongoDB compatibility
+                            "status": AttendanceStatus.PRESENT.value,  # Store enum value as string for MongoDB compatibility
                             "records": attendance_doc["records"],
                             "updated_at": datetime.utcnow(),
                             "updated_by": employee_id
@@ -136,19 +157,53 @@ class AttendanceService:
             # Get the record
             attendance = await self.db.attendance.find_one({
                 "employee_id": employee_id,
-                "date": today
+                "date": today_datetime
             })
-            attendance["_id"] = str(attendance["_id"])
+            
+            if not attendance:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Attendance record not found after creation"
+                )
+            
+            # Convert to response format
+            attendance["id"] = str(attendance["_id"])
+            del attendance["_id"]
+            
+            # Convert datetime fields to time/date if needed
+            # MongoDB stores time as ISO format strings, convert back to time objects
+            if "clock_in_time" in attendance and attendance["clock_in_time"]:
+                if isinstance(attendance["clock_in_time"], str):
+                    # Convert from ISO format string to time object
+                    attendance["clock_in_time"] = time.fromisoformat(attendance["clock_in_time"])
+                elif isinstance(attendance["clock_in_time"], datetime):
+                    attendance["clock_in_time"] = attendance["clock_in_time"].time()
+            if "clock_out_time" in attendance and attendance["clock_out_time"]:
+                if isinstance(attendance["clock_out_time"], str):
+                    # Convert from ISO format string to time object
+                    attendance["clock_out_time"] = time.fromisoformat(attendance["clock_out_time"])
+                elif isinstance(attendance["clock_out_time"], datetime):
+                    attendance["clock_out_time"] = attendance["clock_out_time"].time()
+            if "date" in attendance and isinstance(attendance["date"], datetime):
+                attendance["date"] = attendance["date"].date()
+            # Convert status string to enum if needed (MongoDB stores as string)
+            if "status" in attendance and isinstance(attendance["status"], str):
+                try:
+                    attendance["status"] = AttendanceStatus(attendance["status"])
+                except ValueError:
+                    attendance["status"] = AttendanceStatus.PRESENT
             
             return AttendanceResponse(**attendance)
             
         except HTTPException:
             raise
         except Exception as e:
+            import traceback
             logger.error(f"Error clocking in: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to clock in"
+                detail=f"Failed to clock in: {str(e)}"
             )
     
     async def clock_out(self, employee_id: str, clock_out_time: Optional[time] = None, location: Optional[str] = None, notes: Optional[str] = None) -> AttendanceResponse:
@@ -157,10 +212,13 @@ class AttendanceService:
             today = date.today()
             current_time = clock_out_time or datetime.now().time()
             
+            # Convert date to datetime for MongoDB query
+            today_datetime = datetime.combine(today, time.min)
+            
             # Get today's attendance
             attendance = await self.db.attendance.find_one({
                 "employee_id": employee_id,
-                "date": today
+                "date": today_datetime
             })
             
             if not attendance:
@@ -176,7 +234,11 @@ class AttendanceService:
                 )
             
             # Calculate total hours
+            # Convert clock_in_time from string to time object if needed (MongoDB stores as string)
             clock_in_time = attendance["clock_in_time"]
+            if isinstance(clock_in_time, str):
+                clock_in_time = time.fromisoformat(clock_in_time)
+            
             total_hours = self._calculate_hours(clock_in_time, current_time)
             
             # Calculate overtime (assuming 8 hours is standard)
@@ -184,10 +246,10 @@ class AttendanceService:
             
             # Update attendance record
             await self.db.attendance.update_one(
-                {"employee_id": employee_id, "date": today},
+                {"employee_id": employee_id, "date": today_datetime},
                 {
                     "$set": {
-                        "clock_out_time": current_time,
+                        "clock_out_time": current_time.isoformat() if isinstance(current_time, time) else str(current_time),  # Store as string for MongoDB compatibility
                         "total_hours": total_hours,
                         "overtime_hours": overtime_hours,
                         "records": attendance["records"] + [{
@@ -205,9 +267,34 @@ class AttendanceService:
             # Get updated record
             updated_attendance = await self.db.attendance.find_one({
                 "employee_id": employee_id,
-                "date": today
+                "date": today_datetime
             })
-            updated_attendance["_id"] = str(updated_attendance["_id"])
+            
+            if not updated_attendance:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Attendance record not found after update"
+                )
+            
+            # Convert to response format
+            updated_attendance["id"] = str(updated_attendance["_id"])
+            del updated_attendance["_id"]
+            
+            # Convert datetime fields to time/date if needed
+            if "clock_in_time" in updated_attendance and updated_attendance["clock_in_time"]:
+                if isinstance(updated_attendance["clock_in_time"], datetime):
+                    updated_attendance["clock_in_time"] = updated_attendance["clock_in_time"].time()
+            if "clock_out_time" in updated_attendance and updated_attendance["clock_out_time"]:
+                if isinstance(updated_attendance["clock_out_time"], datetime):
+                    updated_attendance["clock_out_time"] = updated_attendance["clock_out_time"].time()
+            if "date" in updated_attendance and isinstance(updated_attendance["date"], datetime):
+                updated_attendance["date"] = updated_attendance["date"].date()
+            # Convert status string to enum if needed
+            if "status" in updated_attendance and isinstance(updated_attendance["status"], str):
+                try:
+                    updated_attendance["status"] = AttendanceStatus(updated_attendance["status"])
+                except ValueError:
+                    updated_attendance["status"] = AttendanceStatus.PRESENT
             
             return AttendanceResponse(**updated_attendance)
             
@@ -235,9 +322,11 @@ class AttendanceService:
     async def get_attendance(self, employee_id: str, date: date) -> AttendanceResponse:
         """Get attendance for specific date"""
         try:
+            # Convert date to datetime for MongoDB query
+            date_datetime = datetime.combine(date, time.min)
             attendance = await self.db.attendance.find_one({
                 "employee_id": employee_id,
-                "date": date
+                "date": date_datetime
             })
             
             if not attendance:
@@ -246,7 +335,26 @@ class AttendanceService:
                     detail="Attendance record not found"
                 )
             
-            attendance["_id"] = str(attendance["_id"])
+            # Convert to response format
+            attendance["id"] = str(attendance["_id"])
+            del attendance["_id"]
+            
+            # Convert datetime fields to time/date if needed
+            if "clock_in_time" in attendance and attendance["clock_in_time"]:
+                if isinstance(attendance["clock_in_time"], datetime):
+                    attendance["clock_in_time"] = attendance["clock_in_time"].time()
+            if "clock_out_time" in attendance and attendance["clock_out_time"]:
+                if isinstance(attendance["clock_out_time"], datetime):
+                    attendance["clock_out_time"] = attendance["clock_out_time"].time()
+            if "date" in attendance and isinstance(attendance["date"], datetime):
+                attendance["date"] = attendance["date"].date()
+            # Convert status string to enum if needed
+            if "status" in attendance and isinstance(attendance["status"], str):
+                try:
+                    attendance["status"] = AttendanceStatus(attendance["status"])
+                except ValueError:
+                    attendance["status"] = AttendanceStatus.PRESENT
+            
             return AttendanceResponse(**attendance)
             
         except HTTPException:
@@ -268,16 +376,38 @@ class AttendanceService:
     ) -> List[AttendanceResponse]:
         """Get attendance history for date range"""
         try:
+            # Convert dates to datetime for MongoDB query
+            start_datetime = datetime.combine(start_date, time.min)
+            end_datetime = datetime.combine(end_date, time.max)
             cursor = self.db.attendance.find({
                 "employee_id": employee_id,
-                "date": {"$gte": start_date, "$lte": end_date}
+                "date": {"$gte": start_datetime, "$lte": end_datetime}
             }).skip(skip).limit(limit).sort("date", -1)
             
             attendances = await cursor.to_list(length=limit)
             
             result = []
             for attendance in attendances:
-                attendance["_id"] = str(attendance["_id"])
+                # Convert to response format
+                attendance["id"] = str(attendance["_id"])
+                del attendance["_id"]
+                
+                # Convert datetime fields to time/date if needed
+                if "clock_in_time" in attendance and attendance["clock_in_time"]:
+                    if isinstance(attendance["clock_in_time"], datetime):
+                        attendance["clock_in_time"] = attendance["clock_in_time"].time()
+                if "clock_out_time" in attendance and attendance["clock_out_time"]:
+                    if isinstance(attendance["clock_out_time"], datetime):
+                        attendance["clock_out_time"] = attendance["clock_out_time"].time()
+                if "date" in attendance and isinstance(attendance["date"], datetime):
+                    attendance["date"] = attendance["date"].date()
+                # Convert status string to enum if needed
+                if "status" in attendance and isinstance(attendance["status"], str):
+                    try:
+                        attendance["status"] = AttendanceStatus(attendance["status"])
+                    except ValueError:
+                        attendance["status"] = AttendanceStatus.PRESENT
+                
                 result.append(AttendanceResponse(**attendance))
             
             return result
