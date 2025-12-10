@@ -249,28 +249,44 @@ jobs:
             fi
             
             # Determine docker compose command (try plugin first, then standalone)
-            if ${USE_SUDO}docker compose version > /dev/null 2>&1; then
-              COMPOSE_CMD="${USE_SUDO}docker compose"
-            elif ${USE_SUDO}docker-compose version > /dev/null 2>&1; then
-              COMPOSE_CMD="${USE_SUDO}docker-compose"
+            # Use a function to handle commands with spaces properly
+            if [ -n "$USE_SUDO" ]; then
+              # With sudo
+              if sudo docker compose version > /dev/null 2>&1; then
+                docker_compose() { sudo docker compose "$@"; }
+                echo "Using: sudo docker compose"
+              elif sudo docker-compose version > /dev/null 2>&1; then
+                docker_compose() { sudo docker-compose "$@"; }
+                echo "Using: sudo docker-compose"
+              else
+                echo "❌ Error: docker compose not found"
+                exit 1
+              fi
             else
-              echo "❌ Error: docker compose not found"
-              exit 1
+              # Without sudo
+              if docker compose version > /dev/null 2>&1; then
+                docker_compose() { docker compose "$@"; }
+                echo "Using: docker compose"
+              elif docker-compose version > /dev/null 2>&1; then
+                docker_compose() { docker-compose "$@"; }
+                echo "Using: docker-compose"
+              else
+                echo "❌ Error: docker compose not found"
+                exit 1
+              fi
             fi
-            
-            echo "Using: $COMPOSE_CMD"
             
             # Pull latest images
             echo "Pulling latest images..."
-            eval "$COMPOSE_CMD pull"
+            docker_compose pull
             
             # Stop old containers
             echo "Stopping old containers..."
-            eval "$COMPOSE_CMD down"
+            docker_compose down
             
             # Start services
             echo "Starting services..."
-            eval "$COMPOSE_CMD up -d"
+            docker_compose up -d
             
             # Wait for services to start
             echo "Waiting for services to start..."
@@ -278,7 +294,7 @@ jobs:
             
             # Check container status
             echo "Container status:"
-            eval "$COMPOSE_CMD ps"
+            docker_compose ps
             
             # Health check
             echo "Checking service health..."
@@ -295,7 +311,7 @@ jobs:
             
             # Check logs for errors
             echo "Recent logs:"
-            eval "$COMPOSE_CMD logs --tail=20"
+            docker_compose logs --tail=20
             
             # Cleanup old images
             echo "Cleaning up old images..."
