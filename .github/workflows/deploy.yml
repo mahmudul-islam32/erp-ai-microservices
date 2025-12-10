@@ -334,7 +334,7 @@ jobs:
             fi
             
             echo "✅ Deployment completed successfully!"
-EOSSH
+          EOSSH
           
           rm -f private_key.pem
 
