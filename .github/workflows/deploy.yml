@@ -249,9 +249,9 @@ jobs:
             fi
             
             # Determine docker compose command (try plugin first, then standalone)
-            if docker compose version > /dev/null 2>&1; then
+            if ${USE_SUDO}docker compose version > /dev/null 2>&1; then
               COMPOSE_CMD="${USE_SUDO}docker compose"
-            elif docker-compose version > /dev/null 2>&1; then
+            elif ${USE_SUDO}docker-compose version > /dev/null 2>&1; then
               COMPOSE_CMD="${USE_SUDO}docker-compose"
             else
               echo "❌ Error: docker compose not found"
@@ -262,15 +262,15 @@ jobs:
             
             # Pull latest images
             echo "Pulling latest images..."
-            $COMPOSE_CMD pull
+            eval "$COMPOSE_CMD pull"
             
             # Stop old containers
             echo "Stopping old containers..."
-            $COMPOSE_CMD down
+            eval "$COMPOSE_CMD down"
             
             # Start services
             echo "Starting services..."
-            $COMPOSE_CMD up -d
+            eval "$COMPOSE_CMD up -d"
             
             # Wait for services to start
             echo "Waiting for services to start..."
@@ -278,7 +278,7 @@ jobs:
             
             # Check container status
             echo "Container status:"
-            $COMPOSE_CMD ps
+            eval "$COMPOSE_CMD ps"
             
             # Health check
             echo "Checking service health..."
@@ -295,7 +295,7 @@ jobs:
             
             # Check logs for errors
             echo "Recent logs:"
-            $COMPOSE_CMD logs --tail=20
+            eval "$COMPOSE_CMD logs --tail=20"
             
             # Cleanup old images
             echo "Cleaning up old images..."
