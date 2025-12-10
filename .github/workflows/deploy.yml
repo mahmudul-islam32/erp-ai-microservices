@@ -210,6 +210,12 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST bash -s << EOSSH
             set -e
             
+            # Fix Docker permissions - ensure ubuntu user can use docker
+            sudo usermod -aG docker ubuntu || true
+            mkdir -p ~/.docker
+            sudo chown -R ubuntu:ubuntu ~/.docker || true
+            chmod 755 ~/.docker || true
+            
             # Create directory if it doesn't exist
             mkdir -p ~/erp
             cd ~/erp
@@ -231,19 +237,28 @@ jobs:
             export IMAGE_TAG=latest
             
             # Login to GitHub Container Registry
-            echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+            # Use sudo if docker group hasn't taken effect, or ensure proper permissions
+            if ! echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin 2>/dev/null; then
+              echo "⚠️ Docker login failed, trying with sudo..."
+              echo "${GITHUB_TOKEN}" | sudo docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+              DOCKER_CMD="sudo docker"
+              COMPOSE_CMD="sudo docker compose"
+            else
+              DOCKER_CMD="docker"
+              COMPOSE_CMD="docker compose"
+            fi
             
             # Pull latest images
             echo "Pulling latest images..."
-            docker compose pull
+            $COMPOSE_CMD pull
             
             # Stop old containers
             echo "Stopping old containers..."
-            docker compose down
+            $COMPOSE_CMD down
             
             # Start services
             echo "Starting services..."
-            docker compose up -d
+            $COMPOSE_CMD up -d
             
             # Wait for services to start
             echo "Waiting for services to start..."
@@ -251,7 +266,7 @@ jobs:
             
             # Check container status
             echo "Container status:"
-            docker compose ps
+            $COMPOSE_CMD ps
             
             # Health check
             echo "Checking service health..."
@@ -268,11 +283,11 @@ jobs:
             
             # Check logs for errors
             echo "Recent logs:"
-            docker compose logs --tail=20
+            $COMPOSE_CMD logs --tail=20
             
             # Cleanup old images
             echo "Cleaning up old images..."
-            docker image prune -af --filter "until=24h" || true
+            $DOCKER_CMD image prune -af --filter "until=24h" || true
             
             echo "✅ Deployment completed successfully!"
           EOSSH
