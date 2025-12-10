@@ -1,6 +1,7 @@
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { DesignButton } from './DesignButton';
 
 export interface FilterPanelProps {
   /**
@@ -52,28 +53,64 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   className,
 }) => {
   return (
-    <div className={clsx(
-      'bg-white p-6 rounded-lg shadow-sm border border-gray-200',
-      className
-    )}>
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center space-x-2">
-          <Filter className="h-5 w-5 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+    <div
+      className={clsx(className)}
+      style={{
+        backgroundColor: 'var(--card-background)',
+        border: 'var(--border-default)',
+        borderRadius: 'var(--card-radius)',
+        boxShadow: 'var(--card-shadow)',
+        padding: 'var(--card-padding)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 'var(--spacing-stack-medium)',
+          gap: 'var(--gap-small)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-small)' }}>
+          <Filter size={20} color="var(--icon-color-primary)" />
+          <h3
+            style={{
+              fontSize: 'var(--font-size-lg)',
+              fontWeight: 'var(--font-weight-medium)',
+              color: 'var(--text-primary)',
+              margin: 0,
+            }}
+          >
+            {title}
+          </h3>
           {hasActiveFilters && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: 'var(--spacing-squish-small)',
+                borderRadius: 'var(--border-radius-sm)',
+                fontSize: 'var(--font-size-xs)',
+                fontWeight: 'var(--font-weight-medium)',
+                backgroundColor: 'var(--background-primary)',
+                color: 'var(--text-inverse)',
+              }}
+            >
               Active
             </span>
           )}
         </div>
         {hasActiveFilters && onClear && (
-          <button
+          <DesignButton
             onClick={onClear}
-            className="inline-flex items-center text-sm text-primary-600 hover:text-primary-900 font-medium"
+            variant="link"
+            size="small"
+            className="filter-panel__clear"
           >
-            <X className="h-4 w-4 mr-1" />
+            <X size={14} style={{ marginRight: 'var(--spacing-inline-xxsmall)' }} />
             Clear All
-          </button>
+          </DesignButton>
         )}
       </div>
       {children}

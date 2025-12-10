@@ -1,5 +1,5 @@
 import React from 'react';
-import { clsx } from 'clsx';
+import { DesignInput } from './DesignInput';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -19,57 +19,45 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       rightIcon,
       className,
       id,
+      value,
+      onChange,
+      required,
       ...props
     },
     ref
   ) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const stringValue = value === undefined || value === null ? '' : String(value);
+
+    const handleChange = (newValue: string) => {
+      if (onChange) {
+        const syntheticEvent = {
+          target: { value: newValue },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(syntheticEvent);
+      }
+    };
 
     return (
       <div className="w-full">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-          >
-            {label}
-          </label>
-        )}
-        <div className="relative">
-          {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 dark:text-slate-500">{leftIcon}</span>
-            </div>
-          )}
-          <input
-            ref={ref}
-            id={inputId}
-            className={clsx(
-              'block w-full rounded-md border shadow-sm transition-colors',
-              'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100',
-              'focus:outline-none focus:ring-2 focus:ring-offset-0',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
-              error
-                ? 'border-danger-300 dark:border-danger-600 text-danger-900 dark:text-danger-300 placeholder-danger-300 dark:placeholder-danger-500 focus:ring-danger-500 focus:border-danger-500'
-                : 'border-slate-300 dark:border-slate-600 focus:ring-primary-500 focus:border-primary-500',
-              'disabled:bg-slate-50 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:cursor-not-allowed',
-              'px-3 py-2 text-sm',
-              className
-            )}
-            {...props}
-          />
-          {rightIcon && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span className="text-slate-400 dark:text-slate-500">{rightIcon}</span>
-            </div>
-          )}
-        </div>
+        <DesignInput
+          id={inputId}
+          label={label}
+          value={stringValue}
+          required={required}
+          onChange={handleChange}
+          className={className}
+          {...(props as any)}
+        />
         {error && (
-          <p className="mt-1 text-sm text-danger-600 dark:text-danger-400">{error}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--status-error)' }}>
+            {error}
+          </p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{helperText}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {helperText}
+          </p>
         )}
       </div>
     );

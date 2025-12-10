@@ -25,6 +25,8 @@ import { Users, CheckCircle, Clock, XCircle, Download, Plus } from 'lucide-react
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 
+import '@/styles/users.css';
+
 export const UsersPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -150,7 +152,7 @@ export const UsersPage: React.FC = () => {
   const suspendedUsers = users.filter((u) => u.status === 'suspended').length;
 
   return (
-    <div className="space-y-6">
+    <div className="users-page">
       {/* Header */}
       <PageHeader
         title="Users Management"
@@ -172,7 +174,7 @@ export const UsersPage: React.FC = () => {
       />
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="users-stats-grid">
         <StatCard
           label="Total Users"
           value={totalUsers}

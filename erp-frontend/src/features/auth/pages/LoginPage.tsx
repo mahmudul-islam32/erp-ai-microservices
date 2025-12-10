@@ -7,10 +7,12 @@ import { LogIn, Shield } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { login, clearError } from '../store/authSlice';
 import { twoFactorService } from '../services/twoFactorService';
-import { Button } from '../../../shared/components/ui/Button';
-import { Input } from '../../../shared/components/ui/Input';
+import { DesignButton } from '../../../shared/components/ui/DesignButton';
+import { DesignInput } from '../../../shared/components/ui/DesignInput';
 import { Card } from '../../../shared/components/ui/Card';
 import { toast } from 'sonner';
+
+import '@/styles/auth.css';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -37,18 +39,30 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
+    trigger,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: 'onChange',
   });
 
   const {
     register: register2FA,
     handleSubmit: handleSubmit2FA,
+    watch: watch2FA,
+    setValue: setValue2FA,
+    trigger: trigger2FA,
     formState: { errors: errors2FA },
   } = useForm<TwoFactorFormData>({
     resolver: zodResolver(twoFactorSchema),
+    mode: 'onChange',
   });
+
+  const usernameValue = watch('username') || '';
+  const passwordValue = watch('password') || '';
+  const codeValue = watch2FA('code') || '';
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -113,42 +127,50 @@ export const LoginPage: React.FC = () => {
 
   if (requires2FA) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md" padding="lg">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 text-white rounded-full mb-4">
-              <Shield className="h-8 w-8" />
+      <div className="auth-page">
+        <Card className="auth-card">
+          <div className="auth-header">
+            <div className="auth-icon-wrapper">
+              <Shield size={32} />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Two-Factor Authentication</h1>
-            <p className="text-slate-600 mt-2">Enter your 6-digit code from your authenticator app</p>
+            <h1 className="auth-title">Two-Factor Authentication</h1>
+            <p className="auth-subtitle">Enter your 6-digit code from your authenticator app</p>
           </div>
 
-          <form onSubmit={handleSubmit2FA(onSubmit2FA)} className="space-y-4">
-            <Input
+          <form onSubmit={handleSubmit2FA(onSubmit2FA)} className="auth-form">
+            <DesignInput
+              id="2fa-code"
               label="Verification Code"
               type="text"
               placeholder="000000"
-              maxLength={6}
-              {...register2FA('code')}
-              error={errors2FA.code?.message}
+              value={codeValue}
+              onChange={(value) => {
+                setValue2FA('code', value);
+                trigger2FA('code');
+              }}
+              required
               disabled={verifying2FA}
               autoFocus
             />
+            {errors2FA.code?.message && (
+              <p className="auth-error">{errors2FA.code.message}</p>
+            )}
 
-            <Button
+            <DesignButton
               type="submit"
               variant="primary"
-              className="w-full"
-              size="lg"
-              isLoading={verifying2FA}
+              size="large"
+              fullwidth
+              disabled={verifying2FA}
             >
-              Verify
-            </Button>
+              {verifying2FA ? 'Verifying...' : 'Verify'}
+            </DesignButton>
 
-            <Button
+            <DesignButton
               type="button"
               variant="secondary"
-              className="w-full"
+              size="medium"
+              fullwidth
               onClick={() => {
                 setRequires2FA(false);
                 setUserEmail('');
@@ -156,7 +178,7 @@ export const LoginPage: React.FC = () => {
               }}
             >
               Back to Login
-            </Button>
+            </DesignButton>
           </form>
         </Card>
       </div>
@@ -164,53 +186,70 @@ export const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md" padding="lg">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 text-white rounded-full mb-4">
-            <LogIn className="h-8 w-8" />
+    <div className="auth-page">
+      <Card className="auth-card">
+        <div className="auth-header">
+          <div className="auth-icon-wrapper">
+            <LogIn size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">ERP System</h1>
-          <p className="text-slate-600 mt-2">Sign in to your account</p>
+          <h1 className="auth-title">ERP System</h1>
+          <p className="auth-subtitle">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
           {error && (
-            <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-md">
+            <div className="auth-error-message">
               {error}
             </div>
           )}
 
-          <Input
+          <DesignInput
+            id="username"
             label="Username"
             type="text"
-            {...register('username')}
-            error={errors.username?.message}
+            value={usernameValue}
+            onChange={(value) => {
+              setValue('username', value);
+              trigger('username');
+            }}
+            required
             disabled={isLoading}
+            autoFocus
           />
+          {errors.username?.message && (
+            <p className="auth-error">{errors.username.message}</p>
+          )}
 
-          <Input
+          <DesignInput
+            id="password"
             label="Password"
             type="password"
-            {...register('password')}
-            error={errors.password?.message}
+            value={passwordValue}
+            onChange={(value) => {
+              setValue('password', value);
+              trigger('password');
+            }}
+            required
             disabled={isLoading}
           />
+          {errors.password?.message && (
+            <p className="auth-error">{errors.password.message}</p>
+          )}
 
-          <Button
+          <DesignButton
             type="submit"
             variant="primary"
-            className="w-full"
-            size="lg"
-            isLoading={isLoading}
+            size="large"
+            fullwidth
+            disabled={isLoading}
           >
-            Sign In
-          </Button>
+            {isLoading ? 'Signing in...' : 'Sign In'}
+          </DesignButton>
         </form>
 
-        <div className="mt-6 text-center text-sm text-slate-600">
-          <p>Default credentials:</p>
-          <p className="font-mono mt-1">admin / admin123</p>
+        <div className="auth-footer">
+          <p className="auth-footer-text">Default credentials:</p>
+          <p className="auth-footer-credentials">admin / admin123</p>
         </div>
       </Card>
     </div>

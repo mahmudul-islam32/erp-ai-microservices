@@ -180,10 +180,19 @@ export const attendanceApi = {
     location?: string;
     notes?: string;
   }) => {
-    const response = await hrmApi.post('/attendance/clock-in', {
-      employee_id: employeeId,
-      ...data
-    });
+    // FastAPI expects these as query parameters, not in JSON body
+    const params = new URLSearchParams();
+    params.append('employee_id', employeeId);
+    if (data?.clock_in_time) {
+      params.append('clock_in_time', data.clock_in_time);
+    }
+    if (data?.location) {
+      params.append('location', data.location);
+    }
+    if (data?.notes) {
+      params.append('notes', data.notes);
+    }
+    const response = await hrmApi.post(`/attendance/clock-in?${params.toString()}`);
     return response.data;
   },
 
@@ -193,10 +202,19 @@ export const attendanceApi = {
     location?: string;
     notes?: string;
   }) => {
-    const response = await hrmApi.post('/attendance/clock-out', {
-      employee_id: employeeId,
-      ...data
-    });
+    // FastAPI expects these as query parameters, not in JSON body
+    const params = new URLSearchParams();
+    params.append('employee_id', employeeId);
+    if (data?.clock_out_time) {
+      params.append('clock_out_time', data.clock_out_time);
+    }
+    if (data?.location) {
+      params.append('location', data.location);
+    }
+    if (data?.notes) {
+      params.append('notes', data.notes);
+    }
+    const response = await hrmApi.post(`/attendance/clock-out?${params.toString()}`);
     return response.data;
   },
 
