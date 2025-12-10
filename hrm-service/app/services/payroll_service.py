@@ -29,10 +29,14 @@ class PayrollService:
                 )
             
             # Check if payroll already exists for this period
+            # Convert dates to datetime for MongoDB query
+            period_start_dt = datetime.combine(payroll_data.pay_period_start, datetime.min.time())
+            period_end_dt = datetime.combine(payroll_data.pay_period_end, datetime.min.time())
+            
             existing_payroll = await self.db.payrolls.find_one({
                 "employee_id": payroll_data.employee_id,
-                "pay_period_start": payroll_data.pay_period_start,
-                "pay_period_end": payroll_data.pay_period_end
+                "pay_period_start": period_start_dt,
+                "pay_period_end": period_end_dt
             })
             if existing_payroll:
                 raise HTTPException(
@@ -44,12 +48,17 @@ class PayrollService:
             calculation = await self._calculate_payroll(payroll_data)
             
             # Create payroll document
+            # Convert date objects to datetime for MongoDB
+            pay_period_start_dt = datetime.combine(payroll_data.pay_period_start, datetime.min.time())
+            pay_period_end_dt = datetime.combine(payroll_data.pay_period_end, datetime.min.time())
+            pay_date_dt = datetime.combine(payroll_data.pay_period_end, datetime.min.time())
+            
             payroll_doc = {
                 "employee_id": payroll_data.employee_id,
                 "employee_name": f"{employee['first_name']} {employee['last_name']}",
-                "pay_period_start": payroll_data.pay_period_start,
-                "pay_period_end": payroll_data.pay_period_end,
-                "pay_date": payroll_data.pay_period_end,  # Default pay date
+                "pay_period_start": pay_period_start_dt,
+                "pay_period_end": pay_period_end_dt,
+                "pay_date": pay_date_dt,  # Default pay date
                 
                 # Earnings
                 "basic_salary": payroll_data.basic_salary,
@@ -84,9 +93,21 @@ class PayrollService:
             
             # Insert payroll
             result = await self.db.payrolls.insert_one(payroll_doc)
-            payroll_doc["_id"] = str(result.inserted_id)
             
-            return PayrollResponse(**payroll_doc)
+            # Retrieve the inserted payroll to get the proper format
+            inserted_payroll = await self.db.payrolls.find_one({"_id": result.inserted_id})
+            inserted_payroll["id"] = str(inserted_payroll["_id"])
+            del inserted_payroll["_id"]
+            
+            # Convert datetime fields back to date for PayrollResponse
+            if isinstance(inserted_payroll.get("pay_period_start"), datetime):
+                inserted_payroll["pay_period_start"] = inserted_payroll["pay_period_start"].date()
+            if isinstance(inserted_payroll.get("pay_period_end"), datetime):
+                inserted_payroll["pay_period_end"] = inserted_payroll["pay_period_end"].date()
+            if isinstance(inserted_payroll.get("pay_date"), datetime):
+                inserted_payroll["pay_date"] = inserted_payroll["pay_date"].date()
+            
+            return PayrollResponse(**inserted_payroll)
             
         except HTTPException:
             raise
@@ -153,7 +174,17 @@ class PayrollService:
                     detail="Payroll not found"
                 )
             
-            payroll["_id"] = str(payroll["_id"])
+            payroll["id"] = str(payroll["_id"])
+            del payroll["_id"]
+            
+            # Convert datetime fields back to date for PayrollResponse
+            if isinstance(payroll.get("pay_period_start"), datetime):
+                payroll["pay_period_start"] = payroll["pay_period_start"].date()
+            if isinstance(payroll.get("pay_period_end"), datetime):
+                payroll["pay_period_end"] = payroll["pay_period_end"].date()
+            if isinstance(payroll.get("pay_date"), datetime):
+                payroll["pay_date"] = payroll["pay_date"].date()
+            
             return PayrollResponse(**payroll)
             
         except HTTPException:
@@ -196,6 +227,15 @@ class PayrollService:
             for payroll in payrolls:
                 payroll["id"] = str(payroll["_id"])
                 del payroll["_id"]
+                
+                # Convert datetime fields back to date for PayrollResponse
+                if isinstance(payroll.get("pay_period_start"), datetime):
+                    payroll["pay_period_start"] = payroll["pay_period_start"].date()
+                if isinstance(payroll.get("pay_period_end"), datetime):
+                    payroll["pay_period_end"] = payroll["pay_period_end"].date()
+                if isinstance(payroll.get("pay_date"), datetime):
+                    payroll["pay_date"] = payroll["pay_date"].date()
+                
                 result.append(PayrollResponse(**payroll))
             
             return result
@@ -266,7 +306,16 @@ class PayrollService:
             
             # Get updated payroll
             updated_payroll = await self.db.payrolls.find_one({"_id": ObjectId(payroll_id)})
-            updated_payroll["_id"] = str(updated_payroll["_id"])
+            updated_payroll["id"] = str(updated_payroll["_id"])
+            del updated_payroll["_id"]
+            
+            # Convert datetime fields back to date for PayrollResponse
+            if isinstance(updated_payroll.get("pay_period_start"), datetime):
+                updated_payroll["pay_period_start"] = updated_payroll["pay_period_start"].date()
+            if isinstance(updated_payroll.get("pay_period_end"), datetime):
+                updated_payroll["pay_period_end"] = updated_payroll["pay_period_end"].date()
+            if isinstance(updated_payroll.get("pay_date"), datetime):
+                updated_payroll["pay_date"] = updated_payroll["pay_date"].date()
             
             return PayrollResponse(**updated_payroll)
             
@@ -306,7 +355,16 @@ class PayrollService:
             
             # Get updated payroll
             updated_payroll = await self.db.payrolls.find_one({"_id": ObjectId(payroll_id)})
-            updated_payroll["_id"] = str(updated_payroll["_id"])
+            updated_payroll["id"] = str(updated_payroll["_id"])
+            del updated_payroll["_id"]
+            
+            # Convert datetime fields back to date for PayrollResponse
+            if isinstance(updated_payroll.get("pay_period_start"), datetime):
+                updated_payroll["pay_period_start"] = updated_payroll["pay_period_start"].date()
+            if isinstance(updated_payroll.get("pay_period_end"), datetime):
+                updated_payroll["pay_period_end"] = updated_payroll["pay_period_end"].date()
+            if isinstance(updated_payroll.get("pay_date"), datetime):
+                updated_payroll["pay_date"] = updated_payroll["pay_date"].date()
             
             return PayrollResponse(**updated_payroll)
             
@@ -364,4 +422,43 @@ class PayrollService:
             raise HTTPException(
                 status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to get payroll summary"
+            )
+    
+    async def delete_payroll(self, payroll_id: str, current_user_id: str) -> bool:
+        """Delete payroll"""
+        try:
+            # Check if payroll exists
+            payroll = await self.db.payrolls.find_one({"_id": ObjectId(payroll_id)})
+            if not payroll:
+                raise HTTPException(
+                    status_code=http_status.HTTP_404_NOT_FOUND,
+                    detail="Payroll not found"
+                )
+            
+            # Check if payroll can be deleted (only DRAFT or PENDING status)
+            if payroll.get("status") not in [PayrollStatus.DRAFT, PayrollStatus.PENDING]:
+                raise HTTPException(
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot delete payroll with status {payroll.get('status')}. Only draft or pending payrolls can be deleted."
+                )
+            
+            # Delete payroll
+            result = await self.db.payrolls.delete_one({"_id": ObjectId(payroll_id)})
+            
+            if result.deleted_count == 0:
+                raise HTTPException(
+                    status_code=http_status.HTTP_404_NOT_FOUND,
+                    detail="Payroll not found"
+                )
+            
+            logger.info(f"Payroll {payroll_id} deleted by user {current_user_id}")
+            return True
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error deleting payroll: {e}")
+            raise HTTPException(
+                status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete payroll"
             )

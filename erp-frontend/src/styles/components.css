@@ -1,0 +1,158 @@
+:root {
+  /* ================================
+   ITEM CARD COMPONENT
+   ================================ */
+  --item-card-background: var(--background-main);
+  --item-card-radius: var(--card-radius);
+  --item-card-padding: var(--spacing-inset-medium);
+  --item-card-margin-bottom: var(--spacing-stack-small);
+  --item-card-color: var(--text-secondary);
+
+  --item-card-header-margin-bottom: var(--spacing-stack-small);
+
+  --item-card-title-font-size: var(--font-size-md);
+  --item-card-title-font-size-mobile: var(--font-size-sm);
+  --item-card-title-font-weight: var(--font-weight-medium);
+  --item-card-title-margin-bottom: var(--spacing-stack-xsmall);
+  --item-card-title-color: var(--text-primary);
+
+  --item-card-description-gap: var(--spacing-stack-xxsmall);
+
+  --item-card-description-item-margin-bottom: var(--spacing-stack-xsmall);
+
+  --item-card-description-label-font-size: var(--font-size-xs);
+  --item-card-description-label-font-weight: var(--font-weight-bold);
+  --item-card-description-label-color: var(--text-tertiary);
+  --item-card-description-label-margin-bottom: var(--space-xxs);
+
+  --item-card-description-value-font-size: var(--font-size-sm);
+  --item-card-description-value-font-size-mobile: var(--font-size-xs);
+  --item-card-description-value-font-weight: var(--font-weight-regular);
+  --item-card-description-value-color: var(--text-primary);
+  --item-card-description-value-line-height: 1.5;
+
+  --item-card-actions-gap: var(--spacing-inline-xsmall);
+  --item-card-action-button-padding: var(--spacing-inset-small);
+
+  /* ================================
+   MATRIX TABLE COMPONENT
+   ================================ */
+  --matrix-border-color: var(--border-color);
+  --matrix-border: 1px solid var(--matrix-border-color);
+  --matrix-border-radius: var(--border-radius-md);
+  --matrix-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --matrix-spacing: var(--space-xs);
+  --matrix-padding: var(--space-sm);
+
+  --matrix-header-background: var(--color-primary);
+  --matrix-header-color: var(--text-inverse);
+  --matrix-header-font-weight: var(--font-weight-medium);
+
+  --matrix-cell-background: var(--background-subtle);
+  --matrix-cell-color: var(--text-primary);
+
+  --matrix-row-even-background: var(--background-main);
+  --matrix-row-odd-background: var(--background-subtle);
+  --matrix-row-hover-background: var(--background-hover);
+
+  /* Matrix interactive states */
+  --matrix-highlight-background: var(--matrix-row-hover-background);
+  --matrix-highlight-border: var(--color-primary);
+  --matrix-highlight-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  /* Matrix cell dimensions */
+  --matrix-checkbox-cell-width: 3.5rem;
+  --matrix-checkbox-cell-width-compact: 2.5rem;
+  --matrix-key-cell-width-mobile: 8rem;
+  --matrix-cylinder-cell-min-width-compact: 120px;
+
+  /* Matrix font sizes */
+  --matrix-title-font-size: var(--font-size-sm);
+  --matrix-title-font-size-compact: calc(var(--font-size-sm) - 1px);
+
+  /* ================================
+   INFO PANEL COMPONENT
+   ================================ */
+  --info-panel-padding: var(--space-md, 16px);
+  --info-panel-border-radius: var(--border-radius-md, 4px);
+  --info-panel-font-weight: var(--font-weight-medium, 500);
+  --info-panel-border: 1px solid var(--info-panel-info-border);
+
+  /* Info variant */
+  --info-panel-info-bg: var(--color-secondary-lighter);
+  --info-panel-info-border: var(--color-secondary-light);
+  --info-panel-info-text: var(--color-secondary-dark); /* Warning variant */
+  --info-panel-warning-bg: var(--color-warning-lighter);
+  --info-panel-warning-border: var(--color-warning-light);
+  --info-panel-warning-text: var(--color-warning-dark);
+  --info-panel-warning-border-style: 1px solid var(--info-panel-warning-border);
+
+  /* Error variant */
+  --info-panel-error-bg: var(--color-danger-lighter);
+  --info-panel-error-border: var(--color-danger-light);
+  --info-panel-error-text: var(--color-danger-dark);
+  --info-panel-error-border-style: 1px solid var(--info-panel-error-border);
+
+  /* ================================
+   ACCORDION COMPONENT
+   ================================ */
+  --accordion-padding: var(--spacing-inset-small);
+  --accordion-border-radius: var(--border-radius-sm);
+  --accordion-background: var(--color-gray-lightest);
+
+  --accordion-summary-color: var(--color-primary);
+
+  --accordion-summary-border-bottom: 1px solid var(--border-color);
+  --accordion-summary-margin-bottom: var(--spacing-stack-small);
+  --accordion-summary-padding-bottom: var(--spacing-stack-small);
+
+  --accordion-step-container-margin-right: var(--spacing-inline-small);
+  --accordion-step-size: var(--icon-size-lg);
+  --accordion-step-border: var(--button-border-width) var(--button-border-style) var(--color-primary);
+
+  --accordion-title-font-weight: 500;
+
+  /* ================================
+   HELP INFO PANEL COMPONENT
+   ================================ */
+  --help-panel-container-top: var(--space-xl); /* 2rem for sticky positioning */
+  --help-panel-error-color: var(--status-error);
+  --help-panel-error-font-size: var(--font-size-sm);
+  --help-panel-error-line-height: 1.5;
+
+  /* ================================
+   SURVEY BANNER COMPONENT
+   ================================ */
+  /* Invitation variant (default) */
+  --survey-banner-background-start: var(--color-primary);
+  --survey-banner-background-end: var(--color-blue-medium);
+  --survey-banner-icon-size: 48px;
+  --survey-banner-icon-size-mobile: 64px;
+  --survey-banner-icon-background: rgba(255, 255, 255, 0.2);
+  --survey-banner-description-opacity: 0.95;
+  --survey-banner-button-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --survey-banner-button-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.15);
+
+  /* Results variant */
+  --survey-banner-results-background: var(--background-main);
+  --survey-banner-results-border: 2px solid var(--status-success);
+  --survey-banner-results-icon-background: var(--status-success);
+
+  /* ================================
+   PROGRESS INDICATOR COMPONENT
+   ================================ */
+  --progress-indicator-background: var(--color-gray-light);
+  --progress-indicator-fill: var(--color-primary);
+  --progress-indicator-height: 4px;
+  --progress-indicator-border-radius: 2px;
+  --progress-indicator-transition: width 0.3s ease;
+
+  /* Progress text */
+  --progress-indicator-text-font-size: var(--font-size-sm);
+  --progress-indicator-text-color: var(--color-gray-dark);
+
+  /* ================================
+   BRAND BADGE COMPONENT
+   ================================ */
+  --brand-badge-logo-height: 40px;
+}
