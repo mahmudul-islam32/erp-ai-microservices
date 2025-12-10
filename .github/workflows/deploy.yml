@@ -331,7 +331,7 @@ jobs:
             
             echo "✅ Deployment completed successfully!"
 EOSSH
-          
+
           rm -f private_key.pem
 
       - name: Notify deployment status
