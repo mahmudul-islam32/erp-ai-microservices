@@ -333,6 +333,7 @@ export const PayrollForm: React.FC<PayrollFormProps> = ({
             <p className="mt-1 text-xs text-gray-500">Amount: {formatCurrency(incomeTax)}</p>
           </div>
 
+
           <div>
             <label htmlFor="social_security_rate" className="block text-sm font-medium text-gray-700 mb-1.5">
               Social Security Rate (%)
