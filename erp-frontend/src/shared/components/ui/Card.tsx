@@ -5,12 +5,14 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   shadow?: 'none' | 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'dashboard';
 }
 
 export const Card: React.FC<CardProps> = ({
   children,
   padding = 'md',
-  shadow = 'sm',
+  shadow = 'none',
+  variant = 'default',
   className,
   ...props
 }) => {
@@ -42,15 +44,20 @@ export const Card: React.FC<CardProps> = ({
     lg: 'var(--box-shadow-hover)',
   };
 
+  const isDashboard = variant === 'dashboard';
+  const backgroundColor = isDashboard ? 'var(--background-main)' : 'var(--card-background)';
+  const border = isDashboard ? 'none' : 'var(--border-default)';
+  const boxShadow = isDashboard ? 'var(--box-shadow-light)' : shadowMap[shadow];
+
   return (
     <div
-      className={clsx('rounded-lg border', className)}
+      className={clsx('rounded-lg', !isDashboard && 'border', className)}
       style={{
-        backgroundColor: 'var(--card-background)',
+        backgroundColor,
         borderRadius: 'var(--card-radius)',
         padding: paddingMap[padding],
-        boxShadow: shadowMap[shadow],
-        border: 'var(--border-default)',
+        boxShadow,
+        border,
       }}
       {...props}
     >

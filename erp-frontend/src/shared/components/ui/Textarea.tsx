@@ -1,5 +1,5 @@
 import React from 'react';
-import { DesignInput } from './DesignInput';
+import { Input } from '@/shared/components/ui/Input';
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -22,27 +22,20 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
-    const stringValue = value === undefined || value === null ? '' : String(value);
-
-    const handleChange = (newValue: string) => {
-      if (onChange) {
-        const syntheticEvent = {
-          target: { value: newValue },
-        } as React.ChangeEvent<HTMLTextAreaElement>;
-        onChange(syntheticEvent);
-      }
-    };
-
     return (
       <div className="w-full">
-        <DesignInput
-          id={inputId}
+        <Input
+          id={id || label?.toLowerCase().replace(/\s+/g, '-') || 'textarea'}
           type="textarea"
           label={label}
-          value={stringValue}
+          value={value}
           required={required}
-          onChange={handleChange}
+          onChange={onChange as any}
+          onValueChange={(val) =>
+            onChange?.({
+              target: { value: val },
+            } as React.ChangeEvent<HTMLTextAreaElement>)
+          }
           className={className}
           {...props}
         />
