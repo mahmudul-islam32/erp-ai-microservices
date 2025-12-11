@@ -1,10 +1,13 @@
 import React from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { AppDispatch, RootState } from '../../../app/store';
-import { createUser } from '../store/usersSlice';
-import { UserForm } from '../components/UserForm';
-import { CreateUserData } from '../types';
+
+import { AppDispatch, RootState } from '@/app/store';
+import { UserForm } from '@/features/users/components/UserForm';
+import { createUser } from '@/features/users/store/usersSlice';
+import { CreateUserData } from '@/features/users/types';
+import { Button } from '@/shared/components/ui/Button';
 
 export const CreateUserPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,25 +28,14 @@ export const CreateUserPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => navigate('/dashboard/users')}
-          className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+          leftIcon={<ArrowLeft size={16} />}
         >
-          <svg
-            className="h-5 w-5 mr-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
           Back to Users
-        </button>
+        </Button>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">

@@ -4,12 +4,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { LogIn, Shield } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { login, clearError } from '../store/authSlice';
-import { twoFactorService } from '../services/twoFactorService';
-import { DesignButton } from '../../../shared/components/ui/DesignButton';
-import { DesignInput } from '../../../shared/components/ui/DesignInput';
-import { Card } from '../../../shared/components/ui/Card';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { login, clearError } from '@/features/auth/store/authSlice';
+import { twoFactorService } from '@/features/auth/services/twoFactorService';
+import { DesignButton } from '@/shared/components/ui/DesignButton';
+import { Input } from '@/shared/components/ui/Input';
+import { Card } from '@/shared/components/ui/Card';
 import { toast } from 'sonner';
 
 import '@/styles/auth.css';
@@ -138,13 +138,13 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit2FA(onSubmit2FA)} className="auth-form">
-            <DesignInput
+            <Input
               id="2fa-code"
               label="Verification Code"
               type="text"
               placeholder="000000"
               value={codeValue}
-              onChange={(value) => {
+              onValueChange={(value) => {
                 setValue2FA('code', value);
                 trigger2FA('code');
               }}
@@ -196,19 +196,19 @@ export const LoginPage: React.FC = () => {
           <p className="auth-subtitle">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
+          <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
           {error && (
             <div className="auth-error-message">
               {error}
             </div>
           )}
 
-          <DesignInput
+          <Input
             id="username"
             label="Username"
             type="text"
             value={usernameValue}
-            onChange={(value) => {
+            onValueChange={(value) => {
               setValue('username', value);
               trigger('username');
             }}
@@ -220,12 +220,12 @@ export const LoginPage: React.FC = () => {
             <p className="auth-error">{errors.username.message}</p>
           )}
 
-          <DesignInput
+          <Input
             id="password"
             label="Password"
             type="password"
             value={passwordValue}
-            onChange={(value) => {
+            onValueChange={(value) => {
               setValue('password', value);
               trigger('password');
             }}

@@ -35,7 +35,7 @@ const StatCard: React.FC<{
   };
 
   return (
-    <Card>
+    <Card variant="dashboard">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -176,7 +176,7 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: 'var(--background-secondary)', minHeight: 'calc(100vh - 80px)', margin: 'calc(-1 * var(--spacing-inset-medium))', padding: 'var(--spacing-inset-medium)' }}>
       <PageHeader
         title="Dashboard"
         subtitle="Welcome back! Here's what's happening with your business."
@@ -235,7 +235,7 @@ export const DashboardPage: React.FC = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
+        <Card variant="dashboard">
           <CardHeader 
             title="Sales Trend (Last 7 Days)" 
             subtitle="Daily sales from paid orders"
@@ -263,7 +263,7 @@ export const DashboardPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dashboard">
           <CardHeader 
             title="Orders by Status" 
             subtitle="Current order distribution"
@@ -300,7 +300,7 @@ export const DashboardPage: React.FC = () => {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card variant="dashboard">
           <CardHeader 
             title="Recent Orders" 
             subtitle="Latest 5 orders"
@@ -338,7 +338,7 @@ export const DashboardPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card variant="dashboard">
           <CardHeader 
             title="Low Stock Products" 
             subtitle="Products at or below reorder point"
