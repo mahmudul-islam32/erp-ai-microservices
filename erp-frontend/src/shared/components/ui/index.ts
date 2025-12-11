@@ -16,8 +16,6 @@ export * from './DataTableContainer';
 export * from './FilterPanel';
 export * from './FilterField';
 export * from './DeleteConfirmationModal';
-export * from './DesignInput';
-export * from './DesignSelect';
 export * from './DesignButton';
 export * from './DesignCheckbox';
 export * from './DesignModal';
