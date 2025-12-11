@@ -13,10 +13,10 @@
 
 .auth-card {
   width: 100%;
-  max-width: var(--modal-size-md);
+  max-width: 440px;
   background-color: var(--background-main);
   border-radius: var(--card-radius);
-  padding: var(--card-padding);
+  padding: var(--spacing-inset-large);
   box-shadow: var(--card-shadow);
 }
 

@@ -140,7 +140,7 @@ export const FinanceDashboardPage: React.FC = () => {
           <Link
             key={stat.name}
             to={stat.link}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg border border-gray-200 p-6 transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -156,7 +156,7 @@ export const FinanceDashboardPage: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg  border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
@@ -193,7 +193,7 @@ export const FinanceDashboardPage: React.FC = () => {
       {/* Financial Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue vs Expenses */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg  border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue vs Expenses (YTD)</h2>
           <div className="space-y-4">
             <div>
@@ -232,7 +232,7 @@ export const FinanceDashboardPage: React.FC = () => {
         </div>
 
         {/* Assets vs Liabilities */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg  border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Assets vs Liabilities</h2>
           <div className="space-y-4">
             <div>

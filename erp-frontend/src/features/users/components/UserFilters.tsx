@@ -1,7 +1,7 @@
 import React from 'react';
-import { UserFilters as IUserFilters, UserRole, UserStatus } from '../types';
-import { FilterPanel } from '../../../shared/components/ui/FilterPanel';
-import { DesignInput, DesignSelect } from '../../../shared/components/ui';
+import { UserFilters as IUserFilters, UserRole, UserStatus } from '@/features/users/types';
+import { FilterPanel } from '@/shared/components/ui/FilterPanel';
+import { Input, Select } from '@/shared/components/ui';
 
 interface UserFiltersProps {
   filters: IUserFilters;
@@ -45,40 +45,40 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
       onClear={handleClear}
     >
       <div className="users-filters-grid">
-        <DesignInput
+        <Input
           id="search"
           label="Search"
           type="text"
           value={filters.search || ''}
           placeholder="Search by email or name..."
-          onChange={(value) => handleChange('search', value)}
+          onValueChange={(value) => handleChange('search', value)}
         />
 
-        <DesignSelect
+        <Select
           id="role"
           label="Role"
           value={filters.role || ''}
           options={roleOptions}
-          onChange={(value) => handleChange('role', value || undefined)}
+          onValueChange={(value) => handleChange('role', value || undefined)}
           fullWidth
         />
 
-        <DesignSelect
+        <Select
           id="status"
           label="Status"
           value={filters.status || ''}
           options={statusOptions}
-          onChange={(value) => handleChange('status', value || undefined)}
+          onValueChange={(value) => handleChange('status', value || undefined)}
           fullWidth
         />
 
-        <DesignInput
+        <Input
           id="department"
           label="Department"
           type="text"
           value={filters.department || ''}
           placeholder="Filter by department..."
-          onChange={(value) => handleChange('department', value || undefined)}
+          onValueChange={(value) => handleChange('department', value || undefined)}
         />
       </div>
     </FilterPanel>
