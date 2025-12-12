@@ -1,6 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { DesignButton, DesignButtonProps } from './DesignButton';
+import { Button, ButtonProps } from './Button';
 
 export interface BulkAction {
   label: string;
@@ -59,7 +59,7 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
 }) => {
   if (selectedCount === 0) return null;
 
-  const variantMap: Record<BulkAction['variant'] | 'default', DesignButtonProps['variant']> = {
+  const variantMap: Record<BulkAction['variant'] | 'default', ButtonProps['variant']> = {
     default: 'tertiary',
     primary: 'primary',
     danger: 'danger',
@@ -94,19 +94,19 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-small)' }}>
           {actions.map((action, index) => (
-            <DesignButton
+            <Button
               key={index}
               variant={variantMap[action.variant || 'default']}
               size="small"
               onClick={action.onClick}
             >
               {action.label}
-            </DesignButton>
+            </Button>
           ))}
           {onClear && (
-            <DesignButton variant="link" size="small" onClick={onClear}>
+            <Button variant="link" size="small" onClick={onClear}>
               Clear Selection
-            </DesignButton>
+            </Button>
           )}
         </div>
       </div>

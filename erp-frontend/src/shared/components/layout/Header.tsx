@@ -31,13 +31,13 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+    <header className="sticky top-0 z-10 bg-white shadow-sm">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Left section */}
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            className="p-2 rounded-md text-[#333] hover:bg-slate-50 lg:hidden"
           >
             {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
           {/* Dark Mode Toggle */}
           <button
             onClick={handleToggleTheme}
-            className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-md text-[#333] hover:bg-slate-50 transition-colors"
             aria-label="Toggle dark mode"
           >
             {mode === 'dark' ? (
@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
 
           {/* User menu */}
           <HeadlessMenu as="div" className="relative">
-            <HeadlessMenu.Button className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <HeadlessMenu.Button className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-50 transition-colors">
               <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
                 {user?.profile_image ? (
                   <img 
@@ -79,10 +79,10 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
                 )}
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <p className="text-sm font-medium text-slate-900">
                   {user?.full_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{user?.role || 'User'}</p>
+                <p className="text-xs text-slate-500">{user?.role || 'User'}</p>
               </div>
             </HeadlessMenu.Button>
 
@@ -94,12 +94,12 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
               leaveFrom="transform scale-100 opacity-100"
               leaveTo="transform scale-95 opacity-0"
             >
-              <HeadlessMenu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-white dark:bg-slate-800 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 focus:outline-none">
-                <div className="p-3 border-b border-slate-200 dark:border-slate-700">
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <HeadlessMenu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg border border-slate-200 focus:outline-none">
+                <div className="p-3 border-b border-slate-200">
+                  <p className="text-sm font-medium text-slate-900">
                     {user?.full_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user?.email}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{user?.email}</p>
                   {user?.is_superuser && (
                     <Badge variant="primary" size="sm" className="mt-2">
                       Admin
@@ -112,8 +112,8 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
                       <button
                         onClick={() => navigate('/dashboard/profile')}
                         className={`${
-                          active ? 'bg-slate-100 dark:bg-slate-700' : ''
-                        } flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 rounded-md`}
+                          active ? 'bg-slate-100' : ''
+                        } flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 rounded-md`}
                       >
                         <User className="h-4 w-4" />
                         Profile Settings
@@ -125,8 +125,8 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
                       <button
                         onClick={handleLogout}
                         className={`${
-                          active ? 'bg-slate-100 dark:bg-slate-700' : ''
-                        } flex w-full items-center gap-2 px-3 py-2 text-sm text-danger-600 dark:text-danger-400 rounded-md`}
+                          active ? 'bg-slate-100' : ''
+                        } flex w-full items-center gap-2 px-3 py-2 text-sm text-danger-600 rounded-md`}
                       >
                         <LogOut className="h-4 w-4" />
                         Sign Out

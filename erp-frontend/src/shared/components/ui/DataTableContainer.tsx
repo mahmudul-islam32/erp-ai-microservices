@@ -84,8 +84,16 @@ export const DataTableContainer: React.FC<DataTableContainerProps> = ({
   className,
 }) => {
   return (
-    <div className={clsx('bg-white rounded-lg shadow overflow-hidden', className)}>
-      {children}
+    <div 
+      className={clsx('bg-white rounded-lg', className)}
+      style={{
+        boxShadow: 'var(--box-shadow-light)',
+        padding: 'var(--card-padding)',
+      }}
+    >
+      <div className="overflow-x-auto">
+        {children}
+      </div>
       {showPagination && !isLoading && totalItems > 0 && (
         <Pagination
           currentPage={currentPage}
