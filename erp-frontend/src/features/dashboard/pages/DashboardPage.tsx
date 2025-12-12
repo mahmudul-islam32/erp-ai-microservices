@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
+import { StatCard } from '../../../shared/components/ui/StatCard';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { 
@@ -17,44 +18,15 @@ import { fetchOrders } from '../../sales/store/ordersSlice';
 import { fetchCustomers } from '../../sales/store/customersSlice';
 import { fetchProducts } from '../../inventory/store/productsSlice';
 import { formatCurrency, formatDate } from '../../../shared/utils/format';
+import { UserRole } from '../../users/types';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-const StatCard: React.FC<{
-  title: string;
-  value: string;
-  subtitle: string;
-  icon: React.ElementType;
-  color: 'success' | 'primary' | 'warning' | 'danger';
-}> = ({ title, value, subtitle, icon: Icon, color }) => {
-  const colorClasses = {
-    success: 'bg-success-100 text-success-600',
-    primary: 'bg-primary-100 text-primary-600',
-    warning: 'bg-warning-100 text-warning-600',
-    danger: 'bg-danger-100 text-danger-600',
-  };
-
-  return (
-    <Card variant="dashboard">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-600">{title}</p>
-            <h3 className="text-3xl font-bold text-slate-900 mt-2">{value}</h3>
-            <p className="text-sm mt-2 text-slate-500">{subtitle}</p>
-          </div>
-          <div className={`p-3 rounded-full ${colorClasses[color]}`}>
-            <Icon className="h-8 w-8" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
   const { orders, isLoading: ordersLoading } = useAppSelector((state) => state.orders);
   const { customers, isLoading: customersLoading } = useAppSelector((state) => state.customers);
   const { products, isLoading: productsLoading } = useAppSelector((state) => state.products);
@@ -175,12 +147,31 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
+  const userName = user?.first_name || user?.full_name?.split(' ')[0] || 'User';
+  const totalOrders = stats.totalOrders;
+  const isCustomer = user?.role === UserRole.CUSTOMER;
+
   return (
     <div style={{ backgroundColor: 'var(--background-secondary)', minHeight: 'calc(100vh - 80px)', margin: 'calc(-1 * var(--spacing-inset-medium))', padding: 'var(--spacing-inset-medium)' }}>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Welcome back! Here's what's happening with your business."
-      />
+      {/* Welcome Message Card */}
+      <div className="mb-6 bg-white rounded-lg shadow-sm border-l-4 border-primary">
+        <div className={`flex items-center ${isCustomer ? 'justify-between' : ''} p-6`}>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              Welcome back, {userName.toLowerCase()} !
+            </h2>
+            <p className="text-sm font-normal text-slate-600">
+              Here is an overview of your account and your recent activities.
+            </p>
+          </div>
+          {isCustomer && (
+            <div className="ml-6 bg-slate-100 rounded-lg px-6 py-4 flex flex-col items-center justify-center min-w-[120px]">
+              <div className="text-3xl font-bold text-slate-900">{totalOrders}</div>
+              <div className="text-sm font-normal text-slate-600 mt-1 text-center">Total Orders</div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

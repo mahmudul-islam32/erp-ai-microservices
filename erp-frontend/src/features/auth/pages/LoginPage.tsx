@@ -7,7 +7,7 @@ import { LogIn, Shield } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login, clearError } from '@/features/auth/store/authSlice';
 import { twoFactorService } from '@/features/auth/services/twoFactorService';
-import { DesignButton } from '@/shared/components/ui/DesignButton';
+import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
 import { toast } from 'sonner';
@@ -156,7 +156,7 @@ export const LoginPage: React.FC = () => {
               <p className="auth-error">{errors2FA.code.message}</p>
             )}
 
-            <DesignButton
+            <Button
               type="submit"
               variant="primary"
               size="large"
@@ -164,9 +164,9 @@ export const LoginPage: React.FC = () => {
               disabled={verifying2FA}
             >
               {verifying2FA ? 'Verifying...' : 'Verify'}
-            </DesignButton>
+            </Button>
 
-            <DesignButton
+            <Button
               type="button"
               variant="secondary"
               size="medium"
@@ -178,7 +178,7 @@ export const LoginPage: React.FC = () => {
               }}
             >
               Back to Login
-            </DesignButton>
+            </Button>
           </form>
         </Card>
       </div>
@@ -236,7 +236,7 @@ export const LoginPage: React.FC = () => {
             <p className="auth-error">{errors.password.message}</p>
           )}
 
-          <DesignButton
+          <Button
             type="submit"
             variant="primary"
             size="large"
@@ -244,7 +244,7 @@ export const LoginPage: React.FC = () => {
             disabled={isLoading}
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
-          </DesignButton>
+          </Button>
         </form>
 
         <div className="auth-footer">

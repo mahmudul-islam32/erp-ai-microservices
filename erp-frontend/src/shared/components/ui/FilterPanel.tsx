@@ -1,7 +1,7 @@
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import { clsx } from 'clsx';
-import { DesignButton } from './DesignButton';
+import { Button } from './Button';
 
 export interface FilterPanelProps {
   /**
@@ -54,13 +54,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   return (
     <div
-      className={clsx(className)}
+      className={clsx('bg-white rounded-lg', className)}
       style={{
-        backgroundColor: 'var(--card-background)',
-        border: 'var(--border-default)',
-        borderRadius: 'var(--card-radius)',
-        boxShadow: 'var(--card-shadow)',
         padding: 'var(--card-padding)',
+        boxShadow: 'var(--box-shadow-light)',
       }}
     >
       <div
@@ -102,7 +99,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           )}
         </div>
         {hasActiveFilters && onClear && (
-          <DesignButton
+          <Button
             onClick={onClear}
             variant="link"
             size="small"
@@ -110,7 +107,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           >
             <X size={14} style={{ marginRight: 'var(--spacing-inline-xxsmall)' }} />
             Clear All
-          </DesignButton>
+          </Button>
         )}
       </div>
       {children}

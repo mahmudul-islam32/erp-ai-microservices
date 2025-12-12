@@ -174,63 +174,69 @@ export const UsersPage: React.FC = () => {
       />
 
       {/* Statistics */}
-      <div className="users-stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <StatCard
-          label="Total Users"
+          title="Total Users"
           value={totalUsers}
           icon={Users}
-          iconVariant="primary"
+          color="primary"
         />
         <StatCard
-          label="Active"
+          title="Active"
           value={activeUsers}
           icon={CheckCircle}
-          iconVariant="success"
+          color="success"
         />
         <StatCard
-          label="Pending"
+          title="Pending"
           value={pendingUsers}
           icon={Clock}
-          iconVariant="warning"
+          color="warning"
         />
         <StatCard
-          label="Suspended"
+          title="Suspended"
           value={suspendedUsers}
           icon={XCircle}
-          iconVariant="danger"
+          color="danger"
         />
       </div>
 
       {/* Filters */}
-      <UserFilters
-        filters={filters}
-        onFiltersChange={(newFilters) => dispatch(setFilters(newFilters))}
-      />
+      <div className="mb-6">
+        <UserFilters
+          filters={filters}
+          onFiltersChange={(newFilters) => dispatch(setFilters(newFilters))}
+        />
+      </div>
 
       {/* Bulk Actions */}
-      <BulkActionsBar
-        selectedCount={selectedUsers.length}
-        actions={[
-          ...(canUpdate ? [
-            {
-              label: 'Activate',
-              onClick: () => handleBulkStatusUpdate(UserStatus.ACTIVE),
-              variant: 'default' as const,
-            },
-            {
-              label: 'Suspend',
-              onClick: () => handleBulkStatusUpdate(UserStatus.SUSPENDED),
-              variant: 'default' as const,
-            },
-          ] : []),
-          ...(canDelete ? [{
-            label: 'Delete',
-            onClick: handleBulkDelete,
-            variant: 'danger' as const,
-          }] : []),
-        ]}
-        onClear={() => setSelectedUsers([])}
-      />
+      {selectedUsers.length > 0 && (
+        <div className="mb-6">
+          <BulkActionsBar
+            selectedCount={selectedUsers.length}
+            actions={[
+              ...(canUpdate ? [
+                {
+                  label: 'Activate',
+                  onClick: () => handleBulkStatusUpdate(UserStatus.ACTIVE),
+                  variant: 'default' as const,
+                },
+                {
+                  label: 'Suspend',
+                  onClick: () => handleBulkStatusUpdate(UserStatus.SUSPENDED),
+                  variant: 'default' as const,
+                },
+              ] : []),
+              ...(canDelete ? [{
+                label: 'Delete',
+                onClick: handleBulkDelete,
+                variant: 'danger' as const,
+              }] : []),
+            ]}
+            onClear={() => setSelectedUsers([])}
+          />
+        </div>
+      )}
 
       {/* Users Table */}
       <DataTableContainer

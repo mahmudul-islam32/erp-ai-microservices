@@ -1,6 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import { DesignButton, DesignButtonProps } from './DesignButton';
+import { Button, ButtonProps } from './Button';
 
 export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /**
@@ -69,7 +69,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref
   ) => {
-    const variantMap: Record<NonNullable<IconButtonProps['variant']>, DesignButtonProps['variant']> = {
+    const variantMap: Record<NonNullable<IconButtonProps['variant']>, ButtonProps['variant']> = {
       primary: 'primary',
       secondary: 'secondary',
       outline: 'tertiary',
@@ -80,7 +80,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       info: 'secondary',
     };
 
-    const sizeMap: Record<NonNullable<IconButtonProps['size']>, DesignButtonProps['size']> = {
+    const sizeMap: Record<NonNullable<IconButtonProps['size']>, ButtonProps['size']> = {
       xs: 'small',
       sm: 'small',
       md: 'medium',
@@ -97,7 +97,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     const finalSize = sizeMap[size || 'md'];
 
     return (
-      <DesignButton
+      <Button
         ref={ref as any}
         shape="icon"
         variant={finalVariant}
@@ -126,7 +126,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         ) : (
           <Icon style={{ height: iconDimension, width: iconDimension }} />
         )}
-      </DesignButton>
+      </Button>
     );
   }
 );
