@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Menu as HeadlessMenu, Transition } from '@headlessui/react';
@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { NotificationBell } from '../../../features/notifications';
 import { ChatButton } from '../../../features/chat';
+import { settingsApi, SettingsCategory } from '../../../features/settings/services/settingsApi';
 
 interface HeaderProps {
   isSidebarOpen: boolean;
@@ -20,6 +21,29 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { mode } = useAppSelector((state) => state.theme);
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string>('');
+
+  useEffect(() => {
+    const loadCompanySettings = async () => {
+      try {
+        const companySettings = await settingsApi.getByCategory(SettingsCategory.COMPANY);
+        if (companySettings.company_info) {
+          if (companySettings.company_info.logo_url) {
+            setCompanyLogo(companySettings.company_info.logo_url);
+          }
+          if (companySettings.company_info.company_name) {
+            setCompanyName(companySettings.company_info.company_name);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading company settings:', error);
+        // Silently fail - use defaults
+      }
+    };
+
+    loadCompanySettings();
+  }, []);
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -31,15 +55,37 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-white shadow-sm">
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-        {/* Left section */}
+    <header className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-lg z-20 py-3">
+      <div className="flex items-center justify-between px-4 lg:px-6">
+        {/* Left section - Logo and Menu */}
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
             className="p-2 rounded-md text-[#333] hover:bg-slate-50 lg:hidden"
           >
             {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+          {/* Logo */}
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            {companyLogo ? (
+              <img 
+                src={companyLogo} 
+                alt={companyName || 'Company Logo'}
+                className="w-24 h-auto object-contain rounded-lg"
+              />
+            ) : (
+              <>
+                <div className="w-24 h-16 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                  {(companyName || 'E').charAt(0).toUpperCase()}
+                </div>
+                {companyName && (
+                  <span className="text-lg font-bold text-slate-900 dark:text-white">{companyName}</span>
+                )}
+              </>
+            )}
           </button>
         </div>
 

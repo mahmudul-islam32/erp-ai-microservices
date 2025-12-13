@@ -346,6 +346,8 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
   const manuallyCollapsedRef = React.useRef<Set<string>>(new Set());
+  const previousPathnameRef = React.useRef<string>('');
+  const navigationRef = React.useRef<NavItem[]>([]);
   const location = useLocation();
   const { hasPermission, hasAnyPermission, hasAllPermissions, hasServiceAccess, hasAnyRole, isSuperAdmin, user } = usePermissions();
 
@@ -410,8 +412,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         });
     };
     
-    return filterNavItems(baseNavigation);
-  }, [hasPermission, hasAnyPermission, hasServiceAccess, isSuperAdmin]);
+    const filtered = filterNavItems(baseNavigation);
+    navigationRef.current = filtered;
+    return filtered;
+  }, [hasPermission, hasAnyPermission, hasAllPermissions, hasServiceAccess, hasAnyRole, isSuperAdmin, user]);
 
   const toggleExpanded = (path: string) => {
     setExpandedItems((prev) => {
@@ -430,6 +434,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
   // Auto-expand parent items when their children are active
   React.useEffect(() => {
+    // Only run if pathname actually changed
+    if (location.pathname === previousPathnameRef.current) {
+      return;
+    }
+    
+    previousPathnameRef.current = location.pathname;
+    
     const findActiveParents = (items: NavItem[]): string[] => {
       const activeParents: string[] = [];
       const currentPath = location.pathname;
@@ -456,42 +467,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       return activeParents;
     };
     
-    const activeParents = findActiveParents(navigation);
+    const activeParents = findActiveParents(navigationRef.current);
     if (activeParents.length > 0) {
       setExpandedItems((prev) => {
         // Only add parents that aren't manually collapsed
         const parentsToAdd = activeParents.filter(path => !manuallyCollapsedRef.current.has(path));
+        if (parentsToAdd.length === 0) {
+          return prev; // No new items to add
+        }
         const newExpanded = [...new Set([...prev, ...parentsToAdd])];
+        // Only update if there are actually new items to add
+        if (newExpanded.length === prev.length) {
+          return prev; // No change
+        }
         return newExpanded;
       });
     }
-  }, [location.pathname, navigation]);
+  }, [location.pathname]); // Removed navigation from dependencies - using ref instead
 
-  // Helper function to check if a path or any of its children matches the current location
+  // Helper function to check if a path matches the current location
+  // For parent items: only active if the path itself matches (not if a child is active)
+  // For child items: active if the path matches
   const isItemActive = (item: NavItem): boolean => {
     const currentPath = location.pathname;
     
-    // Check if current path exactly matches the item path
-    if (currentPath === item.path) {
-      return true;
-    }
-    
-    // Check if any child matches
-    if (item.children) {
-      return item.children.some(child => {
-        // Exact match
-        if (currentPath === child.path) {
-          return true;
-        }
-        // Check if current path starts with child path (for nested routes)
-        if (currentPath.startsWith(child.path + '/')) {
-          return true;
-        }
-        return false;
-      });
-    }
-    
-    return false;
+    // Only check if current path exactly matches the item path
+    // Don't check children - that would make parent active when child is active
+    return currentPath === item.path;
   };
 
   const renderNavItem = (item: NavItem, depth: number = 0, isLast: boolean = false) => {
@@ -591,7 +593,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={() => {}}
         />
       )}
@@ -599,24 +601,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed top-0 left-0 z-30 h-screen w-64 bg-white shadow-sm transition-transform duration-300',
+          'fixed top-24 left-6 bottom-4 z-30 w-64 bg-white dark:bg-slate-800 shadow-sm rounded-lg transition-transform duration-300 mt-6',
           'lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center h-16 px-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">
-                E
-              </div>
-              <span className="text-lg font-bold text-slate-900">ERP System</span>
-            </div>
-          </div>
-
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
+          <nav className="flex-1 overflow-y-auto py-2 pt-6 scrollbar-thin px-4">
             {navigation.map((item, index) => 
               renderNavItem(item, 0, index === navigation.length - 1)
             )}

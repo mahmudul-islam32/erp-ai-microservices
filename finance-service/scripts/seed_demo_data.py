@@ -10,11 +10,12 @@ from datetime import datetime, date, timedelta
 from bson import ObjectId
 
 # Database configuration
-# Use mongodb service name when running in Docker, localhost when running locally
+# Use MongoDB Atlas from environment variables
 import os
-MONGODB_HOST = os.getenv("MONGODB_HOST", "mongodb")  # Default to service name for Docker
-MONGODB_URL = f"mongodb://admin:password123@{MONGODB_HOST}:27017/erp_finance?authSource=admin"
-DATABASE_NAME = "erp_finance"
+MONGODB_URL = os.getenv("MONGODB_URL")
+if not MONGODB_URL:
+    raise ValueError("MONGODB_URL environment variable is required. Please set it in your .env file.")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "erp_finance")
 
 
 async def seed_demo_data():

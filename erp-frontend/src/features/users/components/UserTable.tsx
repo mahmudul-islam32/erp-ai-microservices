@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole, UserStatus, Permission } from '../types';
 import { formatDistanceToNow } from 'date-fns';
-import { IconButton } from '../../../shared/components/ui/IconButton';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { TableActionButtons } from '../../../shared/components/ui/TableActionButtons';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 
 interface UserTableProps {
@@ -271,35 +270,16 @@ export const UserTable: React.FC<UserTableProps> = ({
                   {user.last_login ? formatDistanceToNow(new Date(user.last_login), { addSuffix: true }) : 'Never'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center gap-2">
-                    {/* View Button - uses appearance settings dynamically */}
-                    <IconButton
-                      icon={Eye}
-                      variant="outline"
-                      onClick={() => onView(user)}
-                      title="View Details"
-                    />
-
-                    {/* Edit Button - only show if user has permission */}
-                    {canEdit && (
-                      <IconButton
-                        icon={Edit}
-                        variant="primary"
-                        onClick={() => onEdit(user)}
-                        title="Edit User"
-                      />
-                    )}
-
-                    {/* Delete Button - only show if user has permission */}
-                    {canDelete && (
-                      <IconButton
-                        icon={Trash2}
-                        variant="danger"
-                        onClick={() => onDelete(user)}
-                        title="Delete User"
-                      />
-                    )}
-                  </div>
+                  <TableActionButtons
+                    onView={() => onView(user)}
+                    onEdit={() => onEdit(user)}
+                    onDelete={() => onDelete(user)}
+                    showEdit={canEdit}
+                    showDelete={canDelete}
+                    viewLabel="View Details"
+                    editLabel="Edit User"
+                    deleteLabel="Delete User"
+                  />
                 </td>
               </tr>
             );

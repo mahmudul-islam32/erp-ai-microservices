@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
 import '@/styles/icon.css';
 
@@ -107,12 +108,18 @@ function processSvg(
 
 export const Icon: React.FC<IconProps> = ({
   name,
-  size = 'default',
+  size: sizeProp,
   strokeWidth = '0',
   variant = 'primary',
   color,
   className = '',
 }) => {
+  const { settings } = useAppearance();
+  
+  // Get default size from settings, fallback to 'default' if not set
+  const defaultSize = (settings?.icon_default_size as IconSize) || 'default';
+  const size = sizeProp || defaultSize; // Use prop if provided, otherwise use default from settings
+  
   const [rawSvgContent, setRawSvgContent] = useState<string>('');
   const [processedSvgContent, setProcessedSvgContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -135,7 +142,7 @@ export const Icon: React.FC<IconProps> = ({
       }
       setIsLoading(false);
     });
-  }, [name, dimensions.width, dimensions.height]);
+  }, [name, size, dimensions.width, dimensions.height]);
 
   // Reprocess SVG when size, strokeWidth, variant, or color changes
   useEffect(() => {
@@ -143,7 +150,7 @@ export const Icon: React.FC<IconProps> = ({
       const processed = processSvg(rawSvgContent, size, strokeWidth, variant, color);
       setProcessedSvgContent(processed);
     }
-  }, [rawSvgContent, size, strokeWidth, variant, color, isLoading]);
+  }, [rawSvgContent, size, strokeWidth, variant, color, isLoading, defaultSize]);
 
   if (isLoading) {
     return (
