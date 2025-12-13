@@ -48,6 +48,8 @@ export const SettingsPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [formData, setFormData] = useState<Record<SettingsCategory, SettingsUpdate>>({
     [SettingsCategory.COMPANY]: {},
     [SettingsCategory.FINANCIAL]: {},
@@ -129,6 +131,11 @@ export const SettingsPage: React.FC = () => {
             ...prev,
             [setting.category]: categoryData,
           }));
+          
+          // Set logo preview if company logo exists
+          if (setting.category === SettingsCategory.COMPANY && setting.company_info?.logo_url) {
+            setLogoPreview(setting.company_info.logo_url);
+          }
         }
       });
 
@@ -150,6 +157,21 @@ export const SettingsPage: React.FC = () => {
     setSaving(true);
     try {
       let data = formData[category];
+      
+      // For company settings, handle company_name when logo exists
+      if (category === SettingsCategory.COMPANY && data.company_info) {
+        const companyInfo = data.company_info;
+        // If logo exists and company_name is empty, set it to undefined/null
+        if (companyInfo.logo_url && (!companyInfo.company_name || companyInfo.company_name.trim() === '')) {
+          data = {
+            ...data,
+            company_info: {
+              ...companyInfo,
+              company_name: undefined, // Remove empty company_name when logo exists
+            },
+          };
+        }
+      }
       
       // For security settings, ensure ALL fields are explicitly included with their current values
       if (category === SettingsCategory.SECURITY) {
@@ -283,7 +305,48 @@ export const SettingsPage: React.FC = () => {
       toast.success(`${tabConfig.find(t => t.id === category)?.label || category} settings saved successfully`);
     } catch (error: any) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      
+      // Handle Pydantic validation errors from FastAPI
+      let errorMessage = 'Failed to save settings';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // FastAPI returns validation errors as an array in detail
+        if (Array.isArray(errorData.detail)) {
+          const validationErrors = errorData.detail
+            .map((err: any) => {
+              // Handle loc array (e.g., ['body', 'company_info', 'logo_url'])
+              const field = err.loc && Array.isArray(err.loc) 
+                ? err.loc.slice(1).join('.') // Remove 'body' from loc
+                : err.loc || 'field';
+              return `${field}: ${err.msg || 'Validation failed'}`;
+            })
+            .join('; ');
+          errorMessage = `Validation error: ${validationErrors}`;
+        } 
+        // Single object error (sometimes FastAPI returns single object)
+        else if (errorData.detail && typeof errorData.detail === 'object' && !Array.isArray(errorData.detail)) {
+          if (errorData.detail.msg) {
+            const field = errorData.detail.loc && Array.isArray(errorData.detail.loc)
+              ? errorData.detail.loc.slice(1).join('.')
+              : 'field';
+            errorMessage = `${field}: ${errorData.detail.msg}`;
+          } else {
+            // Fallback: stringify the error object
+            errorMessage = `Validation error: ${JSON.stringify(errorData.detail)}`;
+          }
+        }
+        // Single string detail
+        else if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      console.error('Full error response:', error.response?.data);
     } finally {
       setSaving(false);
     }
@@ -345,17 +408,119 @@ export const SettingsPage: React.FC = () => {
     });
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+    
+    setUploadingLogo(true);
+    try {
+      // Convert to base64 for now (can be changed to upload to server later)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setLogoPreview(base64String);
+        updateFormData(SettingsCategory.COMPANY, 'company_info.logo_url', base64String);
+        setUploadingLogo(false);
+        toast.success('Logo uploaded successfully');
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read image file');
+        setUploadingLogo(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Failed to upload logo');
+      setUploadingLogo(false);
+    }
+  };
+  
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    updateFormData(SettingsCategory.COMPANY, 'company_info.logo_url', '');
+  };
+
   const renderCompanySettings = () => {
     const data = formData[SettingsCategory.COMPANY].company_info || settings[SettingsCategory.COMPANY]?.company_info;
+    const currentLogo = logoPreview || data?.logo_url || null;
+    const isCompanyNameRequired = !currentLogo; // Required only if no logo
     
     return (
       <div className="space-y-6">
+        {/* Company Logo Upload */}
+        <div>
+          <label className="block text-sm font-medium text-slate-900 mb-2">Company Logo</label>
+          <div className="flex items-center gap-4">
+            {currentLogo ? (
+              <div className="relative">
+                <img 
+                  src={currentLogo} 
+                  alt="Company Logo" 
+                  className="w-16 h-16 object-contain rounded-lg border border-slate-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveLogo}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                  title="Remove logo"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <div className="w-16 h-16 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                No logo
+              </div>
+            )}
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                disabled={uploadingLogo}
+                className="hidden"
+                id="logo-upload"
+              />
+              <label
+                htmlFor="logo-upload"
+                className="inline-flex items-center px-4 py-2 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploadingLogo ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    {currentLogo ? 'Change Logo' : 'Upload Logo'}
+                  </>
+                )}
+              </label>
+              <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, max 2MB</p>
+            </div>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input
+            id="company-name"
             label="Company Name"
             value={data?.company_name || ''}
             onChange={(e) => updateFormData(SettingsCategory.COMPANY, 'company_info.company_name', e.target.value)}
-            required
+            required={isCompanyNameRequired}
+            helperText={isCompanyNameRequired ? 'Required if no logo is uploaded' : 'Optional when logo is uploaded'}
           />
           <Input
             label="Legal Name"

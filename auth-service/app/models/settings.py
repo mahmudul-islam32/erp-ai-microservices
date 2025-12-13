@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from enum import Enum
@@ -20,7 +20,7 @@ class SettingsCategory(str, Enum):
 
 # Company Information Settings
 class CompanyInfo(BaseModel):
-    company_name: str = Field(..., min_length=1, max_length=200)
+    company_name: Optional[str] = Field(None, min_length=1, max_length=200)
     legal_name: Optional[str] = None
     registration_number: Optional[str] = None
     tax_id: Optional[str] = None
@@ -28,6 +28,23 @@ class CompanyInfo(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     address: Optional[Dict[str, str]] = None  # {street, city, state, zip_code, country}
+    logo_url: Optional[str] = Field(None, max_length=500000)  # Base64 or URL string (supports up to ~375KB images)
+    
+    @model_validator(mode='after')
+    def validate_company_name_or_logo(self):
+        """Company name is required if logo_url is not provided"""
+        # If logo_url exists, company_name is optional (can be None or empty)
+        if self.logo_url:
+            # If company_name is provided but empty, set it to None
+            if self.company_name and len(self.company_name.strip()) == 0:
+                self.company_name = None
+            return self
+        
+        # If no logo_url, company_name is required
+        if not self.company_name or len(self.company_name.strip()) == 0:
+            raise ValueError('Either company_name or logo_url must be provided')
+        
+        return self
 
 
 # Financial Settings
@@ -99,7 +116,8 @@ class GeneralSettings(BaseModel):
 # Appearance Settings
 class AppearanceSettings(BaseModel):
     # Font Settings
-    font_family: str = Field(default="Inter", max_length=100)  # Inter, Roboto, Open Sans, etc.
+    font_family: str = Field(default="Roboto", max_length=100)  # Body font: Roboto, Inter, Open Sans, etc.
+    heading_font_family: Optional[str] = Field(default="Rubik", max_length=100)  # Heading font: Rubik, Montserrat, etc.
     font_size_base: str = Field(default="14px", max_length=10)  # Base font size
     font_size_small: str = Field(default="12px", max_length=10)
     font_size_large: str = Field(default="16px", max_length=10)
@@ -108,22 +126,29 @@ class AppearanceSettings(BaseModel):
     font_weight_bold: int = Field(default=700, ge=100, le=900)
     
     # Color Settings
-    primary_color: str = Field(default="#3b82f6", max_length=7)  # Hex color
-    primary_color_dark: str = Field(default="#2563eb", max_length=7)
-    secondary_color: str = Field(default="#64748b", max_length=7)
-    accent_color: str = Field(default="#8b5cf6", max_length=7)
-    success_color: str = Field(default="#22c55e", max_length=7)
-    warning_color: str = Field(default="#f59e0b", max_length=7)
-    danger_color: str = Field(default="#ef4444", max_length=7)
-    background_color: str = Field(default="#ffffff", max_length=7)
-    background_color_dark: str = Field(default="#0f172a", max_length=7)
-    text_color: str = Field(default="#1e293b", max_length=7)
+    primary_color: str = Field(default="#253c6a", max_length=7)  # Hex color from design language
+    primary_color_dark: str = Field(default="#1a2d4f", max_length=7)
+    secondary_color: str = Field(default="#355697", max_length=7)
+    accent_color: str = Field(default="#ffee00", max_length=7)
+    success_color: str = Field(default="#1d871e", max_length=7)
+    warning_color: str = Field(default="#ffaa00", max_length=7)
+    danger_color: str = Field(default="#e24312", max_length=7)
+    info_color: Optional[str] = Field(default="#19a1e6", max_length=7)
+    background_color: str = Field(default="#f6f7f9", max_length=7)
+    background_color_dark: str = Field(default="#1a2d4f", max_length=7)
+    text_color: str = Field(default="#2b303b", max_length=7)
     text_color_dark: str = Field(default="#f1f5f9", max_length=7)
     
     # UI Settings
     border_radius: str = Field(default="0.375rem", max_length=20)  # Tailwind default
     border_radius_large: str = Field(default="0.5rem", max_length=20)
     spacing_unit: str = Field(default="0.25rem", max_length=20)  # Base spacing unit
+    
+    # Button Settings
+    button_default_size: Optional[str] = Field(default="small", max_length=10)  # small, medium, large
+    
+    # Icon Settings
+    icon_default_size: Optional[str] = Field(default="default", max_length=10)  # small, default, large
     
     # IconButton Settings
     icon_button_default_size: Optional[str] = Field(default="md", max_length=10)  # xs, sm, md, lg

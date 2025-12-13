@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -9,7 +10,7 @@ class Settings(BaseSettings):
     service_version: str = "1.0.0"
     
     # Database
-    mongodb_url: str = "mongodb://admin:password123@mongodb:27017/erp_finance?authSource=admin"
+    mongodb_url: str = Field(..., env="MONGODB_URL")
     database_name: str = "erp_finance"
     
     # Service Configuration

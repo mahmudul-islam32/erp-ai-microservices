@@ -13,7 +13,8 @@ export const applyAppearanceSettings = (settings: AppearanceSettings | null | un
   const root = document.documentElement;
 
   // Apply font settings
-  root.style.setProperty('--font-family', settings.font_family || 'Inter');
+  root.style.setProperty('--font-family', settings.font_family || 'Roboto');
+  root.style.setProperty('--font-family-heading', settings.heading_font_family || 'Rubik');
   root.style.setProperty('--font-size-base', settings.font_size_base || '14px');
   root.style.setProperty('--font-size-small', settings.font_size_small || '12px');
   root.style.setProperty('--font-size-large', settings.font_size_large || '16px');
@@ -22,16 +23,17 @@ export const applyAppearanceSettings = (settings: AppearanceSettings | null | un
   root.style.setProperty('--font-weight-bold', String(settings.font_weight_bold || 700));
 
   // Apply color settings
-  root.style.setProperty('--color-primary', settings.primary_color || '#3b82f6');
-  root.style.setProperty('--color-primary-dark', settings.primary_color_dark || '#2563eb');
-  root.style.setProperty('--color-secondary', settings.secondary_color || '#64748b');
-  root.style.setProperty('--color-accent', settings.accent_color || '#8b5cf6');
-  root.style.setProperty('--color-success', settings.success_color || '#22c55e');
-  root.style.setProperty('--color-warning', settings.warning_color || '#f59e0b');
-  root.style.setProperty('--color-danger', settings.danger_color || '#ef4444');
-  root.style.setProperty('--color-background', settings.background_color || '#ffffff');
-  root.style.setProperty('--color-background-dark', settings.background_color_dark || '#0f172a');
-  root.style.setProperty('--color-text', settings.text_color || '#1e293b');
+  root.style.setProperty('--color-primary', settings.primary_color || '#253c6a');
+  root.style.setProperty('--color-primary-dark', settings.primary_color_dark || '#1a2d4f');
+  root.style.setProperty('--color-secondary', settings.secondary_color || '#355697');
+  root.style.setProperty('--color-accent', settings.accent_color || '#ffee00');
+  root.style.setProperty('--color-success', settings.success_color || '#1d871e');
+  root.style.setProperty('--color-warning', settings.warning_color || '#ffaa00');
+  root.style.setProperty('--color-danger', settings.danger_color || '#e24312');
+  root.style.setProperty('--color-info', settings.info_color || '#19a1e6');
+  root.style.setProperty('--color-background', settings.background_color || '#f6f7f9');
+  root.style.setProperty('--color-background-dark', settings.background_color_dark || '#1a2d4f');
+  root.style.setProperty('--color-text', settings.text_color || '#2b303b');
   root.style.setProperty('--color-text-dark', settings.text_color_dark || '#f1f5f9');
 
   // Apply UI settings
@@ -69,23 +71,25 @@ export const resetAppearanceSettings = () => {
   // Reset to default values instead of removing
 
   // Reset to default values instead of removing
-  root.style.setProperty('--font-family', 'Inter, system-ui, -apple-system, sans-serif');
+  root.style.setProperty('--font-family', 'Roboto, sans-serif');
+  root.style.setProperty('--font-family-heading', 'Rubik, sans-serif');
   root.style.setProperty('--font-size-base', '14px');
   root.style.setProperty('--font-size-small', '12px');
   root.style.setProperty('--font-size-large', '16px');
   root.style.setProperty('--font-weight-normal', '400');
   root.style.setProperty('--font-weight-medium', '500');
   root.style.setProperty('--font-weight-bold', '700');
-  root.style.setProperty('--color-primary', '#3b82f6');
-  root.style.setProperty('--color-primary-dark', '#2563eb');
-  root.style.setProperty('--color-secondary', '#64748b');
-  root.style.setProperty('--color-accent', '#8b5cf6');
-  root.style.setProperty('--color-success', '#22c55e');
-  root.style.setProperty('--color-warning', '#f59e0b');
-  root.style.setProperty('--color-danger', '#ef4444');
-  root.style.setProperty('--color-background', '#ffffff');
-  root.style.setProperty('--color-background-dark', '#0f172a');
-  root.style.setProperty('--color-text', '#1e293b');
+  root.style.setProperty('--color-primary', '#253c6a');
+  root.style.setProperty('--color-primary-dark', '#1a2d4f');
+  root.style.setProperty('--color-secondary', '#355697');
+  root.style.setProperty('--color-accent', '#ffee00');
+  root.style.setProperty('--color-success', '#1d871e');
+  root.style.setProperty('--color-warning', '#ffaa00');
+  root.style.setProperty('--color-danger', '#e24312');
+  root.style.setProperty('--color-info', '#19a1e6');
+  root.style.setProperty('--color-background', '#f6f7f9');
+  root.style.setProperty('--color-background-dark', '#1a2d4f');
+  root.style.setProperty('--color-text', '#2b303b');
   root.style.setProperty('--color-text-dark', '#f1f5f9');
   root.style.setProperty('--border-radius', '0.375rem');
   root.style.setProperty('--border-radius-large', '0.5rem');

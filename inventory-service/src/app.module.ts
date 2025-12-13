@@ -25,11 +25,19 @@ import { CommonModule } from './common/common.module';
     // MongoDB connection
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI', 'mongodb://localhost:27017/erp_inventory'),
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const uri = configService.get<string>('MONGODB_URI');
+
+        if (!uri) {
+          throw new Error('MONGODB_URI is required for MongoDB connection');
+        }
+
+        return {
+          uri,
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        };
+      },
       inject: [ConfigService],
     }),
 

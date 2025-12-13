@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional, List
 
@@ -10,7 +11,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     
     # Database
-    mongodb_url: str = "mongodb://admin:password123@mongodb:27017/erp_ai_chatbot?authSource=admin"
+    mongodb_url: str = Field(..., env="MONGODB_URL")
     database_name: str = "erp_ai_chatbot"
     
     # Auth Service

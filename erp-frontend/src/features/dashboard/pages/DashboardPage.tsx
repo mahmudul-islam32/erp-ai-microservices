@@ -152,7 +152,7 @@ export const DashboardPage: React.FC = () => {
   const isCustomer = user?.role === UserRole.CUSTOMER;
 
   return (
-    <div style={{ backgroundColor: 'var(--background-secondary)', minHeight: 'calc(100vh - 80px)', margin: 'calc(-1 * var(--spacing-inset-medium))', padding: 'var(--spacing-inset-medium)' }}>
+    <>
       {/* Welcome Message Card */}
       <div className="mb-6 bg-white rounded-lg shadow-sm border-l-4 border-primary">
         <div className={`flex items-center ${isCustomer ? 'justify-between' : ''} p-6`}>
@@ -431,6 +431,6 @@ export const DashboardPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   );
 };

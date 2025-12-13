@@ -54,10 +54,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   return (
     <div
-      className={clsx('bg-white rounded-lg', className)}
+      className={clsx('bg-white', className)}
       style={{
         padding: 'var(--card-padding)',
         boxShadow: 'var(--box-shadow-light)',
+        borderRadius: 'var(--card-radius)',
       }}
     >
       <div

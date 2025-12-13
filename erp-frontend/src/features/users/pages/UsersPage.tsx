@@ -171,93 +171,97 @@ export const UsersPage: React.FC = () => {
             icon: Plus,
           }] : []),
         ]}
+        className="mb-6"
       />
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <StatCard
-          title="Total Users"
-          value={totalUsers}
-          icon={Users}
-          color="primary"
-        />
-        <StatCard
-          title="Active"
-          value={activeUsers}
-          icon={CheckCircle}
-          color="success"
-        />
-        <StatCard
-          title="Pending"
-          value={pendingUsers}
-          icon={Clock}
-          color="warning"
-        />
-        <StatCard
-          title="Suspended"
-          value={suspendedUsers}
-          icon={XCircle}
-          color="danger"
-        />
-      </div>
-
-      {/* Filters */}
-      <div className="mb-6">
-        <UserFilters
-          filters={filters}
-          onFiltersChange={(newFilters) => dispatch(setFilters(newFilters))}
-        />
-      </div>
-
-      {/* Bulk Actions */}
-      {selectedUsers.length > 0 && (
-        <div className="mb-6">
-          <BulkActionsBar
-            selectedCount={selectedUsers.length}
-            actions={[
-              ...(canUpdate ? [
-                {
-                  label: 'Activate',
-                  onClick: () => handleBulkStatusUpdate(UserStatus.ACTIVE),
-                  variant: 'default' as const,
-                },
-                {
-                  label: 'Suspend',
-                  onClick: () => handleBulkStatusUpdate(UserStatus.SUSPENDED),
-                  variant: 'default' as const,
-                },
-              ] : []),
-              ...(canDelete ? [{
-                label: 'Delete',
-                onClick: handleBulkDelete,
-                variant: 'danger' as const,
-              }] : []),
-            ]}
-            onClear={() => setSelectedUsers([])}
+      {/* Content sections with gap-6 spacing (matching dashboard card gap) */}
+      <div className="flex flex-col gap-6">
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Users"
+            value={totalUsers}
+            icon={Users}
+            color="primary"
+          />
+          <StatCard
+            title="Active"
+            value={activeUsers}
+            icon={CheckCircle}
+            color="success"
+          />
+          <StatCard
+            title="Pending"
+            value={pendingUsers}
+            icon={Clock}
+            color="warning"
+          />
+          <StatCard
+            title="Suspended"
+            value={suspendedUsers}
+            icon={XCircle}
+            color="danger"
           />
         </div>
-      )}
 
-      {/* Users Table */}
-      <DataTableContainer
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filteredUsers.length}
-        itemsPerPage={itemsPerPage}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        isLoading={loading}
-      >
-        <UserTable
-          users={paginatedUsers}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          selectedUsers={selectedUsers}
-          onSelectionChange={setSelectedUsers}
+        {/* Filters */}
+        <div>
+          <UserFilters
+            filters={filters}
+            onFiltersChange={(newFilters) => dispatch(setFilters(newFilters))}
+          />
+        </div>
+
+        {/* Bulk Actions */}
+        {selectedUsers.length > 0 && (
+          <div>
+            <BulkActionsBar
+              selectedCount={selectedUsers.length}
+              actions={[
+                ...(canUpdate ? [
+                  {
+                    label: 'Activate',
+                    onClick: () => handleBulkStatusUpdate(UserStatus.ACTIVE),
+                    variant: 'default' as const,
+                  },
+                  {
+                    label: 'Suspend',
+                    onClick: () => handleBulkStatusUpdate(UserStatus.SUSPENDED),
+                    variant: 'default' as const,
+                  },
+                ] : []),
+                ...(canDelete ? [{
+                  label: 'Delete',
+                  onClick: handleBulkDelete,
+                  variant: 'danger' as const,
+                }] : []),
+              ]}
+              onClear={() => setSelectedUsers([])}
+            />
+          </div>
+        )}
+
+        {/* Users Table */}
+        <DataTableContainer
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
           isLoading={loading}
-        />
-      </DataTableContainer>
+        >
+          <UserTable
+            users={paginatedUsers}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            selectedUsers={selectedUsers}
+            onSelectionChange={setSelectedUsers}
+            isLoading={loading}
+          />
+        </DataTableContainer>
+      </div>
 
       {/* Delete Modal */}
       {userToDelete && (

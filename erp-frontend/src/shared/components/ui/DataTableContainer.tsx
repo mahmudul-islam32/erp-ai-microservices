@@ -85,10 +85,11 @@ export const DataTableContainer: React.FC<DataTableContainerProps> = ({
 }) => {
   return (
     <div 
-      className={clsx('bg-white rounded-lg', className)}
+      className={clsx('bg-white', className)}
       style={{
         boxShadow: 'var(--box-shadow-light)',
         padding: 'var(--card-padding)',
+        borderRadius: 'var(--card-radius)',
       }}
     >
       <div className="overflow-x-auto">

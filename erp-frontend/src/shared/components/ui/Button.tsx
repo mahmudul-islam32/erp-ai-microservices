@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
 import '@/styles/design-button.css';
 
@@ -22,7 +23,7 @@ export interface ButtonProps {
 
 export const Button: React.FC<ButtonProps> = ({
   text = '',
-  size = 'medium',
+  size: sizeProp,
   variant = 'primary',
   shape = 'default',
   fullwidth = false,
@@ -37,6 +38,11 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
   ...rest
 }) => {
+  const { settings } = useAppearance();
+  
+  // Get default size from settings, fallback to 'small' if not set
+  const defaultSize = (settings?.button_default_size as 'small' | 'medium' | 'large') || 'small';
+  const size = sizeProp || defaultSize;
   // Handle external link defaults
   let rel = relProp;
   let target = targetProp;
