@@ -1,17 +1,23 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
+import { Card, CardContent } from './Card';
 
 export interface StatCardProps {
   /**
    * The title/label of the stat card
    */
-  label: string;
+  title: string;
   
   /**
    * The value to display
    */
   value: string | number;
+  
+  /**
+   * Optional subtitle/description
+   */
+  subtitle?: string;
   
   /**
    * Optional icon component
@@ -21,12 +27,7 @@ export interface StatCardProps {
   /**
    * Icon background color variant
    */
-  iconVariant?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'gray';
-  
-  /**
-   * Optional description or subtitle
-   */
-  description?: string;
+  color?: 'primary' | 'success' | 'warning' | 'danger';
   
   /**
    * Optional click handler
@@ -40,60 +41,58 @@ export interface StatCardProps {
 }
 
 /**
- * StatCard - A reusable statistics card component
+ * StatCard - A reusable statistics card component matching dashboard design
  * 
  * @example
  * ```tsx
  * <StatCard
- *   label="Total Users"
- *   value={150}
- *   icon={Users}
- *   iconVariant="primary"
+ *   title="Total Revenue"
+ *   value="$12,345"
+ *   subtitle="From 50 paid orders"
+ *   icon={DollarSign}
+ *   color="success"
  * />
  * ```
  */
 export const StatCard: React.FC<StatCardProps> = ({
-  label,
+  title,
   value,
+  subtitle,
   icon: Icon,
-  iconVariant = 'primary',
-  description,
+  color = 'primary',
   onClick,
   className,
 }) => {
-  const iconVariants = {
+  const colorClasses = {
+    success: 'bg-success-100 text-success-600',
     primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-green-100 text-green-600',
-    warning: 'bg-yellow-100 text-yellow-600',
-    danger: 'bg-red-100 text-red-600',
-    info: 'bg-blue-100 text-blue-600',
-    gray: 'bg-gray-100 text-gray-600',
+    warning: 'bg-warning-100 text-warning-600',
+    danger: 'bg-danger-100 text-danger-600',
   };
 
   return (
-    <div
-      className={clsx(
-        'bg-white rounded-lg shadow p-6',
-        onClick && 'cursor-pointer hover:shadow-md transition-shadow',
-        className
-      )}
+    <Card 
+      variant="dashboard" 
+      className={clsx(onClick && 'cursor-pointer hover:shadow-md transition-shadow', className)}
       onClick={onClick}
     >
-      <div className="flex items-center">
-        {Icon && (
-          <div className={clsx('flex-shrink-0 rounded-md p-3', iconVariants[iconVariant])}>
-            <Icon className="h-6 w-6" />
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-600">{title}</p>
+            <h3 className="text-3xl font-bold text-slate-900 mt-2">{value}</h3>
+            {subtitle && (
+              <p className="text-sm mt-2 text-slate-500">{subtitle}</p>
+            )}
           </div>
-        )}
-        <div className={clsx(Icon ? 'ml-5' : '')}>
-          <p className="text-sm font-medium text-gray-500">{label}</p>
-          <p className="text-2xl font-semibold text-gray-900">{value}</p>
-          {description && (
-            <p className="mt-1 text-xs text-gray-500">{description}</p>
+          {Icon && (
+            <div className={`p-3 rounded-full ${colorClasses[color]}`}>
+              <Icon className="h-8 w-8" />
+            </div>
           )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

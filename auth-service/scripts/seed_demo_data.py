@@ -21,7 +21,7 @@ import random
 DEMO_USERS = [
     {
         "email": "admin@example.com",
-        "password": "admin123",
+        "password": "Admin123",
         "first_name": "System",
         "last_name": "Administrator",
         "role": UserRole.SUPER_ADMIN,
@@ -32,7 +32,7 @@ DEMO_USERS = [
     },
     {
         "email": "john.admin@example.com",
-        "password": "admin123",
+        "password": "Admin123",
         "first_name": "John",
         "last_name": "Smith",
         "role": UserRole.ADMIN,
@@ -43,7 +43,7 @@ DEMO_USERS = [
     },
     {
         "email": "sarah.admin@example.com",
-        "password": "admin123",
+        "password": "Admin123",
         "first_name": "Sarah",
         "last_name": "Johnson",
         "role": UserRole.ADMIN,
@@ -54,7 +54,7 @@ DEMO_USERS = [
     },
     {
         "email": "manager@example.com",
-        "password": "manager123",
+        "password": "Manager123",
         "first_name": "Michael",
         "last_name": "Brown",
         "role": UserRole.MANAGER,
@@ -65,7 +65,7 @@ DEMO_USERS = [
     },
     {
         "email": "emily.manager@example.com",
-        "password": "manager123",
+        "password": "Manager123",
         "first_name": "Emily",
         "last_name": "Davis",
         "role": UserRole.MANAGER,
@@ -76,7 +76,7 @@ DEMO_USERS = [
     },
     {
         "email": "robert.manager@example.com",
-        "password": "manager123",
+        "password": "Manager123",
         "first_name": "Robert",
         "last_name": "Wilson",
         "role": UserRole.MANAGER,
@@ -87,7 +87,7 @@ DEMO_USERS = [
     },
     {
         "email": "employee@example.com",
-        "password": "employee123",
+        "password": "Employee123",
         "first_name": "David",
         "last_name": "Martinez",
         "role": UserRole.EMPLOYEE,
@@ -98,7 +98,7 @@ DEMO_USERS = [
     },
     {
         "email": "jennifer.sales@example.com",
-        "password": "employee123",
+        "password": "Employee123",
         "first_name": "Jennifer",
         "last_name": "Garcia",
         "role": UserRole.EMPLOYEE,
@@ -109,7 +109,7 @@ DEMO_USERS = [
     },
     {
         "email": "james.inventory@example.com",
-        "password": "employee123",
+        "password": "Employee123",
         "first_name": "James",
         "last_name": "Rodriguez",
         "role": UserRole.EMPLOYEE,
@@ -120,7 +120,7 @@ DEMO_USERS = [
     },
     {
         "email": "lisa.support@example.com",
-        "password": "employee123",
+        "password": "Employee123",
         "first_name": "Lisa",
         "last_name": "Anderson",
         "role": UserRole.EMPLOYEE,
@@ -131,7 +131,7 @@ DEMO_USERS = [
     },
     {
         "email": "customer1@example.com",
-        "password": "customer123",
+        "password": "Customer123",
         "first_name": "Customer",
         "last_name": "One",
         "role": UserRole.CUSTOMER,
@@ -142,7 +142,7 @@ DEMO_USERS = [
     },
     {
         "email": "customer2@example.com",
-        "password": "customer123",
+        "password": "Customer123",
         "first_name": "Customer",
         "last_name": "Two",
         "role": UserRole.CUSTOMER,
@@ -285,9 +285,9 @@ async def seed_demo_data():
     print(f"   Created {len(sessions)} sessions")
     
     print("\n🔐 Test Credentials:")
-    print("   Super Admin: admin@example.com / admin123")
-    print("   Manager: manager@example.com / manager123")
-    print("   Employee: employee@example.com / employee123")
+    print("   Super Admin: admin@example.com / Admin123")
+    print("   Manager: manager@example.com / Manager123")
+    print("   Employee: employee@example.com / Employee123")
     
     print("\n⚠️  Remember to change these passwords in production!")
     print("=" * 50)

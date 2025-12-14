@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppearance } from '../../contexts/AppearanceContext';
+import { Select } from './Select';
 
 interface PaginationProps {
   currentPage: number;
@@ -141,20 +142,19 @@ export const Pagination: React.FC<PaginationProps> = ({
 
             {onItemsPerPageChange && (
               <div className="flex items-center gap-2">
-                <label htmlFor="itemsPerPage" className="text-sm text-gray-700" style={getTextStyle()}>
-                  Show:
-                </label>
-                <select
-                  id="itemsPerPage"
-                  value={itemsPerPage}
-                  onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                  className="block rounded-md border-gray-300 py-1 pl-3 pr-8 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                  style={{ ...getBorderStyle(), ...getTextStyle() }}
-                >
-                  {itemsPerPageOptions.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
+                <span className="text-sm text-gray-700" style={getTextStyle()}>Show:</span>
+                <div className="[&_.design-select]:mb-0 [&_.design-select__label]:hidden [&_.design-select]:inline-block [&_.design-select]:w-auto [&_.design-select__field-wrapper]:w-auto [&_.design-select__wrapper]:w-auto [&_.design-select__field]:min-w-[80px] [&_.design-select__field]:!py-1 [&_.design-select__field]:!px-2">
+                  <Select
+                    id="itemsPerPage"
+                    label=""
+                    value={itemsPerPage.toString()}
+                    options={itemsPerPageOptions.map(opt => ({
+                      value: opt.toString(),
+                      label: opt.toString(),
+                    }))}
+                    onValueChange={(value) => onItemsPerPageChange(Number(value))}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -279,20 +279,19 @@ export const Pagination: React.FC<PaginationProps> = ({
 
           {onItemsPerPageChange && (
             <div className="flex items-center gap-2">
-              <label htmlFor="itemsPerPage" className="text-sm text-gray-700" style={getTextStyle()}>
-                Show:
-              </label>
-              <select
-                id="itemsPerPage"
-                value={itemsPerPage}
-                onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                className="block rounded-lg border-gray-300 py-1 pl-3 pr-8 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
-                style={{ ...getBorderStyle(), ...getTextStyle() }}
-              >
-                {itemsPerPageOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <span className="text-sm text-gray-700" style={getTextStyle()}>Show:</span>
+              <div className="[&_.design-select]:mb-0 [&_.design-select__label]:hidden [&_.design-select]:inline-block [&_.design-select]:w-auto [&_.design-select__field-wrapper]:w-auto [&_.design-select__wrapper]:w-auto">
+                <Select
+                  id="itemsPerPage"
+                  label=""
+                  value={itemsPerPage.toString()}
+                  options={itemsPerPageOptions.map(opt => ({
+                    value: opt.toString(),
+                    label: opt.toString(),
+                  }))}
+                  onValueChange={(value) => onItemsPerPageChange(Number(value))}
+                />
+              </div>
             </div>
           )}
         </div>

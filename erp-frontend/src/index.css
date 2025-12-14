@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
@@ -21,6 +22,7 @@
   :root {
     /* Default CSS variables - can be overridden by appearance settings */
     --font-family: var(--font-family-primary);
+    --font-family-heading: var(--font-family-secondary);
     --font-size-base: var(--font-size-body);
     --font-size-small: var(--font-size-sm);
     --font-size-large: var(--font-size-lg);
@@ -38,7 +40,7 @@
   }
 
   body {
-    background-color: var(--background-secondary);
+    background-color: #F7F8FB;
     color: var(--text-primary);
     font-family: var(--font-family-primary);
     font-size: var(--font-size-body);
@@ -49,7 +51,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-family-primary);
+    font-family: var(--font-family-heading, var(--font-family-secondary));
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
     margin: 0;
@@ -126,6 +128,15 @@
 }
 
 @layer components {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+
   /* Custom scrollbar */
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
