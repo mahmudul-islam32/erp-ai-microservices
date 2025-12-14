@@ -1,26 +1,10 @@
-services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: erp-mongodb
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password123}
-      MONGO_INITDB_DATABASE: erp_auth
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - erp-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+x-mongodb-atlas-url: &mongodb_atlas_url mongodb+srv://${MONGODB_ATLAS_USER:?MONGODB_ATLAS_USER not set}:${MONGODB_ATLAS_PASSWORD:?MONGODB_ATLAS_PASSWORD not set}@${MONGODB_ATLAS_HOST:?MONGODB_ATLAS_HOST not set}/?retryWrites=true&w=majority&appName=Cluster0
+x-mongodb-atlas-env-url: &mongodb_atlas_env_url
+  MONGODB_URL: *mongodb_atlas_url
+x-mongodb-atlas-env-uri: &mongodb_atlas_env_uri
+  MONGODB_URI: *mongodb_atlas_url
 
+services:
   # Redis for caching
   redis:
     image: redis:7.2-alpine
@@ -47,8 +31,8 @@ services:
     ports:
       - "8001:8001"
     environment:
+      <<: *mongodb_atlas_env_url
       ENVIRONMENT: ${ENVIRONMENT:-production}
-      MONGODB_URL: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD:-password123}@mongodb:27017/erp_auth?authSource=admin
       DATABASE_NAME: erp_auth
       SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
       ALGORITHM: HS256
@@ -58,9 +42,6 @@ services:
       SERVICE_PORT: 8001
       SERVICE_HOST: 0.0.0.0
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    depends_on:
-      mongodb:
-        condition: service_healthy
     networks:
       - erp-network
     healthcheck:
@@ -78,14 +59,12 @@ services:
     ports:
       - "8002:8002"
     environment:
+      <<: *mongodb_atlas_env_uri
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 8002
-      MONGODB_URI: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD:-password123}@mongodb:27017/erp_inventory?authSource=admin
       AUTH_SERVICE_URL: http://auth-service:8001
       JWT_SECRET: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
     depends_on:
-      mongodb:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
     volumes:
@@ -107,8 +86,8 @@ services:
     ports:
       - "8003:8003"
     environment:
+      <<: *mongodb_atlas_env_url
       ENVIRONMENT: ${ENVIRONMENT:-production}
-      MONGODB_URL: mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD:-password123}@mongodb:27017/erp_sales?authSource=admin
       DATABASE_NAME: erp_sales
       AUTH_SERVICE_URL: http://auth-service:8001
       INVENTORY_SERVICE_URL: http://inventory-service:8002
@@ -129,8 +108,6 @@ services:
       STRIPE_API_VERSION: "2023-10-16"
       STRIPE_CURRENCY: ${STRIPE_CURRENCY:-usd}
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
       auth-service:
@@ -167,7 +144,6 @@ services:
       start_period: 30s
 
 volumes:
-  mongodb_data:
   redis_data:
   inventory_uploads:
 

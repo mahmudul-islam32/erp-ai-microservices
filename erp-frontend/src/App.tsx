@@ -9,6 +9,7 @@ import { PermissionRoute } from './shared/components/PermissionRoute';
 import { MainLayout } from './shared/components/layout/MainLayout';
 import { AppearanceLoader } from './shared/components/AppearanceLoader';
 import { AppearanceProvider } from './shared/contexts/AppearanceContext';
+import { LayoutProvider } from './shared/contexts/LayoutContext';
 import { Permission, UserRole } from './features/users/types';
 
 
@@ -98,6 +99,7 @@ function App() {
   return (
     <Provider store={store}>
       <AppearanceProvider>
+        <LayoutProvider>
         <BrowserRouter>
           <Toaster position="top-right" richColors />
         <Routes>
@@ -594,6 +596,7 @@ function App() {
           <Route path="*" element={<div className="flex items-center justify-center min-h-screen"><h1 className="text-2xl font-bold">404 - Page Not Found</h1></div>} />
         </Routes>
       </BrowserRouter>
+        </LayoutProvider>
       </AppearanceProvider>
     </Provider>
   );

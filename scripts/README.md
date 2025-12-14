@@ -4,6 +4,65 @@ Collection of scripts to help you deploy and manage your ERP application on AWS 
 
 ## 📁 Available Scripts
 
+### 0. `seed-all-services-docker.sh` - Seed Demo Data (Recommended)
+**Purpose**: Seed all services with demo data for testing and development using Docker containers.
+
+**What it does**:
+- Seeds Auth Service (users, roles, sessions, audit logs)
+- Seeds Inventory Service (products, categories, suppliers, warehouses)
+- Seeds Sales Service (customers, orders, invoices)
+- Seeds Finance Service (accounts, journal entries, invoices)
+- Seeds HRM Service (employees, payroll, attendance, leaves)
+
+**Prerequisites**:
+- Docker containers must be running (`docker compose up -d`)
+- `.env` file with MongoDB Atlas credentials (already configured in docker-compose.yml)
+
+**Usage**:
+```bash
+# Make sure services are running
+docker compose up -d
+
+# Run the seed script
+./scripts/seed-all-services-docker.sh
+
+# Or make executable and run directly
+chmod +x scripts/seed-all-services-docker.sh
+./scripts/seed-all-services-docker.sh
+```
+
+**Test Credentials** (created by seed):
+- Super Admin: `admin@example.com` / `Admin123`
+- Manager: `manager@example.com` / `Manager123`
+- Employee: `employee@example.com` / `Employee123`
+
+**Time**: ~2-3 minutes
+
+**Note**: This script runs seed scripts inside Docker containers where all dependencies are already installed, making it the most reliable method.
+
+---
+
+### Alternative: `seed-all-services.sh` / `seed_all_services.py` - Local Seed
+**Purpose**: Seed services locally (requires all Python dependencies installed).
+
+**Prerequisites**:
+- All Python dependencies installed in each service directory
+- Node.js and npm installed for inventory service
+- `.env` file with MongoDB Atlas credentials
+
+**Usage**:
+```bash
+# Using shell script (Linux/Mac)
+./scripts/seed-all-services.sh
+
+# Using Python script (Cross-platform)
+python3 scripts/seed_all_services.py
+```
+
+**Note**: This method requires installing all dependencies locally. The Docker method is recommended.
+
+---
+
 ### 1. `setup-ec2.sh` - EC2 Initial Setup
 **Purpose**: Automated setup of a fresh EC2 instance with all required dependencies.
 

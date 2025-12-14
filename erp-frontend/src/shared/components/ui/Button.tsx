@@ -1,84 +1,106 @@
 import React from 'react';
-import { DesignButton } from './DesignButton';
+import { useAppearance } from '../../contexts/AppearanceContext';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
+import '@/styles/design-button.css';
+
+export interface ButtonProps {
+  text?: string;
+  size?: 'small' | 'medium' | 'large';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'danger' | 'link';
+  shape?: 'default' | 'icon';
+  fullwidth?: boolean;
+  className?: string;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  href?: string;
+  rel?: string;
+  target?: string;
+  external?: boolean;
+  children?: React.ReactNode;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
+  [key: string]: unknown;
 }
 
-const variantMap: Record<string, 'primary' | 'secondary' | 'tertiary' | 'danger' | 'link'> = {
-  primary: 'primary',
-  secondary: 'secondary',
-  outline: 'tertiary',
-  danger: 'danger',
-  ghost: 'tertiary',
-};
+export const Button: React.FC<ButtonProps> = ({
+  text = '',
+  size: sizeProp,
+  variant = 'primary',
+  shape = 'default',
+  fullwidth = false,
+  className = '',
+  disabled = false,
+  type = 'button',
+  href = '',
+  rel: relProp = '',
+  target: targetProp = '',
+  external = false,
+  children,
+  leftIcon,
+  rightIcon,
+  onClick,
+  ...rest
+}) => {
+  const { settings } = useAppearance();
+  
+  // Get default size from settings, fallback to 'small' if not set
+  const defaultSize = (settings?.button_default_size as 'small' | 'medium' | 'large') || 'small';
+  const size = sizeProp || defaultSize;
+  // Handle external link defaults
+  let rel = relProp;
+  let target = targetProp;
+  if (external) {
+    if (!rel) rel = 'noopener noreferrer';
+    if (!target) target = '_blank';
+  }
 
-const sizeMap: Record<string, 'small' | 'medium' | 'large'> = {
-  sm: 'small',
-  md: 'medium',
-  lg: 'large',
-};
+  const isLink = !!href;
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      children,
-      variant = 'primary',
-      size = 'md',
-      isLoading = false,
-      leftIcon,
-      rightIcon,
-      className,
-      disabled,
-      ...props
-    },
-    ref
-  ) => {
-    const designVariant = variantMap[variant] || 'primary';
-    const designSize = sizeMap[size] || 'medium';
+  const classes = [
+    'design-button',
+    `design-button--${size}`,
+    `design-button--${variant}`,
+    shape === 'icon' && 'design-button--icon',
+    fullwidth && 'design-button--fullwidth',
+    variant === 'link' && 'design-button--link',
+    disabled && 'design-button--disabled',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
+  const content = children || text;
+  
+  const buttonContent = (
+    <>
+      {leftIcon && <span className="flex items-center">{leftIcon}</span>}
+      {content && <span>{content}</span>}
+      {rightIcon && <span className="flex items-center">{rightIcon}</span>}
+    </>
+  );
+
+  if (isLink) {
     return (
-      <DesignButton
-        variant={designVariant}
-        size={designSize}
-        disabled={disabled || isLoading}
-        className={className}
-        {...props}
+      <a
+        className={classes}
+        href={href}
+        rel={rel}
+        target={target}
+        aria-disabled={disabled}
+        onClick={onClick}
+        {...rest}
       >
-        {isLoading && (
-          <svg
-            className="animate-spin"
-            style={{ width: '16px', height: '16px', marginRight: '8px' }}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-        )}
-        {!isLoading && leftIcon && <span style={{ marginRight: '8px' }}>{leftIcon}</span>}
-        {children}
-        {!isLoading && rightIcon && <span style={{ marginLeft: '8px' }}>{rightIcon}</span>}
-      </DesignButton>
+        {buttonContent}
+      </a>
     );
   }
-);
 
-Button.displayName = 'Button';
+  return (
+    <button type={type} className={classes} disabled={disabled} onClick={onClick} {...rest}>
+      {buttonContent}
+    </button>
+  );
+};
 
+export default Button;

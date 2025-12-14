@@ -8,7 +8,7 @@ import { settingsApi, SettingsCategory, AppearanceSettings } from '../../setting
 import { applyAppearanceSettings } from '../../../shared/utils/themeUtils';
 import { useAppearance } from '../../../shared/contexts/AppearanceContext';
 import { toast } from 'sonner';
-import { Save, Loader2, Palette, Type, Sparkles, MousePointer2, List } from 'lucide-react';
+import { Save, Loader2, Palette, Type, Sparkles, MousePointer2, List, Image } from 'lucide-react';
 import { SEMANTIC_SIZE_OPTIONS } from '../../../shared/utils/sizeMapping';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
@@ -16,6 +16,7 @@ import { Permission } from '../../users/types';
 const FONT_FAMILIES = [
   { value: 'Inter', label: 'Inter' },
   { value: 'Roboto', label: 'Roboto' },
+  { value: 'Rubik', label: 'Rubik' },
   { value: 'Open Sans', label: 'Open Sans' },
   { value: 'Lato', label: 'Lato' },
   { value: 'Montserrat', label: 'Montserrat' },
@@ -37,27 +38,31 @@ export const AppearanceSettingsPage: React.FC = () => {
   const canRead = hasPermission(Permission.SETTINGS_READ);
   const canUpdate = hasPermission(Permission.SETTINGS_UPDATE);
   const [formData, setFormData] = useState<AppearanceSettings>({
-    font_family: 'Inter',
+    font_family: 'Roboto',
+    heading_font_family: 'Rubik',
     font_size_base: '14px',
     font_size_small: '12px',
     font_size_large: '16px',
     font_weight_normal: 400,
     font_weight_medium: 500,
     font_weight_bold: 700,
-    primary_color: '#3b82f6',
-    primary_color_dark: '#2563eb',
-    secondary_color: '#64748b',
-    accent_color: '#8b5cf6',
-    success_color: '#22c55e',
-    warning_color: '#f59e0b',
-    danger_color: '#ef4444',
-    background_color: '#ffffff',
-    background_color_dark: '#0f172a',
-    text_color: '#1e293b',
+    primary_color: '#253c6a',
+    primary_color_dark: '#1a2d4f',
+    secondary_color: '#355697',
+    accent_color: '#ffee00',
+    success_color: '#1d871e',
+    warning_color: '#ffaa00',
+    danger_color: '#e24312',
+    info_color: '#19a1e6',
+    background_color: '#f6f7f9',
+    background_color_dark: '#1a2d4f',
+    text_color: '#2b303b',
     text_color_dark: '#f1f5f9',
     border_radius: '0.375rem',
     border_radius_large: '0.5rem',
     spacing_unit: '0.25rem',
+    button_default_size: 'small',
+    icon_default_size: 'default',
     icon_button_default_size: 'md',
     icon_button_default_variant: 'primary',
     icon_button_padding_size: 'medium',
@@ -70,6 +75,7 @@ export const AppearanceSettingsPage: React.FC = () => {
     pagination_border_color: undefined,
     pagination_items_per_page_options: undefined,
     custom_css: '',
+    layout_type: 'vertical',
   });
 
   useEffect(() => {
@@ -95,27 +101,31 @@ export const AppearanceSettingsPage: React.FC = () => {
         console.log('Loading existing appearance settings:', appearanceSetting.appearance);
         setSettings(appearanceSetting.appearance);
         setFormData({
-          font_family: appearanceSetting.appearance.font_family ?? 'Inter',
+          font_family: appearanceSetting.appearance.font_family ?? 'Roboto',
+          heading_font_family: appearanceSetting.appearance.heading_font_family ?? 'Rubik',
           font_size_base: appearanceSetting.appearance.font_size_base ?? '14px',
           font_size_small: appearanceSetting.appearance.font_size_small ?? '12px',
           font_size_large: appearanceSetting.appearance.font_size_large ?? '16px',
           font_weight_normal: appearanceSetting.appearance.font_weight_normal ?? 400,
           font_weight_medium: appearanceSetting.appearance.font_weight_medium ?? 500,
           font_weight_bold: appearanceSetting.appearance.font_weight_bold ?? 700,
-          primary_color: appearanceSetting.appearance.primary_color ?? '#3b82f6',
-          primary_color_dark: appearanceSetting.appearance.primary_color_dark ?? '#2563eb',
-          secondary_color: appearanceSetting.appearance.secondary_color ?? '#64748b',
-          accent_color: appearanceSetting.appearance.accent_color ?? '#8b5cf6',
-          success_color: appearanceSetting.appearance.success_color ?? '#22c55e',
-          warning_color: appearanceSetting.appearance.warning_color ?? '#f59e0b',
-          danger_color: appearanceSetting.appearance.danger_color ?? '#ef4444',
-          background_color: appearanceSetting.appearance.background_color ?? '#ffffff',
-          background_color_dark: appearanceSetting.appearance.background_color_dark ?? '#0f172a',
-          text_color: appearanceSetting.appearance.text_color ?? '#1e293b',
+          primary_color: appearanceSetting.appearance.primary_color ?? '#253c6a',
+          primary_color_dark: appearanceSetting.appearance.primary_color_dark ?? '#1a2d4f',
+          secondary_color: appearanceSetting.appearance.secondary_color ?? '#355697',
+          accent_color: appearanceSetting.appearance.accent_color ?? '#ffee00',
+          success_color: appearanceSetting.appearance.success_color ?? '#1d871e',
+          warning_color: appearanceSetting.appearance.warning_color ?? '#ffaa00',
+          danger_color: appearanceSetting.appearance.danger_color ?? '#e24312',
+          info_color: appearanceSetting.appearance.info_color ?? '#19a1e6',
+          background_color: appearanceSetting.appearance.background_color ?? '#f6f7f9',
+          background_color_dark: appearanceSetting.appearance.background_color_dark ?? '#1a2d4f',
+          text_color: appearanceSetting.appearance.text_color ?? '#2b303b',
           text_color_dark: appearanceSetting.appearance.text_color_dark ?? '#f1f5f9',
           border_radius: appearanceSetting.appearance.border_radius ?? '0.375rem',
           border_radius_large: appearanceSetting.appearance.border_radius_large ?? '0.5rem',
           spacing_unit: appearanceSetting.appearance.spacing_unit ?? '0.25rem',
+          button_default_size: appearanceSetting.appearance.button_default_size ?? 'small',
+          icon_default_size: appearanceSetting.appearance.icon_default_size ?? 'default',
           icon_button_default_size: appearanceSetting.appearance.icon_button_default_size ?? 'md',
           icon_button_default_variant: appearanceSetting.appearance.icon_button_default_variant ?? 'primary',
           // Use new single field, fallback to medium for backward compatibility
@@ -129,6 +139,7 @@ export const AppearanceSettingsPage: React.FC = () => {
           pagination_border_color: appearanceSetting.appearance.pagination_border_color,
           pagination_items_per_page_options: appearanceSetting.appearance.pagination_items_per_page_options,
           custom_css: appearanceSetting.appearance.custom_css ?? '',
+          layout_type: appearanceSetting.appearance.layout_type ?? 'vertical',
         });
       } else {
         console.log('No existing appearance settings found, using defaults');
@@ -154,27 +165,31 @@ export const AppearanceSettingsPage: React.FC = () => {
       
       // Ensure ALL fields are explicitly present - this ensures backend saves everything
       const settingsToSave: AppearanceSettings = {
-        font_family: formData.font_family || 'Inter',
+        font_family: formData.font_family || 'Roboto',
+        heading_font_family: formData.heading_font_family || 'Rubik',
         font_size_base: formData.font_size_base || '14px',
         font_size_small: formData.font_size_small || '12px',
         font_size_large: formData.font_size_large || '16px',
         font_weight_normal: formData.font_weight_normal ?? 400,
         font_weight_medium: formData.font_weight_medium ?? 500,
         font_weight_bold: formData.font_weight_bold ?? 700,
-        primary_color: formData.primary_color || '#3b82f6',
-        primary_color_dark: formData.primary_color_dark || '#2563eb',
-        secondary_color: formData.secondary_color || '#64748b',
-        accent_color: formData.accent_color || '#8b5cf6',
-        success_color: formData.success_color || '#22c55e',
-        warning_color: formData.warning_color || '#f59e0b',
-        danger_color: formData.danger_color || '#ef4444',
-        background_color: formData.background_color || '#ffffff',
-        background_color_dark: formData.background_color_dark || '#0f172a',
-        text_color: formData.text_color || '#1e293b',
+        primary_color: formData.primary_color || '#253c6a',
+        primary_color_dark: formData.primary_color_dark || '#1a2d4f',
+        secondary_color: formData.secondary_color || '#355697',
+        accent_color: formData.accent_color || '#ffee00',
+        success_color: formData.success_color || '#1d871e',
+        warning_color: formData.warning_color || '#ffaa00',
+        danger_color: formData.danger_color || '#e24312',
+        info_color: formData.info_color || '#19a1e6',
+        background_color: formData.background_color || '#f6f7f9',
+        background_color_dark: formData.background_color_dark || '#1a2d4f',
+        text_color: formData.text_color || '#2b303b',
         text_color_dark: formData.text_color_dark || '#f1f5f9',
         border_radius: formData.border_radius || '0.375rem',
         border_radius_large: formData.border_radius_large || '0.5rem',
         spacing_unit: formData.spacing_unit || '0.25rem',
+        button_default_size: formData.button_default_size || 'small',
+        icon_default_size: formData.icon_default_size || 'default',
         icon_button_default_size: formData.icon_button_default_size || 'md',
         icon_button_default_variant: formData.icon_button_default_variant || 'primary',
         icon_button_padding_size: formData.icon_button_padding_size || 'medium',
@@ -187,6 +202,7 @@ export const AppearanceSettingsPage: React.FC = () => {
         pagination_border_color: formData.pagination_border_color,
         pagination_items_per_page_options: formData.pagination_items_per_page_options,
         custom_css: formData.custom_css || '',
+        layout_type: formData.layout_type || 'vertical',
       };
       
       console.log('Settings to save:', JSON.stringify(settingsToSave, null, 2));
@@ -198,14 +214,15 @@ export const AppearanceSettingsPage: React.FC = () => {
       console.log('Settings saved, response:', JSON.stringify(updated, null, 2));
       
       if (updated.appearance) {
-        setSettings(updated.appearance);
+        setSettings({ ...updated.appearance });
         applyAppearanceSettings(updated.appearance);
         
-        // Refresh the appearance context so all IconButton components pick up new settings
+        // Refresh the appearance context so all components pick up new settings
         // Wait a moment for the backend to persist, then refresh
         await new Promise(resolve => setTimeout(resolve, 300));
         await refresh();
         console.log('Appearance context refreshed after save with settings:', updated.appearance);
+        console.log('Layout type in saved settings:', updated.appearance.layout_type);
         
         toast.success('Appearance settings saved successfully');
       } else {
@@ -235,27 +252,31 @@ export const AppearanceSettingsPage: React.FC = () => {
     }
 
     const defaultFormData: AppearanceSettings = {
-      font_family: 'Inter',
+      font_family: 'Roboto',
+      heading_font_family: 'Rubik',
       font_size_base: '14px',
       font_size_small: '12px',
       font_size_large: '16px',
       font_weight_normal: 400,
       font_weight_medium: 500,
       font_weight_bold: 700,
-      primary_color: '#3b82f6',
-      primary_color_dark: '#2563eb',
-      secondary_color: '#64748b',
-      accent_color: '#8b5cf6',
-      success_color: '#22c55e',
-      warning_color: '#f59e0b',
-      danger_color: '#ef4444',
-      background_color: '#ffffff',
-      background_color_dark: '#0f172a',
-      text_color: '#1e293b',
+      primary_color: '#253c6a',
+      primary_color_dark: '#1a2d4f',
+      secondary_color: '#355697',
+      accent_color: '#ffee00',
+      success_color: '#1d871e',
+      warning_color: '#ffaa00',
+      danger_color: '#e24312',
+      info_color: '#19a1e6',
+      background_color: '#f6f7f9',
+      background_color_dark: '#1a2d4f',
+      text_color: '#2b303b',
       text_color_dark: '#f1f5f9',
       border_radius: '0.375rem',
       border_radius_large: '0.5rem',
       spacing_unit: '0.25rem',
+      button_default_size: 'small',
+      icon_default_size: 'default',
       icon_button_default_size: 'md',
       icon_button_default_variant: 'primary',
       icon_button_padding_size: 'medium',
@@ -333,11 +354,18 @@ export const AppearanceSettingsPage: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Select
-                label="Font Family"
+                label="Body Font"
                 value={formData.font_family}
                 onChange={(e) => updateFormData('font_family', e.target.value)}
                 options={FONT_FAMILIES}
-                helperText="Select the primary font family for the application"
+                helperText="Font family for body text and general content"
+              />
+              <Select
+                label="Heading Font"
+                value={formData.heading_font_family || 'Rubik'}
+                onChange={(e) => updateFormData('heading_font_family', e.target.value)}
+                options={FONT_FAMILIES}
+                helperText="Font family for headings (h1, h2, h3, etc.)"
               />
               <Input
                 label="Base Font Size"
@@ -415,7 +443,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.primary_color}
                     onChange={(e) => updateFormData('primary_color', e.target.value)}
-                    placeholder="#3b82f6"
+                    placeholder="#253c6a"
                     className="flex-1"
                   />
                 </div>
@@ -434,7 +462,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.primary_color_dark}
                     onChange={(e) => updateFormData('primary_color_dark', e.target.value)}
-                    placeholder="#2563eb"
+                    placeholder="#1a2d4f"
                     className="flex-1"
                   />
                 </div>
@@ -453,7 +481,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.secondary_color}
                     onChange={(e) => updateFormData('secondary_color', e.target.value)}
-                    placeholder="#64748b"
+                    placeholder="#355697"
                     className="flex-1"
                   />
                 </div>
@@ -472,7 +500,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.accent_color}
                     onChange={(e) => updateFormData('accent_color', e.target.value)}
-                    placeholder="#8b5cf6"
+                    placeholder="#ffee00"
                     className="flex-1"
                   />
                 </div>
@@ -491,7 +519,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.success_color}
                     onChange={(e) => updateFormData('success_color', e.target.value)}
-                    placeholder="#22c55e"
+                    placeholder="#1d871e"
                     className="flex-1"
                   />
                 </div>
@@ -510,7 +538,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.warning_color}
                     onChange={(e) => updateFormData('warning_color', e.target.value)}
-                    placeholder="#f59e0b"
+                    placeholder="#ffaa00"
                     className="flex-1"
                   />
                 </div>
@@ -529,7 +557,26 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.danger_color}
                     onChange={(e) => updateFormData('danger_color', e.target.value)}
-                    placeholder="#ef4444"
+                    placeholder="#e24312"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Info Color
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={formData.info_color || '#19a1e6'}
+                    onChange={(e) => updateFormData('info_color', e.target.value)}
+                    className="w-16 h-10 rounded border border-slate-300 cursor-pointer"
+                  />
+                  <Input
+                    value={formData.info_color || '#19a1e6'}
+                    onChange={(e) => updateFormData('info_color', e.target.value)}
+                    placeholder="#19a1e6"
                     className="flex-1"
                   />
                 </div>
@@ -548,7 +595,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.background_color}
                     onChange={(e) => updateFormData('background_color', e.target.value)}
-                    placeholder="#ffffff"
+                    placeholder="#f6f7f9"
                     className="flex-1"
                   />
                 </div>
@@ -567,7 +614,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.background_color_dark}
                     onChange={(e) => updateFormData('background_color_dark', e.target.value)}
-                    placeholder="#0f172a"
+                    placeholder="#1a2d4f"
                     className="flex-1"
                   />
                 </div>
@@ -586,7 +633,7 @@ export const AppearanceSettingsPage: React.FC = () => {
                   <Input
                     value={formData.text_color}
                     onChange={(e) => updateFormData('text_color', e.target.value)}
-                    placeholder="#1e293b"
+                    placeholder="#2b303b"
                     className="flex-1"
                   />
                 </div>
@@ -649,64 +696,73 @@ export const AppearanceSettingsPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Action Button Settings */}
+      {/* Layout Settings */}
       <Card padding="lg">
         <CardHeader 
-          title="Action Button Settings" 
-          subtitle="Configure default properties for action buttons in tables and throughout the app"
+          title="Layout Settings" 
+          subtitle="Choose between vertical and horizontal layout"
+          icon={List}
+        />
+        <CardContent>
+          <div className="space-y-6">
+            <Select
+              label="Layout Type"
+              value={formData.layout_type || 'vertical'}
+              onChange={(e) => updateFormData('layout_type', e.target.value as 'vertical' | 'horizontal')}
+              options={[
+                { value: 'vertical', label: 'Vertical (Sidebar on left, logo on sidebar)' },
+                { value: 'horizontal', label: 'Horizontal (Logo in header, horizontal navigation)' },
+              ]}
+              helperText="Vertical: Sidebar starts from top with logo. Horizontal: Logo in header with horizontal navigation bar."
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Button Settings */}
+      <Card padding="lg">
+        <CardHeader 
+          title="Button Settings" 
+          subtitle="Configure default size for buttons throughout the application"
           icon={MousePointer2}
         />
         <CardContent>
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Select
-                label="Default Size"
-                value={formData.icon_button_default_size || 'md'}
-                onChange={(e) => updateFormData('icon_button_default_size', e.target.value as 'xs' | 'sm' | 'md' | 'lg')}
-                options={[
-                  { value: 'xs', label: 'Extra Small (xs)' },
-                  { value: 'sm', label: 'Small (sm)' },
-                  { value: 'md', label: 'Medium (md)' },
-                  { value: 'lg', label: 'Large (lg)' },
-                ]}
-                helperText="Default size for action buttons in tables when not specified"
-              />
-              <Select
-                label="Default Variant"
-                value={formData.icon_button_default_variant || 'primary'}
-                onChange={(e) => updateFormData('icon_button_default_variant', e.target.value)}
-                options={[
-                  { value: 'primary', label: 'Primary' },
-                  { value: 'secondary', label: 'Secondary' },
-                  { value: 'outline', label: 'Outline' },
-                  { value: 'danger', label: 'Danger' },
-                  { value: 'ghost', label: 'Ghost' },
-                  { value: 'success', label: 'Success' },
-                  { value: 'warning', label: 'Warning' },
-                  { value: 'info', label: 'Info' },
-                ]}
-                helperText="Default color variant for action buttons in tables"
-              />
-            </div>
+            <Select
+              label="Default Size"
+              value={formData.button_default_size || 'small'}
+              onChange={(e) => updateFormData('button_default_size', e.target.value as 'small' | 'medium' | 'large')}
+              options={[
+                { value: 'small', label: 'Small' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'large', label: 'Large' },
+              ]}
+              helperText="Default size for buttons throughout the application when not explicitly specified"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="border-t pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Select
-                  label="Padding Size"
-                  value={formData.icon_button_padding_size || 'medium'}
-                  onChange={(e) => updateFormData('icon_button_padding_size', e.target.value)}
-                  options={SEMANTIC_SIZE_OPTIONS}
-                  helperText="Base padding size for action buttons in tables (scales automatically for different button sizes)"
-                />
-                <Select
-                  label="Icon Size"
-                  value={formData.icon_button_icon_size || 'medium'}
-                  onChange={(e) => updateFormData('icon_button_icon_size', e.target.value)}
-                  options={SEMANTIC_SIZE_OPTIONS}
-                  helperText="Base icon size for action buttons in tables (scales automatically for different button sizes)"
-                />
-              </div>
-            </div>
+      {/* Icon Settings */}
+      <Card padding="lg">
+        <CardHeader 
+          title="Icon Settings" 
+          subtitle="Configure default size for icons throughout the application"
+          icon={Image}
+        />
+        <CardContent>
+          <div className="space-y-6">
+            <Select
+              label="Default Size"
+              value={formData.icon_default_size || 'default'}
+              onChange={(e) => updateFormData('icon_default_size', e.target.value as 'small' | 'default' | 'large')}
+              options={[
+                { value: 'small', label: 'Small (16px)' },
+                { value: 'default', label: 'Default (24px)' },
+                { value: 'large', label: 'Large (32px)' },
+              ]}
+              helperText="Default size for icons throughout the application when not explicitly specified"
+            />
           </div>
         </CardContent>
       </Card>

@@ -32,6 +32,7 @@ export interface CompanyInfo {
   phone?: string;
   email?: string;
   address?: Address;
+  logo_url?: string;
 }
 
 export interface FinancialSettings {
@@ -113,6 +114,7 @@ export interface SecuritySettings {
 export interface AppearanceSettings {
   // Font Settings
   font_family: string;
+  heading_font_family?: string;
   font_size_base: string;
   font_size_small: string;
   font_size_large: string;
@@ -128,6 +130,7 @@ export interface AppearanceSettings {
   success_color: string;
   warning_color: string;
   danger_color: string;
+  info_color?: string;
   background_color: string;
   background_color_dark: string;
   text_color: string;
@@ -137,6 +140,12 @@ export interface AppearanceSettings {
   border_radius: string;
   border_radius_large: string;
   spacing_unit: string;
+  
+  // Button Settings
+  button_default_size?: 'small' | 'medium' | 'large';
+  
+  // Icon Settings
+  icon_default_size?: 'small' | 'default' | 'large';
   
   // IconButton Settings
   icon_button_default_size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -159,6 +168,9 @@ export interface AppearanceSettings {
   
   // Additional CSS
   custom_css?: string;
+  
+  // Layout Settings
+  layout_type?: 'vertical' | 'horizontal';
 }
 
 export interface Settings {
