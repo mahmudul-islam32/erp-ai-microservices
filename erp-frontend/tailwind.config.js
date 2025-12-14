@@ -75,6 +75,7 @@ export default {
         background: {
           DEFAULT: 'var(--color-background)',
           dark: 'var(--color-background-dark)',
+          body: '#F1F1FA',
         },
         text: {
           DEFAULT: 'var(--color-text)',

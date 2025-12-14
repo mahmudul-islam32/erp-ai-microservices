@@ -171,7 +171,7 @@ export const UsersPage: React.FC = () => {
             icon: Plus,
           }] : []),
         ]}
-        className="mb-6"
+        className="mb-8"
       />
 
       {/* Content sections with gap-6 spacing (matching dashboard card gap) */}

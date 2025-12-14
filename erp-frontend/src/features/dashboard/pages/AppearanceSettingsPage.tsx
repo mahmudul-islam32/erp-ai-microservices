@@ -75,6 +75,7 @@ export const AppearanceSettingsPage: React.FC = () => {
     pagination_border_color: undefined,
     pagination_items_per_page_options: undefined,
     custom_css: '',
+    layout_type: 'vertical',
   });
 
   useEffect(() => {
@@ -138,6 +139,7 @@ export const AppearanceSettingsPage: React.FC = () => {
           pagination_border_color: appearanceSetting.appearance.pagination_border_color,
           pagination_items_per_page_options: appearanceSetting.appearance.pagination_items_per_page_options,
           custom_css: appearanceSetting.appearance.custom_css ?? '',
+          layout_type: appearanceSetting.appearance.layout_type ?? 'vertical',
         });
       } else {
         console.log('No existing appearance settings found, using defaults');
@@ -200,6 +202,7 @@ export const AppearanceSettingsPage: React.FC = () => {
         pagination_border_color: formData.pagination_border_color,
         pagination_items_per_page_options: formData.pagination_items_per_page_options,
         custom_css: formData.custom_css || '',
+        layout_type: formData.layout_type || 'vertical',
       };
       
       console.log('Settings to save:', JSON.stringify(settingsToSave, null, 2));
@@ -211,14 +214,15 @@ export const AppearanceSettingsPage: React.FC = () => {
       console.log('Settings saved, response:', JSON.stringify(updated, null, 2));
       
       if (updated.appearance) {
-        setSettings(updated.appearance);
+        setSettings({ ...updated.appearance });
         applyAppearanceSettings(updated.appearance);
         
-        // Refresh the appearance context so all IconButton components pick up new settings
+        // Refresh the appearance context so all components pick up new settings
         // Wait a moment for the backend to persist, then refresh
         await new Promise(resolve => setTimeout(resolve, 300));
         await refresh();
         console.log('Appearance context refreshed after save with settings:', updated.appearance);
+        console.log('Layout type in saved settings:', updated.appearance.layout_type);
         
         toast.success('Appearance settings saved successfully');
       } else {
@@ -687,6 +691,29 @@ export const AppearanceSettingsPage: React.FC = () => {
               onChange={(e) => updateFormData('spacing_unit', e.target.value)}
               placeholder="0.25rem"
               helperText="Base spacing unit (e.g., 0.25rem, 4px)"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Layout Settings */}
+      <Card padding="lg">
+        <CardHeader 
+          title="Layout Settings" 
+          subtitle="Choose between vertical and horizontal layout"
+          icon={List}
+        />
+        <CardContent>
+          <div className="space-y-6">
+            <Select
+              label="Layout Type"
+              value={formData.layout_type || 'vertical'}
+              onChange={(e) => updateFormData('layout_type', e.target.value as 'vertical' | 'horizontal')}
+              options={[
+                { value: 'vertical', label: 'Vertical (Sidebar on left, logo on sidebar)' },
+                { value: 'horizontal', label: 'Horizontal (Logo in header, horizontal navigation)' },
+              ]}
+              helperText="Vertical: Sidebar starts from top with logo. Horizontal: Logo in header with horizontal navigation bar."
             />
           </div>
         </CardContent>

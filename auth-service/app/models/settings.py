@@ -169,6 +169,9 @@ class AppearanceSettings(BaseModel):
     
     # Additional CSS
     custom_css: Optional[str] = None  # Custom CSS rules
+    
+    # Layout Settings
+    layout_type: Optional[str] = Field(default="vertical", max_length=20)  # vertical, horizontal
 
 
 # Security Settings
