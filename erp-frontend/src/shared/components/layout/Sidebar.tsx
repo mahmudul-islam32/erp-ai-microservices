@@ -32,8 +32,11 @@ import {
 } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission, UserRole } from '../../../features/users/types';
+import { useAppSelector } from '../../../app/hooks';
+import { settingsApi, SettingsCategory } from '../../../features/settings/services/settingsApi';
+import { useNavigate } from 'react-router-dom';
 
-interface NavItem {
+export interface NavItem {
   name: string;
   path: string;
   icon: React.ElementType;
@@ -53,7 +56,7 @@ interface NavItem {
 }
 
 // Base navigation configuration with permission requirements
-const baseNavigation: NavItem[] = [
+export const baseNavigation: NavItem[] = [
   { 
     name: 'Dashboard', 
     path: '/dashboard', 
@@ -349,7 +352,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const previousPathnameRef = React.useRef<string>('');
   const navigationRef = React.useRef<NavItem[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
   const { hasPermission, hasAnyPermission, hasAllPermissions, hasServiceAccess, hasAnyRole, isSuperAdmin, user } = usePermissions();
+  const { user: authUser } = useAppSelector((state) => state.auth);
+  const [companyLogo, setCompanyLogo] = React.useState<string | null>(null);
+  const [companyName, setCompanyName] = React.useState<string>('');
+
+  React.useEffect(() => {
+    const loadCompanySettings = async () => {
+      try {
+        const companySettings = await settingsApi.getByCategory(SettingsCategory.COMPANY);
+        if (companySettings.company_info) {
+          if (companySettings.company_info.logo_url) {
+            setCompanyLogo(companySettings.company_info.logo_url);
+          }
+          if (companySettings.company_info.company_name) {
+            setCompanyName(companySettings.company_info.company_name);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading company settings:', error);
+      }
+    };
+
+    loadCompanySettings();
+  }, []);
 
   // Filter navigation items based on permissions
   const navigation = useMemo(() => {
@@ -512,24 +539,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                   'w-full flex items-center gap-3 py-3 text-sm font-normal transition-colors',
                   depth > 0 && 'pl-6',
                   isActive
-                    ? 'bg-primary text-white px-4'
+                    ? 'bg-slate-100 text-[#333] px-4'
                     : 'text-[#333] hover:bg-slate-50 px-4'
                 )}
               >
-                <item.icon className={clsx('h-5 w-5 flex-shrink-0', isActive && 'text-white')} />
+                <item.icon className={clsx('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
                 <span className="flex-1 text-left">{item.name}</span>
                 {item.badge !== undefined && (
                   <span className={clsx(
                     'text-xs font-medium px-2 py-0.5 rounded-full',
                     isActive
-                      ? 'bg-white/20 text-white'
+                      ? 'bg-primary/10 text-primary'
                       : 'bg-slate-200 text-slate-600'
                   )}>
                     {item.badge}
                   </span>
                 )}
                 <svg
-                  className={clsx('h-4 w-4 transition-transform flex-shrink-0', isExpanded && 'rotate-90', isActive && 'text-white')}
+                  className={clsx('h-4 w-4 transition-transform flex-shrink-0', isExpanded && 'rotate-90', isActive && 'text-primary')}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -538,7 +565,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                 </svg>
               </button>
             </div>
-            {!isLast && <div className="border-t border-[#ddd] mx-2" />}
           </>
         ) : (
           <>
@@ -551,20 +577,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                     'w-full flex items-center gap-3 py-3 text-sm font-normal transition-colors',
                     depth > 0 && 'pl-6',
                     isActive
-                      ? 'bg-primary text-white px-4'
+                      ? 'bg-slate-100 text-[#333] px-4'
                       : 'text-[#333] hover:bg-slate-50 px-4'
                   )
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={clsx('h-5 w-5 flex-shrink-0', isActive && 'text-white')} />
+                    <item.icon className={clsx('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
                     <span className="flex-1">{item.name}</span>
                     {item.badge !== undefined && (
                       <span className={clsx(
                         'text-xs font-medium px-2 py-0.5 rounded-full',
                         isActive
-                          ? 'bg-white/20 text-white'
+                          ? 'bg-primary/10 text-primary'
                           : 'bg-slate-200 text-slate-600'
                       )}>
                         {item.badge}
@@ -574,7 +600,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                 )}
               </NavLink>
             </div>
-            {!isLast && <div className="border-t border-[#ddd] mx-2" />}
           </>
         )}
         {hasChildren && isExpanded && (
@@ -601,12 +626,60 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed top-24 left-6 bottom-4 z-30 w-64 bg-white dark:bg-slate-800 shadow-sm rounded-lg transition-transform duration-300 mt-6',
+          'fixed top-0 left-0 bottom-0 z-30 w-64 bg-white dark:bg-slate-800 shadow-sm transition-transform duration-300',
           'lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">
+          {/* User Information Section - at top */}
+          <div className="px-4 pt-6 pb-4 border-b border-slate-200">
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-primary flex items-center justify-center">
+                {authUser?.profile_image ? (
+                  <img 
+                    src={authUser.profile_image} 
+                    alt={authUser?.full_name || `${authUser?.first_name || ''} ${authUser?.last_name || ''}`.trim() || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-xl font-semibold">
+                    {(authUser?.full_name || `${authUser?.first_name || ''} ${authUser?.last_name || ''}`.trim() || 'User').charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <h3 className="text-base font-semibold text-slate-900">
+                {authUser?.full_name || `${authUser?.first_name || ''} ${authUser?.last_name || ''}`.trim() || 'User'}
+              </h3>
+            </div>
+          </div>
+          
+          {/* Logo Section - under profile */}
+          <div className="px-4 pt-4 pb-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer w-full justify-center"
+            >
+              {companyLogo ? (
+                <img 
+                  src={companyLogo} 
+                  alt={companyName || 'Company Logo'}
+                  className="h-12 w-auto object-contain rounded-lg"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                  {(companyName || 'E').charAt(0).toUpperCase()}
+                </div>
+              )}
+              {companyName && (
+                <div className="flex flex-col items-start">
+                  <span className="text-base font-bold text-slate-900">{companyName}</span>
+                  <span className="text-xs text-slate-500">Responsive Dashboard</span>
+                </div>
+              )}
+            </button>
+          </div>
+          
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-2 pt-6 scrollbar-thin px-4">
             {navigation.map((item, index) => 

@@ -46,6 +46,7 @@ const defaultSettings: AppearanceSettings = {
   pagination_text_color: undefined,
   pagination_border_color: undefined,
   pagination_items_per_page_options: undefined,
+  layout_type: 'vertical',
 };
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(undefined);
@@ -61,7 +62,7 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!isAuthenticated) {
       // Use defaults if not authenticated
       if (!hasTriedLoad) {
-        setSettings(defaultSettings);
+        setSettings({ ...defaultSettings });
         setHasTriedLoad(true);
       }
       return;
@@ -74,24 +75,25 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       if (appearanceSetting?.appearance) {
         console.log('Loaded appearance settings:', appearanceSetting.appearance);
-        setSettings(appearanceSetting.appearance);
+        // Create a new object to ensure React detects the change
+        setSettings({ ...appearanceSetting.appearance });
       } else {
         console.log('No appearance settings found, using defaults');
-        setSettings(defaultSettings);
+        setSettings({ ...defaultSettings });
       }
       setHasTriedLoad(true);
     } catch (error: any) {
       // If 401 Unauthorized, just use defaults and don't retry
       if (error?.response?.status === 401) {
         console.log('Unauthorized access - using default appearance settings');
-        setSettings(defaultSettings);
+        setSettings({ ...defaultSettings });
         setHasTriedLoad(true);
         return;
       }
       
       console.error('Error loading appearance settings:', error);
       // Set defaults on error too
-      setSettings(defaultSettings);
+      setSettings({ ...defaultSettings });
       setHasTriedLoad(true);
     } finally {
       setLoading(false);
@@ -105,7 +107,7 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       loadSettings();
     } else if (!isAuthenticated && !hasTriedLoad) {
       // Set defaults immediately if not authenticated
-      setSettings(defaultSettings);
+      setSettings({ ...defaultSettings });
       setHasTriedLoad(true);
     } else if (isAuthenticated && hasTriedLoad) {
       // Reload when authentication state changes to true

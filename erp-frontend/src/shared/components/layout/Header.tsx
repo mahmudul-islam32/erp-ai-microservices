@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Menu as HeadlessMenu, Transition } from '@headlessui/react';
+import { clsx } from 'clsx';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { logout } from '../../../features/auth/store/authSlice';
 import { toggleTheme } from '../../../features/theme/store/themeSlice';
@@ -14,9 +15,10 @@ import { settingsApi, SettingsCategory } from '../../../features/settings/servic
 interface HeaderProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
+  showLogo?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar, showLogo = false }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -55,38 +57,45 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, onToggleSidebar }
   };
 
   return (
-    <header className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-lg z-20 py-3">
-      <div className="flex items-center justify-between px-4 lg:px-6">
+    <header className="w-full bg-white dark:bg-slate-800 shadow-sm z-20 py-3">
+      <div className={clsx(
+        "flex items-center justify-between",
+        showLogo ? "px-4 lg:px-6" : "px-4 lg:px-6"
+      )}>
         {/* Left section - Logo and Menu */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={onToggleSidebar}
-            className="p-2 rounded-md text-[#333] hover:bg-slate-50 lg:hidden"
-          >
-            {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-          {/* Logo */}
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-          >
-            {companyLogo ? (
-              <img 
-                src={companyLogo} 
-                alt={companyName || 'Company Logo'}
-                className="w-24 h-auto object-contain rounded-lg"
-              />
-            ) : (
-              <>
-                <div className="w-24 h-16 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                  {(companyName || 'E').charAt(0).toUpperCase()}
-                </div>
-                {companyName && (
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{companyName}</span>
-                )}
-              </>
-            )}
-          </button>
+          {!showLogo && (
+            <button
+              onClick={onToggleSidebar}
+              className="p-2 rounded-md text-[#333] hover:bg-slate-50 lg:hidden"
+            >
+              {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          )}
+          {/* Logo - only show when showLogo is true (horizontal layout) */}
+          {showLogo && (
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              {companyLogo ? (
+                <img 
+                  src={companyLogo} 
+                  alt={companyName || 'Company Logo'}
+                  className="w-24 h-auto object-contain rounded-lg"
+                />
+              ) : (
+                <>
+                  <div className="w-24 h-16 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                    {(companyName || 'E').charAt(0).toUpperCase()}
+                  </div>
+                  {companyName && (
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">{companyName}</span>
+                  )}
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Right section */}

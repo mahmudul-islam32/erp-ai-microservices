@@ -1,6 +1,7 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
+import { Button } from './Button';
 
 export interface PageAction {
   label: string;
@@ -52,33 +53,37 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   actions = [],
   className,
 }) => {
-  const variantStyles = {
-    primary: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700',
-    secondary: 'inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50',
-    outline: 'inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50',
+  const getButtonVariant = (variant?: 'primary' | 'secondary' | 'outline'): 'primary' | 'secondary' | 'tertiary' => {
+    if (variant === 'primary') return 'primary';
+    if (variant === 'secondary') return 'secondary';
+    return 'tertiary'; // outline maps to tertiary
   };
 
   return (
-    <div className={clsx('flex items-center justify-between', className)}>
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+    <div className={clsx('flex items-start justify-between gap-6', className)}>
+      <div className="flex-1">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
+          {title}
+        </h1>
         {description && (
-          <p className="mt-1 text-sm text-gray-500">{description}</p>
+          <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+            {description}
+          </p>
         )}
       </div>
       {actions.length > 0 && (
-        <div className="flex space-x-3">
+        <div className="flex gap-3 flex-shrink-0">
           {actions.map((action, index) => {
             const Icon = action.icon;
             return (
-              <button
+              <Button
                 key={index}
                 onClick={action.onClick}
-                className={variantStyles[action.variant || 'outline']}
+                variant={getButtonVariant(action.variant)}
+                leftIcon={Icon ? <Icon className="h-5 w-5" /> : undefined}
               >
-                {Icon && <Icon className="h-5 w-5 mr-2" />}
                 {action.label}
-              </button>
+              </Button>
             );
           })}
         </div>

@@ -17,6 +17,8 @@ export interface ButtonProps {
   target?: string;
   external?: boolean;
   children?: React.ReactNode;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   [key: string]: unknown;
 }
@@ -35,6 +37,8 @@ export const Button: React.FC<ButtonProps> = ({
   target: targetProp = '',
   external = false,
   children,
+  leftIcon,
+  rightIcon,
   onClick,
   ...rest
 }) => {
@@ -67,6 +71,14 @@ export const Button: React.FC<ButtonProps> = ({
     .join(' ');
 
   const content = children || text;
+  
+  const buttonContent = (
+    <>
+      {leftIcon && <span className="flex items-center">{leftIcon}</span>}
+      {content && <span>{content}</span>}
+      {rightIcon && <span className="flex items-center">{rightIcon}</span>}
+    </>
+  );
 
   if (isLink) {
     return (
@@ -79,14 +91,14 @@ export const Button: React.FC<ButtonProps> = ({
         onClick={onClick}
         {...rest}
       >
-        {content}
+        {buttonContent}
       </a>
     );
   }
 
   return (
     <button type={type} className={classes} disabled={disabled} onClick={onClick} {...rest}>
-      {content}
+      {buttonContent}
     </button>
   );
 };

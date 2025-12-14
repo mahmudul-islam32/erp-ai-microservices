@@ -168,6 +168,9 @@ export interface AppearanceSettings {
   
   // Additional CSS
   custom_css?: string;
+  
+  // Layout Settings
+  layout_type?: 'vertical' | 'horizontal';
 }
 
 export interface Settings {

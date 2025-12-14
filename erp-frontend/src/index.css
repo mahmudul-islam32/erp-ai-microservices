@@ -40,7 +40,7 @@
   }
 
   body {
-    background-color: var(--background-secondary);
+    background-color: #F7F8FB;
     color: var(--text-primary);
     font-family: var(--font-family-primary);
     font-size: var(--font-size-body);
