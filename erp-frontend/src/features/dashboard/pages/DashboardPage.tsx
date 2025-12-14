@@ -154,24 +154,26 @@ export const DashboardPage: React.FC = () => {
   return (
     <>
       {/* Welcome Message Card */}
-      <div className="mb-6 bg-white rounded-lg shadow-sm border-l-4 border-primary">
-        <div className={`flex items-center ${isCustomer ? 'justify-between' : ''} p-6`}>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
-              Welcome back, {userName.toLowerCase()} !
-            </h2>
-            <p className="text-sm font-normal text-slate-600">
-              Here is an overview of your account and your recent activities.
-            </p>
-          </div>
-          {isCustomer && (
-            <div className="ml-6 bg-slate-100 rounded-lg px-6 py-4 flex flex-col items-center justify-center min-w-[120px]">
-              <div className="text-3xl font-bold text-slate-900">{totalOrders}</div>
-              <div className="text-sm font-normal text-slate-600 mt-1 text-center">Total Orders</div>
+      <Card variant="dashboard" className="mb-6">
+        <CardContent className="p-6">
+          <div className={`flex items-center ${isCustomer ? 'justify-between' : ''}`}>
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                Welcome back, {userName.toLowerCase()} !
+              </h2>
+              <p className="text-sm font-normal text-slate-600">
+                Here is an overview of your account and your recent activities.
+              </p>
             </div>
-          )}
-        </div>
-      </div>
+            {isCustomer && (
+              <div className="ml-6 bg-slate-100 rounded-lg px-6 py-4 flex flex-col items-center justify-center min-w-[120px]">
+                <div className="text-3xl font-bold text-slate-900">{totalOrders}</div>
+                <div className="text-sm font-normal text-slate-600 mt-1 text-center">Total Orders</div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
