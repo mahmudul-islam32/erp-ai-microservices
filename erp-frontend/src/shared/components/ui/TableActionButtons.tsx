@@ -1,6 +1,6 @@
-import React from 'react';
-import { Button } from './Button';
-import { Icon } from './Icon';
+import React, { useMemo } from 'react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
+import { ActionMenu, ActionMenuItem } from './ActionMenu';
 
 export interface TableActionButtonsProps {
   /**
@@ -34,7 +34,7 @@ export interface TableActionButtonsProps {
   showDelete?: boolean;
   
   /**
-   * Custom labels for tooltips
+   * Custom labels for menu items
    */
   viewLabel?: string;
   editLabel?: string;
@@ -44,10 +44,16 @@ export interface TableActionButtonsProps {
    * Additional className for the container
    */
   className?: string;
+  
+  /**
+   * Position of the dropdown menu
+   */
+  menuPosition?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 }
 
 /**
  * Reusable table action buttons component for view, edit, and delete actions
+ * Uses a three-dot menu design with dropdown
  * 
  * @example
  * ```tsx
@@ -71,51 +77,49 @@ export const TableActionButtons: React.FC<TableActionButtonsProps> = ({
   editLabel = 'Edit',
   deleteLabel = 'Delete',
   className = '',
+  menuPosition = 'bottom-right',
 }) => {
+  const menuItems = useMemo<ActionMenuItem[]>(() => {
+    const items: ActionMenuItem[] = [];
+    
+    if (showView && onView) {
+      items.push({
+        label: viewLabel,
+        icon: Eye,
+        onClick: onView,
+      });
+    }
+    
+    if (showEdit && onEdit) {
+      items.push({
+        label: editLabel,
+        icon: Edit,
+        onClick: onEdit,
+      });
+    }
+    
+    if (showDelete && onDelete) {
+      items.push({
+        label: deleteLabel,
+        icon: Trash2,
+        onClick: onDelete,
+        variant: 'danger',
+      });
+    }
+    
+    return items;
+  }, [showView, showEdit, showDelete, onView, onEdit, onDelete, viewLabel, editLabel, deleteLabel]);
+
+  if (menuItems.length === 0) {
+    return null;
+  }
+
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      {/* View Button */}
-      {showView && onView && (
-        <Button
-          shape="icon"
-          variant="tertiary"
-          size="small"
-          onClick={onView}
-          title={viewLabel}
-          aria-label={viewLabel}
-        >
-          <Icon name="eye" />
-        </Button>
-      )}
-
-      {/* Edit Button */}
-      {showEdit && onEdit && (
-        <Button
-          shape="icon"
-          variant="primary"
-          size="small"
-          onClick={onEdit}
-          title={editLabel}
-          aria-label={editLabel}
-        >
-          <Icon name="edit" color="white" />
-        </Button>
-      )}
-
-      {/* Delete Button */}
-      {showDelete && onDelete && (
-        <Button
-          shape="icon"
-          variant="danger"
-          size="small"
-          onClick={onDelete}
-          title={deleteLabel}
-          aria-label={deleteLabel}
-        >
-          <Icon name="trash" color="white" />
-        </Button>
-      )}
-    </div>
+    <ActionMenu
+      items={menuItems}
+      className={className}
+      position={menuPosition}
+    />
   );
 };
 

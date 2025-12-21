@@ -32,44 +32,23 @@ export const OrderDetailPage: React.FC = () => {
 
   useEffect(() => {
     // Show payment modal if redirected from create order with stripe
+    // Only show if payment status is still pending
     if (location.state?.showPayment && selectedOrder) {
-      console.log('🔍 Location state:', location.state);
-      console.log('🔍 Checking payment modal trigger:', {
-        showPayment: location.state?.showPayment,
-        paymentMethodFromState: location.state?.paymentMethod,
-        payment_status: selectedOrder.payment_status,
-        orderId: selectedOrder.id,
-      });
+      const paymentStatus = selectedOrder.payment_status?.toLowerCase();
+      const paymentMethodFromState = location.state?.paymentMethod?.toLowerCase();
+      const isStripePayment = paymentMethodFromState === 'stripe';
+      const isPending = paymentStatus === 'pending';
       
-      // Use payment method from navigation state (since backend doesn't store it in order)
-      const paymentMethodFromState = location.state?.paymentMethod;
-      const paymentStatus = selectedOrder.payment_status;
-      
-      console.log('Payment check values:', { 
-        paymentMethodFromState,
-        paymentStatus,
-      });
-      
-      const isStripePayment = paymentMethodFromState?.toLowerCase() === 'stripe';
-      const isPending = paymentStatus?.toLowerCase() === 'pending';
-      
-      console.log('Payment check result:', { 
-        isStripePayment, 
-        isPending,
-      });
-      
-      if (isPending && isStripePayment) {
+      // Only open modal if payment is pending and method is stripe
+      if (isPending && isStripePayment && !showPaymentModal) {
         console.log('✅ Opening Stripe payment modal');
         setShowPaymentModal(true);
-      } else {
-        console.log('❌ Not opening modal:', { 
-          reason: !isPending ? `Not pending (status is: ${paymentStatus})` : `Not stripe payment (method from state is: ${paymentMethodFromState})`,
-          isPending,
-          isStripePayment,
-        });
+      } else if (!isPending) {
+        // Clear location state if payment is no longer pending (prevents reopening)
+        window.history.replaceState({}, document.title);
       }
     }
-  }, [location.state, selectedOrder]);
+  }, [location.state, selectedOrder, showPaymentModal]);
 
   if (isLoading || !selectedOrder) {
     return (
@@ -147,7 +126,8 @@ export const OrderDetailPage: React.FC = () => {
             >
               {isCreatingInvoice ? 'Creating...' : 'Create Invoice'}
             </Button>
-            {order.payment_status === 'pending' && order.payment_method && (
+            {/* Only show payment button if payment status is pending */}
+            {order.payment_status?.toLowerCase() === 'pending' && order.payment_method && (
               <>
                 {order.payment_method.toLowerCase() === 'stripe' ? (
                   <Button
@@ -335,15 +315,19 @@ export const OrderDetailPage: React.FC = () => {
             customerId={order.customer_id}
             onSuccess={async () => {
               console.log('🎉 Payment successful - closing modal and refreshing order');
+              
+              // Clear location state to prevent modal from reopening
+              window.history.replaceState({}, document.title);
+              
+              // Close modal immediately
               setShowPaymentModal(false);
-              toast.success('Payment processed successfully!');
               
               // Small delay to ensure backend has completed the order update
               await new Promise(resolve => setTimeout(resolve, 500));
               
-              // Refresh order data
+              // Refresh order data to get updated payment status
               await dispatch(fetchOrderById(id!));
-              console.log('✅ Order refreshed');
+              console.log('✅ Order refreshed - payment button should be hidden now');
             }}
             onCancel={() => setShowPaymentModal(false)}
           />
