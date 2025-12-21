@@ -1,6 +1,6 @@
 # GitHub Actions CI/CD
 
-This directory contains the GitHub Actions workflows for automated deployment.
+This document explains the GitHub Actions workflows for automated deployment. The workflow files are located in `.github/workflows/`.
 
 ## Quick Start
 
@@ -119,8 +119,9 @@ export SSH_KEY=~/.ssh/your-key.pem
 
 ## Documentation
 
-- **Complete Setup Guide**: [DEPLOYMENT_SETUP.md](./DEPLOYMENT_SETUP.md)
-- **Fix Summary**: [../CI_CD_FIX_SUMMARY.md](../CI_CD_FIX_SUMMARY.md)
+- **Complete Setup Guide**: [GITHUB_DEPLOYMENT_SETUP.md](./GITHUB_DEPLOYMENT_SETUP.md)
+- **Deployment Guide**: [DEPLOYMENT.md](./DEPLOYMENT.md)
+- **Terraform Deployment**: [TERRAFORM_DEPLOYMENT.md](./TERRAFORM_DEPLOYMENT.md)
 - **Main README**: [../README.md](../README.md)
 
 ## Monitoring
@@ -145,7 +146,7 @@ docker compose ps
 ## Support
 
 For issues:
-1. Check [DEPLOYMENT_SETUP.md](./DEPLOYMENT_SETUP.md)
+1. Check [GITHUB_DEPLOYMENT_SETUP.md](./GITHUB_DEPLOYMENT_SETUP.md)
 2. Review GitHub Actions logs
 3. Check EC2 logs: `docker compose logs`
 4. Verify secrets are set correctly
