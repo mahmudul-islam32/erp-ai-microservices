@@ -92,7 +92,25 @@
 }
 
 .design-button--icon {
-  padding: var(--spacing-inset-xsmall);
+  padding-top: calc(var(--spacing-inset-xsmall) * 0.5);
+  padding-bottom: calc(var(--spacing-inset-xsmall) * 0.5);
+  padding-left: var(--spacing-inset-xsmall);
+  padding-right: var(--spacing-inset-xsmall);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.design-button--icon .icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.design-button--icon .icon-wrapper svg {
+  display: block;
+  vertical-align: middle;
 }
 
 .design-button--icon:hover {

@@ -1,4 +1,4 @@
-import { salesApi } from '../../../shared/api/client';
+import { paymentApi, salesApi } from '@/shared/api/client';
 
 export interface Payment {
   id: string;
@@ -31,6 +31,30 @@ export interface StripeConfirmPaymentData {
   order_id: string;
 }
 
+export interface StripePaymentIntentResponse {
+  client_secret: string;
+  payment_intent_id: string;
+  amount: number;
+  amount_cents?: number;
+  currency?: string;
+  publishable_key?: string;
+  requires_action?: boolean;
+  next_action?: unknown;
+}
+
+export interface PaymentStatusResponse {
+  payment_intent_id: string;
+  status: string;
+  amount: number;
+  amount_cents: number;
+  currency: string;
+  customer_id?: string | null;
+  charges?: unknown[];
+  metadata?: Record<string, unknown>;
+  created?: number | null;
+  requires_action?: boolean;
+}
+
 export const paymentsApi = {
   // Regular payment
   create: async (data: CreatePaymentData): Promise<Payment> => {
@@ -51,18 +75,18 @@ export const paymentsApi = {
   },
 
   // Stripe payment intent
-  createStripeIntent: async (data: StripePaymentIntentData): Promise<{ client_secret: string; payment_intent_id: string }> => {
+  createStripeIntent: async (data: StripePaymentIntentData): Promise<StripePaymentIntentResponse> => {
     console.log('Creating Stripe payment intent:', data);
-    const response = await salesApi.post('/api/v1/payments/stripe/create-intent', data);
+    const response = await paymentApi.post('/api/v1/payments/create-intent', data);
     console.log('Stripe intent response:', response.data);
     return response.data;
   },
 
-  // Confirm Stripe payment
-  confirmStripePayment: async (data: StripeConfirmPaymentData): Promise<Payment> => {
+  // Confirm Stripe payment - creates payment record and updates order
+  confirmStripePayment: async (data: StripeConfirmPaymentData): Promise<{ success: boolean; payment_intent_id: string; order_id: string; status: string; amount: number }> => {
     console.log('Confirming Stripe payment:', data);
-    const response = await salesApi.post('/api/v1/payments/stripe/confirm', data);
-    console.log('Stripe confirm response:', response.data);
+    const response = await paymentApi.post('/api/v1/payments/confirm', data);
+    console.log('Stripe payment confirmation response:', response.data);
     return response.data;
   },
 

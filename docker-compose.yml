@@ -283,6 +283,44 @@ services:
     networks:
       - erp-network
 
+  # Payment Service
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: erp-payment-service
+    restart: unless-stopped
+    ports:
+      - "8009:8009"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      <<: *mongodb_atlas_env_url
+      ENVIRONMENT: development
+      DATABASE_NAME: erp_payment
+      AUTH_SERVICE_URL: http://auth-service:8001
+      SALES_SERVICE_URL: http://sales-service:8003
+      SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-key-change-this-in-production}
+      ALGORITHM: HS256
+      SERVICE_NAME: Payment Service
+      SERVICE_VERSION: 1.0.0
+      SERVICE_PORT: 8009
+      SERVICE_HOST: 0.0.0.0
+      LOG_LEVEL: INFO
+      # Stripe Payment Gateway
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_API_VERSION: "2023-10-16"
+      STRIPE_CURRENCY: usd
+    depends_on:
+      - auth-service
+    volumes:
+      - ./payment-service:/app
+    networks:
+      - erp-network
+
   # Redis for caching and background tasks
   redis:
     image: redis:7.2-alpine
@@ -307,6 +345,7 @@ services:
         - VITE_NOTIFICATION_SERVICE_URL=http://localhost:8004
         - VITE_CHAT_SERVICE_URL=http://localhost:8005
         - VITE_HRM_SERVICE_URL=http://localhost:8007
+        - VITE_PAYMENT_SERVICE_URL=http://localhost:8009
         - VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLISHABLE_KEY:-}
     container_name: erp-frontend
     restart: unless-stopped
@@ -317,6 +356,7 @@ services:
       - inventory-service
       - sales-service
       - notification-service
+      - payment-service
     networks:
       - erp-network
     profiles:
@@ -338,7 +378,7 @@ services:
       VITE_NOTIFICATION_SERVICE_URL: http://localhost:8004
       VITE_CHAT_SERVICE_URL: http://localhost:8005
       VITE_HRM_SERVICE_URL: http://localhost:8007
-      VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      VITE_PAYMENT_SERVICE_URL: http://localhost:8009
       VITE_HMR_PORT: 8080
     volumes:
       - ./erp-frontend/src:/app/src
@@ -357,6 +397,7 @@ services:
       - inventory-service
       - sales-service
       - notification-service
+      - payment-service
     networks:
       - erp-network
 

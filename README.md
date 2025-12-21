@@ -11,8 +11,6 @@
 
 **A Complete, Modern ERP Solution with Microservices Architecture**
 
-[Documentation](#-documentation) · [Installation](#-installation) · [Features](#-key-features) · [Support](#-support)
-
 </div>
 
 ---
@@ -28,16 +26,14 @@
 - [Usage](#-usage)
 - [API Documentation](#-api-documentation)
 - [Development](#-development)
-- [Deployment](#-deployment)
 - [Troubleshooting](#-troubleshooting)
-- [Support](#-support)
 - [License](#-license)
 
 ---
 
 ## 🎯 Overview
 
-This is a comprehensive Enterprise Resource Planning (ERP) system built with a modern microservices architecture. It provides complete business management capabilities including user management, inventory control, sales processing, financial accounting, human resources, and real-time communication.
+This is a comprehensive Enterprise Resource Planning (ERP) system built with a modern microservices architecture. It provides complete business management capabilities including user management, inventory control, sales processing, financial accounting, human resources, real-time communication, and AI-powered assistance.
 
 ### What Makes This ERP Special?
 
@@ -48,7 +44,7 @@ This is a comprehensive Enterprise Resource Planning (ERP) system built with a m
 - ✅ **Docker Native** - Easy deployment with Docker Compose
 - ✅ **Type Safe** - Full TypeScript coverage for reliability
 - ✅ **Real-time Updates** - WebSocket support for live notifications and chat
-- ✅ **Customizable** - Appearance settings, themes, and extensible modules
+- ✅ **AI Integration** - AI-powered chatbot assistant for business intelligence
 
 ---
 
@@ -61,7 +57,6 @@ This is a comprehensive Enterprise Resource Planning (ERP) system built with a m
 - **Audit Logs** - Comprehensive activity logging for compliance
 - **Security Settings** - Configurable password policies and login security
 - **Multi-Factor Authentication** - Email-based 2FA support
-- **Access Control** - Fine-grained permission system
 
 ### 📦 Inventory Management
 - **Product Management** - Complete product catalog with categories and variants
@@ -70,8 +65,6 @@ This is a comprehensive Enterprise Resource Planning (ERP) system built with a m
 - **Stock Adjustments** - Add, reduce, and transfer stock between warehouses
 - **Low Stock Alerts** - Automatic notifications for low inventory
 - **Barcode Support** - SKU and barcode integration
-- **Category Hierarchy** - Organize products in nested categories
-- **Serial/Batch Tracking** - Track individual items and batches
 
 ### 💰 Sales Management
 - **Customer Management** - Complete customer database with full contact details
@@ -81,7 +74,6 @@ This is a comprehensive Enterprise Resource Planning (ERP) system built with a m
 - **Multiple Payment Methods** - Cash, Credit Card (Stripe), Bank Transfer, Check
 - **Order Tracking** - Track order status from pending to completed
 - **Customer Portal** - Customers can view their orders and invoices
-- **Payment History** - Complete payment tracking and history
 
 ### 💳 Financial Management & Accounting
 - **Chart of Accounts** - Hierarchical account management with account types
@@ -92,8 +84,6 @@ This is a comprehensive Enterprise Resource Planning (ERP) system built with a m
 - **Bank Management** - Bank account and transaction management
 - **Financial Reporting** - P&L, Balance Sheet, Trial Balance
 - **Multi-Currency Support** - Multiple currencies with exchange rates
-- **Aging Reports** - AP/AR aging analysis with multiple buckets
-- **Automated Entries** - Auto-posting from invoices and payments
 
 ### 👥 Human Resources Management (HRM)
 - **Employee Management** - Complete employee database and profiles
@@ -102,41 +92,24 @@ This is a comprehensive Enterprise Resource Planning (ERP) system built with a m
 - **Leave Management** - Leave requests, approvals, and tracking
 - **Performance Reviews** - Employee performance evaluation system
 - **Recruitment** - Job postings, applications, and interview management
-- **Training & Development** - Training programs and certification tracking
-- **Benefits Management** - Employee benefits administration
-- **Analytics** - HR metrics and reporting
 
 ### 💬 Communication & Collaboration
 - **Real-time Chat** - Internal messaging between users
 - **Notifications** - Real-time system notifications via WebSocket
 - **Message History** - Complete conversation history
 - **Unread Tracking** - Unread message and notification counts
-- **Online Status** - User presence indicators
-- **Notification Preferences** - Customizable notification settings
+
+### 🤖 AI Assistant
+- **Business Intelligence** - AI-powered insights and recommendations
+- **Natural Language Queries** - Ask questions in plain English
+- **Data Analysis** - Automated analysis of business data
+- **Smart Recommendations** - AI-driven suggestions for improvements
 
 ### 📊 Dashboard & Analytics
 - **Real-time Statistics** - Sales, inventory, and user metrics
 - **Interactive Charts** - Beautiful charts powered by Recharts
 - **Recent Activity** - Quick overview of recent actions
-- **Quick Actions** - Fast access to common tasks
 - **Customizable Widgets** - Personalize your dashboard
-- **Module-specific Dashboards** - Dedicated dashboards for each module
-
-### 🎨 Appearance & Customization
-- **Font Customization** - Choose from 10+ font families
-- **Color Themes** - Customize primary, secondary, accent, and status colors
-- **UI Settings** - Adjust border radius, spacing, and more
-- **Custom CSS** - Advanced styling with custom CSS rules
-- **Live Preview** - See changes in real-time
-- **Persistent Settings** - Settings saved and loaded automatically
-
-### ⚙️ System Settings
-- **Company Information** - Manage company details and address
-- **Email Configuration** - SMTP settings for email notifications
-- **Integration Settings** - Third-party service integrations (Stripe, etc.)
-- **Notification Preferences** - Configure notification types and channels
-- **General Settings** - Timezone, date format, language, and more
-- **Service-specific Settings** - Dedicated settings for each module
 
 ---
 
@@ -174,8 +147,8 @@ This ERP system follows a microservices architecture pattern, where each busines
         ┌───────────────┼───────────────┐
         │               │               │
 ┌───────▼──────┐ ┌──────▼──────┐ ┌─────▼──────┐
-│ HRM Service  │ │   MongoDB   │ │   Redis    │
-│   Port: 8007 │ │  Port: 27017│ │ Port: 6379 │
+│ HRM Service  │ │ AI Chatbot  │ │   MongoDB  │
+│   Port: 8007 │ │   Port: 8008│ │  Port: 27017│
 └──────────────┘ └─────────────┘ └────────────┘
 ```
 
@@ -191,17 +164,9 @@ This ERP system follows a microservices architecture pattern, where each busines
 | **Chat Service** | 8005 | FastAPI (Python) | Internal messaging |
 | **Finance Service** | 8006 | FastAPI (Python) | Accounting & financial management |
 | **HRM Service** | 8007 | FastAPI (Python) | Human resources management |
+| **AI Chatbot Service** | 8008 | FastAPI (Python) | AI-powered business assistant |
 | **MongoDB** | 27017 | MongoDB | Primary database |
 | **Redis** | 6379 | Redis | Caching & sessions |
-
-### Data Flow
-
-1. **Frontend** makes API requests to backend services
-2. **Auth Service** validates JWT tokens for all requests
-3. **Services** communicate with each other via HTTP
-4. **MongoDB** stores persistent data for each service
-5. **Redis** handles caching and session management
-6. **WebSocket** connections provide real-time updates
 
 ---
 
@@ -221,7 +186,7 @@ This ERP system follows a microservices architecture pattern, where each busines
 - **Vite** - Fast build tool and dev server
 
 ### Backend Services
-- **FastAPI** (Python) - Auth, Sales, Notification, Chat, Finance, HRM services
+- **FastAPI** (Python) - Auth, Sales, Notification, Chat, Finance, HRM, AI services
 - **NestJS** (Node.js) - Inventory service
 - **Pydantic** - Data validation (Python)
 - **MongoDB** - Primary database
@@ -229,12 +194,12 @@ This ERP system follows a microservices architecture pattern, where each busines
 - **JWT** - Secure authentication
 - **WebSocket** - Real-time communication
 - **Stripe API** - Payment processing
+- **OpenAI API** - AI capabilities
 
 ### DevOps & Infrastructure
 - **Docker** - Containerization
 - **Docker Compose** - Multi-container orchestration
 - **Nginx** - Reverse proxy (production)
-- **GitHub Actions** - CI/CD pipeline (optional)
 
 ---
 
@@ -297,9 +262,12 @@ If you prefer manual control:
 # 1. Clone or download the repository
 cd erp-ai-microservices
 
-# 2. Set environment variables (optional)
-cp .env.example .env
-# Edit .env with your settings
+# 2. Set environment variables (create .env file)
+# Copy from .env.example if available, or set these variables:
+export JWT_SECRET_KEY="your-super-secret-key-change-this"
+export MONGODB_ATLAS_USER="your-mongodb-user"
+export MONGODB_ATLAS_PASSWORD="your-mongodb-password"
+export MONGODB_ATLAS_HOST="your-mongodb-host"
 
 # 3. Start all services
 docker-compose up -d
@@ -308,7 +276,7 @@ docker-compose up -d
 docker-compose ps
 
 # 5. Access the application
-# Frontend: http://localhost:8080
+# Frontend: http://localhost:5173 (dev) or http://localhost:8080 (prod)
 # Default login: admin@example.com / admin123
 ```
 
@@ -318,7 +286,7 @@ docker-compose ps
 
 The setup script checks:
 - Docker and Docker Compose are installed
-- Required ports are available (8001-8007, 8080, 27017, 6379)
+- Required ports are available (8001-8008, 8080, 27017, 6379)
 - Sufficient disk space (10GB minimum)
 - Internet connectivity
 
@@ -335,7 +303,7 @@ You'll be asked for:
 
 The script will:
 1. Build Docker images for all services
-2. Start MongoDB and Redis
+2. Start MongoDB and Redis (if using local instances)
 3. Start all backend services
 4. Start the frontend
 5. Initialize the database with default data
@@ -353,7 +321,7 @@ The script verifies:
 After installation:
 
 1. **Access the Application**
-   - Frontend: http://localhost:8080
+   - Frontend: http://localhost:5173 (development) or http://localhost:8080 (production)
    - Default credentials: `admin@example.com` / `admin123`
    - ⚠️ **Change the default password immediately!**
 
@@ -374,6 +342,7 @@ After installation:
    - Sales Service: http://localhost:8003/docs
    - Finance Service: http://localhost:8006/docs
    - HRM Service: http://localhost:8007/docs
+   - AI Chatbot Service: http://localhost:8008/docs
 
 ---
 
@@ -381,19 +350,23 @@ After installation:
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory with the following variables:
 
 ```bash
 # JWT Configuration
 JWT_SECRET_KEY=your-super-secret-key-change-this-in-production
 
-# MongoDB Configuration
-MONGO_USERNAME=admin
-MONGO_PASSWORD=password123
+# MongoDB Configuration (if using MongoDB Atlas)
+MONGODB_ATLAS_USER=your-mongodb-user
+MONGODB_ATLAS_PASSWORD=your-mongodb-password
+MONGODB_ATLAS_HOST=your-cluster.mongodb.net
 
 # Stripe Configuration (for payments)
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+
+# OpenAI Configuration (for AI features)
+OPENAI_API_KEY=your-openai-api-key
 
 # Application Settings
 APP_NAME=ERP System
@@ -415,23 +388,13 @@ Each service can be configured via environment variables in `docker-compose.yml`
 **Sales Service:**
 - `DEFAULT_TAX_RATE`: Default tax rate (default: 0.08)
 
-### Database Configuration
-
-MongoDB is configured with:
-- **Username**: admin (default)
-- **Password**: password123 (default - change in production!)
-- **Port**: 27017
-- **Databases**: Separate database per service (erp_auth, erp_inventory, etc.)
-
-**⚠️ Important**: Change default MongoDB credentials in production!
-
 ---
 
 ## 📖 Usage
 
 ### First Login
 
-1. Navigate to http://localhost:8080
+1. Navigate to http://localhost:5173 (or http://localhost:8080 in production)
 2. Login with default credentials:
    - Email: `admin@example.com`
    - Password: `admin123`
@@ -465,14 +428,6 @@ MongoDB is configured with:
 3. Test email connection
 4. Save settings
 
-### Customizing Appearance
-
-1. Go to **Settings → Appearance**
-2. Choose font family
-3. Customize colors
-4. Adjust UI settings
-5. Save (changes apply immediately)
-
 ### Managing Users
 
 1. Go to **Users & Auth → Users**
@@ -494,6 +449,7 @@ MongoDB is configured with:
 - **Chat Service**: http://localhost:8005
 - **Finance Service**: http://localhost:8006
 - **HRM Service**: http://localhost:8007
+- **AI Chatbot Service**: http://localhost:8008
 
 ### Interactive API Docs
 
@@ -504,6 +460,7 @@ Each service provides interactive Swagger documentation:
 - Sales: http://localhost:8003/docs
 - Finance: http://localhost:8006/docs
 - HRM: http://localhost:8007/docs
+- AI Chatbot: http://localhost:8008/docs
 
 ### Authentication
 
@@ -526,14 +483,6 @@ curl -X POST http://localhost:8001/api/v1/auth/login \
 ```bash
 curl -X GET http://localhost:8001/api/v1/users \
   -H "Authorization: Bearer <token>"
-```
-
-**Create Product:**
-```bash
-curl -X POST http://localhost:8002/products \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Product Name", "price": 99.99, "stock": 100}'
 ```
 
 ---
@@ -591,6 +540,7 @@ erp-ai-microservices/
 ├── hrm-service/          # Human resources
 ├── notification-service/ # Notifications
 ├── chat-service/         # Internal messaging
+├── ai-chatbot-service/   # AI-powered assistant
 │
 ├── erp-frontend/         # React frontend
 │   ├── src/
@@ -604,76 +554,6 @@ erp-ai-microservices/
 ├── docker-compose.yml    # Docker configuration
 └── README.md            # This file
 ```
-
-### Running Tests
-
-```bash
-# Run tests for a specific service
-docker-compose exec auth-service pytest
-docker-compose exec inventory-service npm test
-```
-
-### Code Style
-
-- **Python**: Follow PEP 8, use Black formatter
-- **TypeScript**: ESLint + Prettier
-- **React**: Follow React best practices
-
----
-
-## 🚀 Deployment
-
-### Production Deployment
-
-#### Option 1: Docker Compose (Recommended)
-
-1. **Use production compose file**
-   ```bash
-   docker-compose -f docker-compose.prod.yml up -d
-   ```
-
-2. **Set production environment variables**
-   - Update `.env` with production values
-   - Change default passwords
-   - Set secure JWT secret
-   - Configure SMTP for emails
-
-3. **Enable HTTPS** (recommended)
-   - Use Nginx reverse proxy with SSL
-   - Obtain SSL certificate (Let's Encrypt)
-
-#### Option 2: Cloud Deployment
-
-**AWS EC2:**
-1. Launch EC2 instance
-2. Install Docker
-3. Clone repository
-4. Run `docker-compose up -d`
-
-**DigitalOcean:**
-1. Create Droplet
-2. Follow same steps as AWS
-
-**Docker Swarm / Kubernetes:**
-- See deployment guides in `docs/` directory
-
-### Backup & Recovery
-
-**Database Backup:**
-```bash
-docker-compose exec mongodb mongodump --out /backup
-```
-
-**Restore:**
-```bash
-docker-compose exec mongodb mongorestore /backup
-```
-
-### Monitoring
-
-- Check service health: `docker-compose ps`
-- View logs: `docker-compose logs -f [service]`
-- Monitor resources: `docker stats`
 
 ---
 
@@ -704,19 +584,11 @@ netstat -tulpn | grep -E '8001|8002|8003|8080'
 
 **Solution**:
 ```bash
-# Reset admin user
-docker-compose exec auth-service python scripts/create_admin.py
+# Check auth service logs
+docker-compose logs auth-service
 
-# Or create new admin
-docker-compose exec auth-service python -c "
-from app.services.user_service import user_service
-import asyncio
-asyncio.run(user_service.create_user({
-    'email': 'admin@example.com',
-    'password': 'newpassword123',
-    'is_superuser': True
-}))
-"
+# Verify database is initialized
+docker-compose exec mongodb mongosh --eval "db.adminCommand('ping')"
 ```
 
 #### Database Connection Error
@@ -765,32 +637,8 @@ lsof -i :8001  # or any port
 
 1. **Check Logs**: `docker-compose logs -f [service-name]`
 2. **Service Health**: `docker-compose ps`
-3. **Documentation**: See `docs/` directory
+3. **Documentation**: See `docs/` directory for detailed guides
 4. **Support**: Contact support team
-
----
-
-## 📞 Support
-
-### Documentation
-
-- 📖 **User Manual**: `docs/USER_MANUAL.md`
-- 💻 **Installation Guide**: `docs/INSTALLATION.md`
-- 🚀 **Deployment Guide**: `docs/DEPLOYMENT.md`
-- 📡 **API Documentation**: http://localhost:8001/docs
-
-### Getting Help
-
-- 📧 **Email**: support@yourdomain.com
-- 💬 **Issues**: GitHub Issues
-- 📚 **Documentation**: Check `docs/` directory
-- 🎫 **Support Tickets**: Your support portal
-
-### Community
-
-- 💡 **Feature Requests**: GitHub Issues
-- 🐛 **Bug Reports**: GitHub Issues
-- 💬 **Discussions**: GitHub Discussions
 
 ---
 
@@ -798,18 +646,13 @@ lsof -i :8001  # or any port
 
 This is a commercial product. See [LICENSE.md](LICENSE.md) for full license terms.
 
-### License Types
-
-- **Regular License**: Single end product, non-commercial
-- **Extended License**: Multiple end products, commercial use allowed
-
 ---
 
 ## 🎉 Getting Started Checklist
 
 - [ ] Install Docker and Docker Compose
 - [ ] Run `./setup.sh` or `./install.sh`
-- [ ] Access http://localhost:8080
+- [ ] Access http://localhost:5173 (dev) or http://localhost:8080 (prod)
 - [ ] Login with default credentials
 - [ ] Change admin password
 - [ ] Configure company information
@@ -820,23 +663,9 @@ This is a commercial product. See [LICENSE.md](LICENSE.md) for full license term
 
 ---
 
-## 🙏 Acknowledgments
-
-Built with:
-- React Team for React
-- FastAPI Team for FastAPI
-- NestJS Team for NestJS
-- Tailwind Labs for Tailwind CSS
-- Stripe for payment processing
-- All open-source contributors
-
----
-
 <div align="center">
 
 **Made with ❤️ for modern businesses**
-
-[Documentation](#-documentation) · [Installation](#-installation) · [Support](#-support)
 
 © 2025 ERP System. All rights reserved.
 

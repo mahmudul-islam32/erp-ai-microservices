@@ -19,4 +19,6 @@ export * from './DeleteConfirmationModal';
 export * from './DesignCheckbox';
 export * from './DesignModal';
 export * from './Icon';
+export * from './ActionMenu';
+export * from './TableActionButtons';
 
