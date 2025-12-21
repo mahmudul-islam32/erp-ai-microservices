@@ -6,6 +6,7 @@ const API_URLS = {
   auth: import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:8001',
   inventory: import.meta.env.VITE_INVENTORY_SERVICE_URL || 'http://localhost:8002',
   sales: import.meta.env.VITE_SALES_SERVICE_URL || 'http://localhost:8003',
+  payment: import.meta.env.VITE_PAYMENT_SERVICE_URL || 'http://localhost:8009',
 };
 
 // Create axios instance
@@ -127,3 +128,4 @@ export const createServiceClient = (service: keyof typeof API_URLS) => {
 export const authApi = createServiceClient('auth');
 export const inventoryApi = createServiceClient('inventory');
 export const salesApi = createServiceClient('sales');
+export const paymentApi = createServiceClient('payment');
