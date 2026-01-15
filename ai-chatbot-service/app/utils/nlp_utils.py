@@ -178,7 +178,7 @@ def classify_query_type(text: str) -> QueryType:
     return QueryType.GENERAL
 
 
-def build_context_prompt(user_query: str, query_type: QueryType, entities: Dict, conversation_history: List[Dict], erp_context: str = "") -> str:
+def build_context_prompt(user_query: str, query_type: QueryType, entities: Dict, conversation_history: List[Dict], erp_context: str = "", rag_context: str = "") -> str:
     """Build a context-aware prompt for the LLM"""
     
     base_context = """You are an intelligent AI assistant for an Enterprise Resource Planning (ERP) system. 
@@ -208,6 +208,10 @@ Be concise, helpful, and professional.
     }
     
     context = base_context + "\n" + domain_context.get(query_type, "")
+    
+    # Add RAG context (knowledge base) if available
+    if rag_context:
+        context += f"\n\nRELEVANT KNOWLEDGE BASE INFORMATION:\n{rag_context}\n\nUse this knowledge base information to provide accurate, context-aware answers."
     
     # Add ERP context if available
     if erp_context:

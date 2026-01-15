@@ -12,6 +12,14 @@ from app.models.message import (
     MessageRole,
     MessageSendRequest
 )
+from app.models.knowledge_base import (
+    KnowledgeChunkBase,
+    KnowledgeChunkCreate,
+    KnowledgeChunkInDB,
+    KnowledgeChunkResponse,
+    DocumentIngestRequest,
+    DocumentIngestResponse
+)
 
 __all__ = [
     "Conversation",
@@ -24,5 +32,11 @@ __all__ = [
     "MessageResponse",
     "MessageRole",
     "MessageSendRequest",
+    "KnowledgeChunkBase",
+    "KnowledgeChunkCreate",
+    "KnowledgeChunkInDB",
+    "KnowledgeChunkResponse",
+    "DocumentIngestRequest",
+    "DocumentIngestResponse",
 ]
 

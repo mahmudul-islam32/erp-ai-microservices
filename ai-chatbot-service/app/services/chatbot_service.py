@@ -8,7 +8,9 @@ from app.models.message import MessageCreate, MessageInDB, MessageResponse, Mess
 from app.models.conversation import ConversationCreate, ConversationInDB, ConversationResponse
 from app.services.nlp_service import NLPService
 from app.services.erp_data_service import ERPDataService
-from app.utils.nlp_utils import classify_query_type, extract_entities
+from app.services.rag_service import RAGService
+from app.config import settings
+from app.utils.nlp_utils import classify_query_type, extract_entities, QueryType
 from app.services.date_extractor import extract_date_range_from_query
 
 logger = logging.getLogger(__name__)
@@ -23,6 +25,7 @@ class ChatbotService:
         self.conversations_collection = database.conversations
         self.nlp_service = NLPService()
         self.erp_data_service = ERPDataService()
+        self.rag_service = RAGService(database) if settings.enable_rag else None
     
     async def create_conversation(
         self,
@@ -351,6 +354,31 @@ class ChatbotService:
                     logger.error(f"Error fetching ERP data: {e}", exc_info=True)
                     erp_context = f"Unable to fetch sales data: {str(e)}"
             
+            # Retrieve RAG context if RAG is enabled
+            rag_context = ""
+            if settings.enable_rag and self.rag_service:
+                try:
+                    logger.info("Retrieving RAG context for query")
+                    similar_chunks = await self.rag_service.search_similar_chunks(
+                        query=message_content,
+                        limit=settings.rag_top_k,
+                        threshold=settings.rag_similarity_threshold,
+                        user_id=user_id
+                    )
+                    
+                    if similar_chunks:
+                        # Format RAG context from retrieved chunks
+                        rag_context_parts = []
+                        for chunk in similar_chunks:
+                            rag_context_parts.append(f"Source: {chunk.source}\nContent: {chunk.content}\n(Similarity: {chunk.score:.2f})")
+                        rag_context = "\n\n---\n\n".join(rag_context_parts)
+                        logger.info(f"Retrieved {len(similar_chunks)} RAG chunks")
+                    else:
+                        logger.info("No similar chunks found in knowledge base")
+                except Exception as e:
+                    logger.warning(f"Error retrieving RAG context: {e}", exc_info=True)
+                    # Continue without RAG context if retrieval fails
+            
             # Create NLP service with specified provider/model if provided
             nlp_service = self.nlp_service
             if provider or model:
@@ -361,7 +389,8 @@ class ChatbotService:
             user_context = {
                 "user_id": user_id,
                 "conversation_id": conversation_id,
-                "erp_context": erp_context
+                "erp_context": erp_context,
+                "rag_context": rag_context
             }
             
             ai_response_text, metadata = await nlp_service.generate_response(

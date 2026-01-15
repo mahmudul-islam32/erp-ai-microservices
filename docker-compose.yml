@@ -276,6 +276,14 @@ services:
       HUGGINGFACE_MODEL: ${HUGGINGFACE_MODEL:-microsoft/DialoGPT-medium}
       HUGGINGFACE_BASE_URL: ${HUGGINGFACE_BASE_URL:-https://api-inference.huggingface.co}
       MAX_CONVERSATION_HISTORY: 20
+      # RAG (Retrieval-Augmented Generation) Configuration
+      ENABLE_RAG: ${ENABLE_RAG:-true}
+      RAG_EMBEDDING_PROVIDER: ${RAG_EMBEDDING_PROVIDER:-openai}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-text-embedding-3-small}
+      RAG_TOP_K: ${RAG_TOP_K:-5}
+      RAG_SIMILARITY_THRESHOLD: 0.5
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-1000}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-200}
     depends_on:
       - auth-service
     volumes:

@@ -7,7 +7,8 @@ import {
   deleteEmployee,
 } from '../store/hrmSlice';
 import { EmployeeTable } from '../components/EmployeeTable';
-import { EmployeeFilters, IEmployeeFilters } from '../components/EmployeeFilters';
+import { EmployeeFilters } from '../components/EmployeeFilters';
+import { IEmployeeFilters } from '../components/EmployeeFilters';
 import {
   PageHeader,
   StatCard,
@@ -22,6 +23,8 @@ import { Users, CheckCircle, Clock, XCircle, Download, Plus } from 'lucide-react
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
 import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
+
+import '@/styles/users.css';
 
 export const EmployeesPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -176,7 +179,7 @@ export const EmployeesPage: React.FC = () => {
   const terminatedEmployees = employees.filter((e) => e.status === 'terminated').length;
 
   return (
-    <div className="space-y-6">
+    <div className="users-page">
       {/* Header */}
       <PageHeader
         title="Employees Management"
@@ -195,75 +198,85 @@ export const EmployeesPage: React.FC = () => {
             icon: Plus,
           }] : []),
         ]}
+        className="mb-8"
       />
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          label="Total Employees"
-          value={totalEmployees}
-          icon={Users}
-          iconVariant="primary"
-        />
-        <StatCard
-          label="Active"
-          value={activeEmployees}
-          icon={CheckCircle}
-          iconVariant="success"
-        />
-        <StatCard
-          label="Inactive"
-          value={inactiveEmployees}
-          icon={Clock}
-          iconVariant="warning"
-        />
-        <StatCard
-          label="Terminated"
-          value={terminatedEmployees}
-          icon={XCircle}
-          iconVariant="danger"
-        />
-      </div>
+      {/* Content sections with gap-6 spacing (matching dashboard card gap) */}
+      <div className="flex flex-col gap-6">
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Employees"
+            value={totalEmployees}
+            icon={Users}
+            color="primary"
+          />
+          <StatCard
+            title="Active"
+            value={activeEmployees}
+            icon={CheckCircle}
+            color="success"
+          />
+          <StatCard
+            title="Inactive"
+            value={inactiveEmployees}
+            icon={Clock}
+            color="warning"
+          />
+          <StatCard
+            title="Terminated"
+            value={terminatedEmployees}
+            icon={XCircle}
+            color="danger"
+          />
+        </div>
 
-      {/* Filters */}
-      <EmployeeFilters
-        filters={filters}
-        onFiltersChange={(newFilters) => setFilters(newFilters)}
-      />
+        {/* Filters */}
+        <div>
+          <EmployeeFilters
+            filters={filters}
+            onFiltersChange={(newFilters) => setFilters(newFilters)}
+          />
+        </div>
 
-      {/* Bulk Actions */}
-      <BulkActionsBar
-        selectedCount={selectedEmployees.length}
-        actions={[
-          ...(canDelete ? [{
-            label: 'Delete',
-            onClick: handleBulkDelete,
-            variant: 'danger' as const,
-          }] : []),
-        ]}
-        onClear={() => setSelectedEmployees([])}
-      />
+        {/* Bulk Actions */}
+        {selectedEmployees.length > 0 && (
+          <div>
+            <BulkActionsBar
+              selectedCount={selectedEmployees.length}
+              actions={[
+                ...(canDelete ? [{
+                  label: 'Delete',
+                  onClick: handleBulkDelete,
+                  variant: 'danger' as const,
+                }] : []),
+              ]}
+              onClear={() => setSelectedEmployees([])}
+            />
+          </div>
+        )}
 
-      {/* Employees Table */}
-      <DataTableContainer
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filteredEmployees.length}
-        itemsPerPage={itemsPerPage}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        isLoading={loading}
-      >
-        <EmployeeTable
-          employees={paginatedEmployees}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          selectedEmployees={selectedEmployees}
-          onSelectionChange={setSelectedEmployees}
+        {/* Employees Table */}
+        <DataTableContainer
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredEmployees.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
           isLoading={loading}
-        />
-      </DataTableContainer>
+        >
+          <EmployeeTable
+            employees={paginatedEmployees}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            selectedEmployees={selectedEmployees}
+            onSelectionChange={setSelectedEmployees}
+            isLoading={loading}
+          />
+        </DataTableContainer>
+      </div>
 
       {/* Delete Modal */}
       <DeleteConfirmationModal
