@@ -46,6 +46,15 @@ class Settings(BaseSettings):
     enable_web_search: bool = False
     enable_code_generation: bool = True
     
+    # RAG (Retrieval-Augmented Generation) Configuration
+    enable_rag: bool = True  # Enable/disable RAG
+    rag_embedding_provider: str = "openai"  # Options: openai, sentence_transformer
+    rag_embedding_model: str = "text-embedding-3-small"  # OpenAI: text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 | Sentence Transformer: all-MiniLM-L6-v2
+    rag_top_k: int = 5  # Number of similar chunks to retrieve
+    rag_similarity_threshold: float = 0.5  # Minimum similarity score (0-1)
+    rag_chunk_size: int = 1000  # Characters per chunk
+    rag_chunk_overlap: int = 200  # Overlap between chunks
+    
     # CORS
     cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000", "http://localhost:8080"]
     

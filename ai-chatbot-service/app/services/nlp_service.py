@@ -57,20 +57,48 @@ class NLPService:
             
             # Get ERP context from user_context if available
             erp_context = user_context.get("erp_context", "") if user_context else ""
+            rag_context = user_context.get("rag_context", "") if user_context else ""
             
-            # Log ERP context status for debugging
+            # Log context status for debugging
             if erp_context:
                 logger.info(f"ERP context available: {len(erp_context)} characters. Preview: {erp_context[:200]}...")
             else:
                 logger.warning(f"No ERP context available for query type: {query_type.value}")
             
-            # Build context-aware prompt (include ERP context)
-            context_prompt = build_context_prompt(user_query, query_type, entities, conversation_history, erp_context)
+            if rag_context:
+                logger.info(f"RAG context available: {len(rag_context)} characters. Preview: {rag_context[:200]}...")
+            
+            # Build context-aware prompt (include ERP context and RAG context)
+            context_prompt = build_context_prompt(user_query, query_type, entities, conversation_history, erp_context, rag_context)
             
             # Prepare messages for OpenAI
             messages = [
                 {"role": "system", "content": context_prompt}
             ]
+            
+            # Add RAG context (knowledge base) as a separate system message if available - makes it more explicit
+            if rag_context and rag_context.strip():
+                logger.info(f"Including RAG context in OpenAI prompt ({len(rag_context)} chars)")
+                messages.append({
+                    "role": "system",
+                    "content": f"""YOU HAVE BEEN PROVIDED WITH KNOWLEDGE BASE INFORMATION BELOW. YOU MUST USE IT.
+
+MANDATORY INSTRUCTIONS:
+1. The information below is from the company's knowledge base and documentation
+2. You HAVE ACCESS to this information - it's provided right here
+3. DO NOT say "I don't have access" or "I don't have that information" - YOU HAVE THE INFORMATION
+4. DO NOT ask the user to check documentation - THE INFORMATION IS BELOW
+5. USE the information from the knowledge base to answer the user's question
+6. PRESENT the information clearly and accurately
+7. If the knowledge base has relevant information, use it to provide a complete answer
+
+KNOWLEDGE BASE INFORMATION YOU HAVE ACCESS TO:
+{rag_context}
+
+IMPORTANT: Answer the user's question NOW using the knowledge base information above. Do not say you don't have access - you have the information."""
+                })
+            else:
+                logger.info("No RAG context available - knowledge base may not have relevant information for this query")
             
             # Add ERP context as a separate system message if available - makes it more explicit
             if erp_context and erp_context.strip():

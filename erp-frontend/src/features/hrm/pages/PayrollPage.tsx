@@ -24,6 +24,8 @@ import { Permission } from '../../users/types';
 import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 import { format } from 'date-fns';
 
+import '@/styles/users.css';
+
 export const PayrollPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -191,7 +193,7 @@ export const PayrollPage: React.FC = () => {
   const totalNetPay = filteredPayrolls.reduce((sum, p) => sum + (p.net_pay || 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="users-page">
       <PageHeader
         title="Payroll Management"
         description="Manage employee payroll and salary calculations"
@@ -209,99 +211,112 @@ export const PayrollPage: React.FC = () => {
             icon: Plus,
           }] : []),
         ]}
+        className="mb-8"
       />
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          label="Total Payrolls"
-          value={totalPayrolls.toString()}
-          icon={FileText}
-          iconVariant="primary"
-        />
-        <StatCard
-          label="Processed"
-          value={processedPayrolls.toString()}
-          icon={TrendingUp}
-          iconVariant="success"
-        />
-        <StatCard
-          label="Pending"
-          value={pendingPayrolls.toString()}
-          icon={TrendingDown}
-          iconVariant="warning"
-        />
-        <StatCard
-          label="Total Net Pay"
-          value={formatCurrency(totalNetPay)}
-          icon={DollarSign}
-          iconVariant="info"
-        />
-      </div>
-
-      {/* Summary Cards from API */}
-      {payrollSummary && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Content sections with gap-6 spacing (matching dashboard card gap) */}
+      <div className="flex flex-col gap-6">
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            label="Total Gross Pay"
-            value={formatCurrency(payrollSummary.total_gross_pay || 0)}
-            icon={DollarSign}
-            iconVariant="success"
+            title="Total Payrolls"
+            value={totalPayrolls.toString()}
+            icon={FileText}
+            color="primary"
           />
           <StatCard
-            label="Total Deductions"
-            value={formatCurrency(payrollSummary.total_deductions || 0)}
+            title="Processed"
+            value={processedPayrolls.toString()}
+            icon={TrendingUp}
+            color="success"
+          />
+          <StatCard
+            title="Pending"
+            value={pendingPayrolls.toString()}
             icon={TrendingDown}
-            iconVariant="danger"
+            color="warning"
           />
           <StatCard
-            label="Total Net Pay"
-            value={formatCurrency(payrollSummary.total_net_pay || 0)}
+            title="Total Net Pay"
+            value={formatCurrency(totalNetPay)}
             icon={DollarSign}
-            iconVariant="info"
-          />
-          <StatCard
-            label="Employees"
-            value={(payrollSummary.total_employees || 0).toString()}
-            icon={Users}
-            iconVariant="primary"
+            color="primary"
           />
         </div>
-      )}
 
-      {/* Filters */}
-      <PayrollFilters filters={filters} onFiltersChange={setFilters} />
+        {/* Summary Cards from API */}
+        {payrollSummary && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="Total Gross Pay"
+              value={formatCurrency(payrollSummary.total_gross_pay || 0)}
+              icon={DollarSign}
+              color="success"
+            />
+            <StatCard
+              title="Total Deductions"
+              value={formatCurrency(payrollSummary.total_deductions || 0)}
+              icon={TrendingDown}
+              color="danger"
+            />
+            <StatCard
+              title="Total Net Pay"
+              value={formatCurrency(payrollSummary.total_net_pay || 0)}
+              icon={DollarSign}
+              color="primary"
+            />
+            <StatCard
+              title="Employees"
+              value={(payrollSummary.total_employees || 0).toString()}
+              icon={Users}
+              color="primary"
+            />
+          </div>
+        )}
 
-      {/* Bulk Actions */}
-      {selectedPayrolls.length > 0 && (
-        <BulkActionsBar
-          selectedCount={selectedPayrolls.length}
-          onDelete={canDelete ? handleBulkDelete : undefined}
-          onExport={handleExport}
-          onClearSelection={() => setSelectedPayrolls([])}
-        />
-      )}
+        {/* Filters */}
+        <div>
+          <PayrollFilters filters={filters} onFiltersChange={setFilters} />
+        </div>
 
-      {/* Data Table */}
-      <DataTableContainer
-        totalItems={filteredPayrolls.length}
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        isLoading={loading}
-      >
-        <PayrollTable
-          payrolls={paginatedPayrolls}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          selectedPayrolls={selectedPayrolls}
-          onSelectionChange={setSelectedPayrolls}
+        {/* Bulk Actions */}
+        {selectedPayrolls.length > 0 && (
+          <div>
+            <BulkActionsBar
+              selectedCount={selectedPayrolls.length}
+              actions={[
+                ...(canDelete ? [{
+                  label: 'Delete',
+                  onClick: handleBulkDelete,
+                  variant: 'danger' as const,
+                }] : []),
+              ]}
+              onClear={() => setSelectedPayrolls([])}
+            />
+          </div>
+        )}
+
+        {/* Data Table */}
+        <DataTableContainer
+          totalItems={filteredPayrolls.length}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
           isLoading={loading}
-        />
-      </DataTableContainer>
+        >
+          <PayrollTable
+            payrolls={paginatedPayrolls}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            selectedPayrolls={selectedPayrolls}
+            onSelectionChange={setSelectedPayrolls}
+            isLoading={loading}
+          />
+        </DataTableContainer>
+      </div>
 
       {/* Delete Modal */}
       <DeleteConfirmationModal

@@ -60,6 +60,13 @@ async def _create_indexes():
         await db.messages.create_index("created_at")
         await db.messages.create_index([("conversation_id", 1), ("created_at", 1)])
         
+        # Knowledge base indexes
+        await db.knowledge_base.create_index("source_id")
+        await db.knowledge_base.create_index("source")
+        await db.knowledge_base.create_index("user_id")
+        await db.knowledge_base.create_index("tags")
+        await db.knowledge_base.create_index([("source_id", 1), ("chunk_index", 1)])
+        
         logger.info("Database indexes created successfully")
     except Exception as e:
         logger.warning(f"Error creating indexes: {e}")

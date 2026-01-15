@@ -22,6 +22,8 @@ import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
 import { usePaginationSettings } from '../../../shared/hooks/usePaginationSettings';
 
+import '@/styles/users.css';
+
 export const AttendancePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -162,7 +164,7 @@ export const AttendancePage: React.FC = () => {
   const lateRecords = attendance.filter((r) => r.status === 'late').length;
 
   return (
-    <div className="space-y-6">
+    <div className="users-page">
       {/* Header */}
       <PageHeader
         title="Attendance Management"
@@ -181,75 +183,85 @@ export const AttendancePage: React.FC = () => {
             icon: Plus,
           }] : []),
         ]}
+        className="mb-8"
       />
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          label="Total Records"
-          value={totalRecords}
-          icon={Clock}
-          iconVariant="primary"
-        />
-        <StatCard
-          label="Present"
-          value={presentRecords}
-          icon={CheckCircle}
-          iconVariant="success"
-        />
-        <StatCard
-          label="Absent"
-          value={absentRecords}
-          icon={XCircle}
-          iconVariant="danger"
-        />
-        <StatCard
-          label="Late"
-          value={lateRecords}
-          icon={AlertCircle}
-          iconVariant="warning"
-        />
-      </div>
+      {/* Content sections with gap-6 spacing (matching dashboard card gap) */}
+      <div className="flex flex-col gap-6">
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Records"
+            value={totalRecords}
+            icon={Clock}
+            color="primary"
+          />
+          <StatCard
+            title="Present"
+            value={presentRecords}
+            icon={CheckCircle}
+            color="success"
+          />
+          <StatCard
+            title="Absent"
+            value={absentRecords}
+            icon={XCircle}
+            color="danger"
+          />
+          <StatCard
+            title="Late"
+            value={lateRecords}
+            icon={AlertCircle}
+            color="warning"
+          />
+        </div>
 
-      {/* Filters */}
-      <AttendanceFilters
-        filters={filters}
-        onFiltersChange={(newFilters) => setFilters(newFilters)}
-      />
+        {/* Filters */}
+        <div>
+          <AttendanceFilters
+            filters={filters}
+            onFiltersChange={(newFilters) => setFilters(newFilters)}
+          />
+        </div>
 
-      {/* Bulk Actions */}
-      <BulkActionsBar
-        selectedCount={selectedAttendance.length}
-        actions={[
-          ...(canDelete ? [{
-            label: 'Delete',
-            onClick: handleBulkDelete,
-            variant: 'danger' as const,
-          }] : []),
-        ]}
-        onClear={() => setSelectedAttendance([])}
-      />
+        {/* Bulk Actions */}
+        {selectedAttendance.length > 0 && (
+          <div>
+            <BulkActionsBar
+              selectedCount={selectedAttendance.length}
+              actions={[
+                ...(canDelete ? [{
+                  label: 'Delete',
+                  onClick: handleBulkDelete,
+                  variant: 'danger' as const,
+                }] : []),
+              ]}
+              onClear={() => setSelectedAttendance([])}
+            />
+          </div>
+        )}
 
-      {/* Attendance Table */}
-      <DataTableContainer
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filteredAttendance.length}
-        itemsPerPage={itemsPerPage}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        isLoading={loading}
-      >
-        <AttendanceTable
-          attendance={paginatedAttendance}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          selectedAttendance={selectedAttendance}
-          onSelectionChange={setSelectedAttendance}
+        {/* Attendance Table */}
+        <DataTableContainer
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredAttendance.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
           isLoading={loading}
-        />
-      </DataTableContainer>
+        >
+          <AttendanceTable
+            attendance={paginatedAttendance}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            selectedAttendance={selectedAttendance}
+            onSelectionChange={setSelectedAttendance}
+            isLoading={loading}
+          />
+        </DataTableContainer>
+      </div>
 
       {/* Delete Modal */}
       <DeleteConfirmationModal

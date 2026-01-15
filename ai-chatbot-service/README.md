@@ -104,6 +104,15 @@ OLLAMA_MODEL=llama2  # Options: llama2, mistral, codellama, phi, etc.
 HUGGINGFACE_API_KEY=your-hf-api-key  # Optional
 HUGGINGFACE_MODEL=microsoft/DialoGPT-medium
 HUGGINGFACE_BASE_URL=https://api-inference.huggingface.co
+
+# RAG (Retrieval-Augmented Generation) Configuration
+ENABLE_RAG=true  # Enable/disable RAG
+RAG_EMBEDDING_PROVIDER=openai  # Options: openai, sentence_transformer
+RAG_EMBEDDING_MODEL=text-embedding-3-small  # OpenAI: text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 | Sentence Transformer: all-MiniLM-L6-v2
+RAG_TOP_K=5  # Number of similar chunks to retrieve
+RAG_SIMILARITY_THRESHOLD=0.7  # Minimum similarity score (0-1)
+RAG_CHUNK_SIZE=1000  # Characters per chunk
+RAG_CHUNK_OVERLAP=200  # Overlap between chunks
 ```
 
 ## LLM Provider Configuration
@@ -258,6 +267,68 @@ The chatbot can fetch real-time data from:
 - **Finance Service**: Financial reports, accounting data
 - **HRM Service**: Employee data, payroll
 
+## RAG (Retrieval-Augmented Generation)
+
+The chatbot now includes **RAG capabilities** for enhanced knowledge retrieval and context-aware responses.
+
+### How RAG Works
+
+1. **Document Ingestion**: Documents are split into chunks and embedded using vector embeddings
+2. **Semantic Search**: User queries are embedded and matched against stored chunks using cosine similarity
+3. **Context Augmentation**: Relevant chunks are retrieved and included in the LLM prompt
+4. **Enhanced Responses**: The LLM generates responses using both ERP data and knowledge base information
+
+### RAG Features
+
+- **Semantic Search**: Find relevant information using natural language queries
+- **Knowledge Base Management**: Ingest, search, and manage documents
+- **Multiple Embedding Providers**: Support for OpenAI embeddings or sentence-transformers (open-source)
+- **User Isolation**: Each user's knowledge base is isolated
+- **Configurable**: Adjust chunk size, similarity threshold, and retrieval parameters
+
+### Using RAG
+
+#### Ingest a Document
+
+```bash
+curl -X POST http://localhost:8008/api/v1/ai-chatbot/knowledge-base/ingest \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Your document content here...",
+    "source": "user_upload",
+    "metadata": {"title": "Document Title"},
+    "tags": ["important", "reference"]
+  }'
+```
+
+#### Search Knowledge Base
+
+```bash
+curl -X GET "http://localhost:8008/api/v1/ai-chatbot/knowledge-base/search?query=your%20search%20query&limit=5" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Automatic RAG Integration
+
+RAG is automatically used when processing user messages. The system:
+1. Retrieves relevant knowledge base chunks based on the user query
+2. Includes them in the LLM context
+3. Generates responses using both ERP data and knowledge base information
+
+### Embedding Providers
+
+**OpenAI Embeddings** (Recommended):
+- Models: `text-embedding-3-small`, `text-embedding-3-large`, `text-embedding-ada-002`
+- Requires OpenAI API key
+- High quality, fast, cost-effective
+
+**Sentence Transformers** (Open-Source):
+- Model: `all-MiniLM-L6-v2` (recommended)
+- No API key required
+- Runs locally
+- Good performance for most use cases
+
 ## Running
 
 ### Development
@@ -406,7 +477,7 @@ The service will use fallback responses when no API key is configured, allowing 
 - [ ] Custom fine-tuned models
 - [ ] Advanced analytics on conversations
 - [ ] Integration with more ERP modules
-- [ ] RAG (Retrieval-Augmented Generation) for knowledge base
+- [x] RAG (Retrieval-Augmented Generation) for knowledge base - **Implemented!**
 
 ## License
 

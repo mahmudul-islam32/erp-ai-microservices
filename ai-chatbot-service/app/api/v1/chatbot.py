@@ -5,7 +5,9 @@ import logging
 
 from app.models.message import MessageCreate, MessageInDB, MessageResponse, MessageSendRequest
 from app.models.conversation import ConversationCreate, ConversationInDB, ConversationResponse
+from app.models.knowledge_base import DocumentIngestRequest, DocumentIngestResponse, KnowledgeChunkResponse
 from app.services.chatbot_service import ChatbotService
+from app.services.rag_service import RAGService
 from app.services.llm_provider_factory import LLMProviderFactory
 from app.database import get_database
 from app.api.dependencies import get_current_user
@@ -20,6 +22,16 @@ router = APIRouter(prefix="/ai-chatbot", tags=["AI Chatbot"])
 def get_chatbot_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> ChatbotService:
     """Dependency to get chatbot service instance"""
     return ChatbotService(db)
+
+
+def get_rag_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> RAGService:
+    """Dependency to get RAG service instance"""
+    if not settings.enable_rag:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="RAG is not enabled"
+        )
+    return RAGService(db)
 
 
 @router.post("/conversations", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
@@ -329,5 +341,139 @@ async def get_available_providers(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch providers"
+        )
+
+
+# Knowledge Base (RAG) Endpoints
+@router.post("/knowledge-base/ingest", response_model=DocumentIngestResponse, status_code=status.HTTP_201_CREATED)
+async def ingest_document(
+    document: DocumentIngestRequest,
+    rag_service: RAGService = Depends(get_rag_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """Ingest a document into the knowledge base"""
+    try:
+        document_id, chunks_created = await rag_service.ingest_document(
+            content=document.content,
+            source=document.source,
+            source_id=document.source_id,
+            metadata=document.metadata,
+            tags=document.tags,
+            user_id=current_user["id"],
+            chunk_size=document.chunk_size,
+            chunk_overlap=document.chunk_overlap
+        )
+        
+        return DocumentIngestResponse(
+            document_id=document_id,
+            chunks_created=chunks_created,
+            message=f"Document ingested successfully. Created {chunks_created} chunks."
+        )
+    except Exception as e:
+        logger.error(f"Error ingesting document: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to ingest document: {str(e)}"
+        )
+
+
+@router.get("/knowledge-base/search", response_model=List[KnowledgeChunkResponse])
+async def search_knowledge_base(
+    query: str = Query(..., description="Search query"),
+    limit: int = Query(5, ge=1, le=20, description="Maximum number of results"),
+    threshold: float = Query(0.7, ge=0.0, le=1.0, description="Minimum similarity score"),
+    source: Optional[str] = Query(None, description="Filter by source"),
+    tags: Optional[str] = Query(None, description="Filter by tags (comma-separated)"),
+    rag_service: RAGService = Depends(get_rag_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """Search the knowledge base for similar chunks"""
+    try:
+        tags_filter = [tag.strip() for tag in tags.split(",")] if tags else None
+        
+        chunks = await rag_service.search_similar_chunks(
+            query=query,
+            limit=limit,
+            threshold=threshold,
+            source_filter=source,
+            tags_filter=tags_filter,
+            user_id=current_user["id"]
+        )
+        
+        return chunks
+    except Exception as e:
+        logger.error(f"Error searching knowledge base: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to search knowledge base"
+        )
+
+
+@router.get("/knowledge-base/document/{source_id}", response_model=List[KnowledgeChunkResponse])
+async def get_document_chunks(
+    source_id: str,
+    rag_service: RAGService = Depends(get_rag_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all chunks for a specific document"""
+    try:
+        chunks = await rag_service.get_document_chunks(
+            source_id=source_id,
+            user_id=current_user["id"]
+        )
+        
+        return chunks
+    except Exception as e:
+        logger.error(f"Error getting document chunks: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get document chunks"
+        )
+
+
+@router.delete("/knowledge-base/document/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_document(
+    source_id: str,
+    rag_service: RAGService = Depends(get_rag_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a document and all its chunks from the knowledge base"""
+    try:
+        deleted_count = await rag_service.delete_document(
+            source_id=source_id,
+            user_id=current_user["id"]
+        )
+        
+        if deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document not found"
+            )
+        
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting document: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete document"
+        )
+
+
+@router.get("/knowledge-base/stats", response_model=dict)
+async def get_knowledge_base_stats(
+    rag_service: RAGService = Depends(get_rag_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get statistics about the knowledge base"""
+    try:
+        stats = await rag_service.get_knowledge_base_stats(user_id=current_user["id"])
+        return stats
+    except Exception as e:
+        logger.error(f"Error getting knowledge base stats: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get knowledge base stats"
         )
 
