@@ -259,7 +259,7 @@ export const InvoicesPage: React.FC = () => {
           <>
             <div className="p-4 text-sm text-slate-600 border-b">
               Showing {filteredInvoices.length} of {invoices.length} invoice{invoices.length !== 1 ? 's' : ''}
-              {process.env.NODE_ENV === 'development' && (
+              {import.meta.env.DEV && (
                 <div className="mt-2 text-xs text-slate-400">
                   Debug: invoices={invoices.length}, filtered={filteredInvoices.length}
                   {invoices.length > 0 && (
