@@ -8,11 +8,8 @@ import httpx
 from app.models.message import (
     MessageCreate,
     MessageInDB,
-    MessageResponse,
     ConversationCreate,
-    ConversationInDB,
-    ConversationResponse,
-    MessageType
+    ConversationInDB
 )
 from app.config import settings
 

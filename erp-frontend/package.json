@@ -7,6 +7,7 @@
     "dev": "vite",
     "prebuild": "mkdir -p public/assets/icons && cp -r src/assets/icons/* public/assets/icons/ 2>/dev/null || true",
     "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

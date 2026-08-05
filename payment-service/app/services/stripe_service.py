@@ -44,7 +44,7 @@ class StripeService:
             raise ValueError("Stripe secret key is not configured")
         
         if not (self.api_key.startswith('sk_test_') or self.api_key.startswith('sk_live_')):
-            raise ValueError(f"Invalid Stripe secret key format. Key must start with 'sk_test_' or 'sk_live_'")
+            raise ValueError("Invalid Stripe secret key format. Key must start with 'sk_test_' or 'sk_live_'")
         
         if len(self.api_key) < 50:
             logger.warning(f"⚠️ Stripe secret key appears to be too short ({len(self.api_key)} chars). Valid keys are typically 100+ characters.")
@@ -154,7 +154,7 @@ class StripeService:
             raise ValueError(f"Invalid request: {str(e)}")
         except stripe.error.APIConnectionError as e:
             logger.error(f"❌ Stripe connection error: {str(e)}")
-            raise Exception(f"Unable to connect to payment gateway. Please check your internet connection and try again.")
+            raise Exception("Unable to connect to payment gateway. Please check your internet connection and try again.")
         except stripe.error.APIError as e:
             logger.error(f"❌ Stripe API error: {str(e)}")
             raise Exception(f"Payment gateway error: {str(e)}")

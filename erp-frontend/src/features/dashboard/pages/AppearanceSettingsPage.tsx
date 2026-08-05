@@ -9,7 +9,6 @@ import { applyAppearanceSettings } from '../../../shared/utils/themeUtils';
 import { useAppearance } from '../../../shared/contexts/AppearanceContext';
 import { toast } from 'sonner';
 import { Save, Loader2, Palette, Type, Sparkles, MousePointer2, List, Image } from 'lucide-react';
-import { SEMANTIC_SIZE_OPTIONS } from '../../../shared/utils/sizeMapping';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
 
@@ -30,7 +29,7 @@ const FONT_FAMILIES = [
 export const AppearanceSettingsPage: React.FC = () => {
   const { refresh } = useAppearance();
   const { hasPermission } = usePermissions();
-  const [settings, setSettings] = useState<AppearanceSettings | null>(null);
+  const [, setSettings] = useState<AppearanceSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -953,7 +952,7 @@ export const AppearanceSettingsPage: React.FC = () => {
         {canUpdate && (
           <CardFooter>
             <div className="flex items-center justify-between w-full">
-              <Button variant="outline" onClick={resetToDefaults} disabled={saving || resetting}>
+              <Button variant="tertiary" onClick={resetToDefaults} disabled={saving || resetting}>
                 {resetting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />

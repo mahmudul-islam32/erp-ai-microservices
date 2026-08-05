@@ -22,6 +22,7 @@ export interface AdjustStockData {
   quantity: number;
   reason: string;
   notes?: string;
+  performedBy?: string;
 }
 
 export interface TransferStockData {

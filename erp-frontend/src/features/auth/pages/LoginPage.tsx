@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { LogIn, Shield } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login, clearError } from '@/features/auth/store/authSlice';
+import type { LoginCredentials } from '@/features/auth/types';
 import { twoFactorService } from '@/features/auth/services/twoFactorService';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
@@ -16,11 +17,11 @@ import '@/styles/auth.css';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(1, 'Password is required')
 });
 
 const twoFactorSchema = z.object({
-  code: z.string().min(6, '6-digit code is required').max(6, '6-digit code is required'),
+  code: z.string().min(6, '6-digit code is required').max(6, '6-digit code is required')
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -42,10 +43,10 @@ export const LoginPage: React.FC = () => {
     watch,
     setValue,
     trigger,
-    formState: { errors },
+    formState: { errors }
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    mode: 'onChange',
+    mode: 'onChange'
   });
 
   const {
@@ -54,10 +55,10 @@ export const LoginPage: React.FC = () => {
     watch: watch2FA,
     setValue: setValue2FA,
     trigger: trigger2FA,
-    formState: { errors: errors2FA },
+    formState: { errors: errors2FA }
   } = useForm<TwoFactorFormData>({
     resolver: zodResolver(twoFactorSchema),
-    mode: 'onChange',
+    mode: 'onChange'
   });
 
   const usernameValue = watch('username') || '';
@@ -86,7 +87,7 @@ export const LoginPage: React.FC = () => {
     setUserPassword(data.password);
     
     try {
-      const response = await dispatch(login(data)).unwrap();
+      const response = await dispatch(login(data as LoginCredentials)).unwrap();
       
       // Check if 2FA is required
       if (response && typeof response === 'object' && 'requires_2fa' in response && response.requires_2fa) {
@@ -111,7 +112,7 @@ export const LoginPage: React.FC = () => {
         // Dispatch login success
         dispatch({
           type: 'auth/login/fulfilled',
-          payload: response,
+          payload: response
         });
         
         toast.success('Login successful!');

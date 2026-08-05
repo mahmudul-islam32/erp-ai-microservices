@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from typing import Optional, List
 from app.models.settings import (
     SettingsResponse, SettingsUpdate, SettingsCategory, SecuritySettings
@@ -6,7 +6,6 @@ from app.models.settings import (
 from datetime import datetime
 from bson import ObjectId
 from app.services.settings_service import settings_service
-from app.api.dependencies import get_current_active_user
 from app.models.user import UserInDB, Permission
 from app.api.dependencies import require_permissions
 import logging

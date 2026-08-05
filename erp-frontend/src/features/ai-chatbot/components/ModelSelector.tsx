@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Check, Cpu, Zap, Brain } from 'lucide-react';
+import { ChevronDown, Check, Zap, Brain } from 'lucide-react';
 import { chatbotApi } from '../services/chatbotApi';
 import type { LLMProvider, ProvidersResponse } from '../types';
 import { toast } from 'sonner';

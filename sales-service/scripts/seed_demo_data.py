@@ -241,7 +241,7 @@ async def seed_demo_data():
     created_orders = []
     
     # Create 50 orders for better demo experience
-    for i in range(50):
+    for _i in range(50):
         try:
             customer = random.choice(created_customers)
             
@@ -389,7 +389,7 @@ async def seed_demo_data():
     created_invoices = []
     invoice_statuses = ["draft", "sent", "paid", "overdue", "cancelled"]
     
-    for i, order in enumerate(random.sample(created_orders, min(15, len(created_orders)))):
+    for _i, order in enumerate(random.sample(created_orders, min(15, len(created_orders)))):
         try:
             total_amount = order.get("total_amount", order.get("total", 0))
             tax_amount = order.get("tax_amount", order.get("tax", 0))

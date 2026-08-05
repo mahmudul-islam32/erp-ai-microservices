@@ -1,11 +1,11 @@
-from typing import List, Optional, Dict, Any
-from datetime import datetime, date
+from typing import List, Optional
+from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException, status
 import logging
 
 from app.database.connection import get_database
-from app.models.performance import PerformanceReview, PerformanceReviewCreate, PerformanceReviewUpdate, PerformanceReviewResponse, ReviewStatus, RatingScale, PerformanceSummary, PerformanceAnalytics
+from app.models.performance import PerformanceReviewCreate, PerformanceReviewUpdate, PerformanceReviewResponse, ReviewStatus, RatingScale, PerformanceSummary, PerformanceAnalytics
 from app.services.employee_service import EmployeeService
 
 logger = logging.getLogger(__name__)

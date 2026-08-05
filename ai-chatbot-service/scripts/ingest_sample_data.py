@@ -15,7 +15,6 @@ import argparse
 import os
 import sys
 import requests
-import json
 from typing import Optional
 
 
@@ -77,7 +76,7 @@ def main():
         response = requests.get(stats_url, headers=headers)
         response.raise_for_status()
         stats = response.json()
-        print(f"✓ Connected to chatbot service")
+        print("✓ Connected to chatbot service")
         print(f"  Current knowledge base: {stats.get('total_chunks', 0)} chunks, {stats.get('unique_documents', 0)} documents\n")
     except requests.exceptions.RequestException as e:
         print(f"✗ Error connecting to service: {e}")
@@ -200,10 +199,10 @@ def main():
     try:
         response = requests.get(f"{base_url}/api/v1/ai-chatbot/knowledge-base/stats", headers=headers)
         stats = response.json()
-        print(f"\nKnowledge Base Statistics:")
+        print("\nKnowledge Base Statistics:")
         print(f"  Total chunks: {stats.get('total_chunks', 0)}")
         print(f"  Unique documents: {stats.get('unique_documents', 0)}")
-    except:
+    except Exception:
         pass
     
     print("\nYou can now test RAG by asking the chatbot questions about:")

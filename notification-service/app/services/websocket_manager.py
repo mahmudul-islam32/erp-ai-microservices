@@ -1,6 +1,5 @@
 from fastapi import WebSocket
 from typing import Dict, Set
-import json
 import logging
 from datetime import datetime
 

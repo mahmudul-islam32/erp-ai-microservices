@@ -1,9 +1,11 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import type { LucideIcon } from 'lucide-react';
 
 export interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  icon?: LucideIcon;
   actions?: React.ReactNode;
   breadcrumbs?: Array<{ label: string; href?: string }>;
   className?: string;
@@ -12,6 +14,7 @@ export interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
+  icon: Icon,
   actions,
   breadcrumbs,
   className,
@@ -41,9 +44,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       )}
       
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-          {subtitle && <p className="text-slate-600 mt-1">{subtitle}</p>}
+        <div className="flex items-start gap-3">
+          {Icon && <Icon className="h-7 w-7 text-slate-500 shrink-0 mt-0.5" aria-hidden="true" />}
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+            {subtitle && <p className="text-slate-600 mt-1">{subtitle}</p>}
+          </div>
         </div>
         {actions && <div className="flex items-center gap-3">{actions}</div>}
       </div>

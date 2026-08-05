@@ -7,7 +7,7 @@ from app.models.invoice import (
 from app.services.journal_entry_service import JournalEntryService
 from app.models.journal_entry import JournalEntryCreate, JournalLineItem
 from typing import List, Optional, Dict, Any
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from bson import ObjectId
 import logging
 

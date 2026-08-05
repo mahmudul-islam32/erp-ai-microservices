@@ -7,7 +7,6 @@ import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { IconButton } from '../../../shared/components/ui/IconButton';
 import { PenSquare, CheckCircle2 } from 'lucide-react';
 
 export const PayrollDetailPage: React.FC = () => {

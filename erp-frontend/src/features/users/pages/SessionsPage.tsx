@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../app/hooks';
-import { logout, clearAuth } from '../../auth/store/authSlice';
+import { clearAuth } from '../../auth/store/authSlice';
 import { sessionsApi } from '../services/usersApi';
 import { Session } from '../types';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { TerminateSessionModal } from '../components/TerminateSessionModal';
 import { TerminateAllSessionsModal } from '../components/TerminateAllSessionsModal';

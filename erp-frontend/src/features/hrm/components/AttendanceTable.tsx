@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Attendance } from '../types';
-import { formatDistanceToNow } from 'date-fns';
 import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { usePermissions } from '../../../shared/hooks/usePermissions';

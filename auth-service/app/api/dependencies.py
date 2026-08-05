@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status, Request, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services import SecurityService, user_service
-from app.models import TokenData, UserInDB, Permission, UserRole
+from app.models import UserInDB, Permission, UserRole
 from typing import Optional, List, Tuple
 import logging
 
@@ -177,7 +177,7 @@ async def get_current_user(
                     
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail=f"Session expired due to inactivity. Please log in again.",
+                        detail="Session expired due to inactivity. Please log in again.",
                         headers={"WWW-Authenticate": "Bearer"},
                     )
             else:

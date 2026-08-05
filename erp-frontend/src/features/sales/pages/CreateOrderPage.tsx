@@ -274,8 +274,8 @@ export const CreateOrderPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-slate-900">Line Items</h3>
                 <Button
                   type="button"
-                  size="sm"
-                  variant="outline"
+                  size="small"
+                  variant="tertiary"
                   leftIcon={<Plus className="h-3 w-3" />}
                   onClick={addLineItem}
                 >
@@ -348,7 +348,7 @@ export const CreateOrderPage: React.FC = () => {
                       {lineItems.length > 1 && (
                         <Button
                           type="button"
-                          size="sm"
+                          size="small"
                           variant="danger"
                           onClick={() => removeLineItem(index)}
                           className="ml-2"
@@ -381,7 +381,7 @@ export const CreateOrderPage: React.FC = () => {
             <CardFooter align="right">
               <Button
                 type="button"
-                variant="outline"
+                variant="tertiary"
                 onClick={() => navigate('/dashboard/sales/orders')}
               >
                 Cancel

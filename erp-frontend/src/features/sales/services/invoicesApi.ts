@@ -2,7 +2,11 @@ import { salesApi } from '../../../shared/api/client';
 
 export interface Invoice {
   id: string;
+  /** Some endpoints serialise by alias and return `_id` rather than `id`. */
+  _id?: string;
   invoice_number: string;
+  order_number?: string;
+  payment_terms?: string;
   order_id?: string;
   customer_id: string;
   customer?: any;

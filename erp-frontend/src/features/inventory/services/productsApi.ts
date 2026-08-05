@@ -1,11 +1,21 @@
 import { inventoryApi } from '../../../shared/api/client';
 
+/** A category reference the API returns populated on some endpoints. */
+export interface PopulatedCategory {
+  _id: string;
+  name?: string;
+}
+
 export interface Product {
   _id: string;
   sku: string;
   name: string;
   description?: string;
-  categoryId: string;
+  /**
+   * Raw id on list endpoints, populated object on detail endpoints, and null
+   * when the category has been deleted. Call sites must handle all three.
+   */
+  categoryId: string | PopulatedCategory | null;
   price: number;
   cost: number;
   unit: string;

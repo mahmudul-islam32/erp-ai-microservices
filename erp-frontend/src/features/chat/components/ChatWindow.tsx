@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Send, X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { sendMessage, fetchUnreadCount, fetchMessages } from '../store/chatSlice';

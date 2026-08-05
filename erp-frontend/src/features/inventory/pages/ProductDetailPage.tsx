@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Edit, Trash2, Package, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { Edit, Trash2, Package, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProductById, deleteProduct } from '../store/productsSlice';
 import { inventoryTransactionsApi, InventoryTransaction } from '../services/inventoryTransactionsApi';

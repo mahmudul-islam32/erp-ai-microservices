@@ -1,5 +1,5 @@
 import httpx
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional
 import logging
 from app.config import settings
 
@@ -218,7 +218,7 @@ Line Items:
         # Add shipping info if available
         shipping_address = order_data.get("shipping_address")
         if shipping_address:
-            formatted += f"\nShipping Address:\n"
+            formatted += "\nShipping Address:\n"
             if isinstance(shipping_address, dict):
                 formatted += f"  {shipping_address.get('street', '')}\n"
                 formatted += f"  {shipping_address.get('city', '')}, {shipping_address.get('state', '')} {shipping_address.get('postal_code', '')}\n"

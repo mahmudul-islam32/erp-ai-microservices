@@ -29,7 +29,7 @@ export const AttendanceFilters: React.FC<AttendanceFiltersProps> = ({ filters, o
     });
   };
 
-  const hasActiveFilters = filters.search || filters.employee_id || filters.date_from || filters.date_to || filters.status;
+  const hasActiveFilters = Boolean(filters.search || filters.employee_id || filters.date_from || filters.date_to || filters.status);
 
   const statusOptions = [
     { label: 'All Statuses', value: '' },

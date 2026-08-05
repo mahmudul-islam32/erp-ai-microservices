@@ -1,6 +1,5 @@
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
-from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -50,7 +49,8 @@ class Settings(BaseSettings):
             import warnings
             warnings.warn(
                 "STRIPE_SECRET_KEY appears to be a placeholder. Please replace it with your actual Stripe secret key from https://dashboard.stripe.com/apikeys",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
         
         # Warn about short keys but don't fail (allows service to start)
@@ -60,7 +60,8 @@ class Settings(BaseSettings):
                 f"STRIPE_SECRET_KEY appears to be invalid (too short: {len(v)} chars). "
                 f"Valid keys are typically 100+ characters. "
                 f"Get your key from: https://dashboard.stripe.com/apikeys",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
         
         return v
@@ -84,7 +85,8 @@ class Settings(BaseSettings):
             import warnings
             warnings.warn(
                 "STRIPE_PUBLISHABLE_KEY appears to be a placeholder. Please replace it with your actual Stripe publishable key from https://dashboard.stripe.com/apikeys",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
         
         # Warn about short keys but don't fail (allows service to start)
@@ -94,7 +96,8 @@ class Settings(BaseSettings):
                 f"STRIPE_PUBLISHABLE_KEY appears to be invalid (too short: {len(v)} chars). "
                 f"Valid keys are typically 100+ characters. "
                 f"Get your key from: https://dashboard.stripe.com/apikeys",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
         
         return v

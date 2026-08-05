@@ -22,7 +22,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({ filters, onFilte
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.search || filters.isActive !== undefined || filters.category;
+  const hasActiveFilters = Boolean(filters.search || filters.isActive !== undefined || filters.category);
 
   return (
     <FilterPanel

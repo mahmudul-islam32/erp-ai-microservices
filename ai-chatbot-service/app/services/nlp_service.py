@@ -81,21 +81,18 @@ class NLPService:
                 logger.info(f"Including RAG context in OpenAI prompt ({len(rag_context)} chars)")
                 messages.append({
                     "role": "system",
-                    "content": f"""YOU HAVE BEEN PROVIDED WITH KNOWLEDGE BASE INFORMATION BELOW. YOU MUST USE IT.
+                    "content": f"""YOU HAVE KNOWLEDGE BASE INFORMATION BELOW. USE IT TO ANSWER THE USER'S QUESTION.
 
-MANDATORY INSTRUCTIONS:
-1. The information below is from the company's knowledge base and documentation
-2. You HAVE ACCESS to this information - it's provided right here
-3. DO NOT say "I don't have access" or "I don't have that information" - YOU HAVE THE INFORMATION
-4. DO NOT ask the user to check documentation - THE INFORMATION IS BELOW
-5. USE the information from the knowledge base to answer the user's question
-6. PRESENT the information clearly and accurately
-7. If the knowledge base has relevant information, use it to provide a complete answer
+RULES:
+- You HAVE this information - do not say you don't have access or ask the user to check documentation.
+- SYNTHESIZE and REWRITE: use it as source material, not verbatim copy. Extract key points, rephrase clearly.
+- STRUCTURE your response: use plain section headings (e.g. "Refund process:" or "Next steps:" on their own line), then short paragraphs. Use line breaks between sections.
+- Present like a helpful summary with clear organization, not raw pasted text. No markdown (no **, ##, -).
 
-KNOWLEDGE BASE INFORMATION YOU HAVE ACCESS TO:
+KNOWLEDGE BASE INFORMATION:
 {rag_context}
 
-IMPORTANT: Answer the user's question NOW using the knowledge base information above. Do not say you don't have access - you have the information."""
+Answer the user's question using the above. Rewrite and organize the content; do not copy-paste."""
                 })
             else:
                 logger.info("No RAG context available - knowledge base may not have relevant information for this query")
@@ -105,21 +102,18 @@ IMPORTANT: Answer the user's question NOW using the knowledge base information a
                 logger.info(f"Including ERP context in OpenAI prompt ({len(erp_context)} chars)")
                 messages.append({
                     "role": "system",
-                    "content": f"""YOU HAVE BEEN PROVIDED WITH REAL ERP DATA BELOW. YOU MUST USE IT.
+                    "content": f"""YOU HAVE REAL ERP DATA BELOW. USE IT TO ANSWER THE USER'S QUESTION.
 
-MANDATORY INSTRUCTIONS:
-1. The data below is ACTUAL data from the user's ERP system
-2. You HAVE ACCESS to this data - it's provided right here
-3. DO NOT say "I don't have access" or "I need permissions" - YOU HAVE THE DATA
-4. DO NOT ask for credentials, login, or access - THE DATA IS BELOW
-5. USE the exact numbers, metrics, and information from the data below
-6. PRESENT the information clearly in your response
-7. If the data shows zeros, say "No sales data found for this period" instead of asking for access
+RULES:
+- You HAVE this data - do not say you need access or permissions.
+- USE the exact numbers, metrics, and facts from the data below.
+- PRESENT clearly: use short paragraphs, logical structure, and plain headings (e.g. "Summary:" or "Orders:") where helpful. No markdown (no **, ##, -).
+- If the data shows zeros, say "No sales data found for this period" instead of asking for access.
 
-ERP DATA YOU HAVE ACCESS TO:
+ERP DATA:
 {erp_context}
 
-IMPORTANT: Answer the user's question NOW using the data above. Do not ask for access - you have it."""
+Answer using the data above. Keep numbers exact; organize and present them clearly."""
                 })
             else:
                 logger.warning(f"No ERP context available (empty: {not erp_context or not erp_context.strip()}). OpenAI will not have data to use.")
@@ -165,7 +159,7 @@ IMPORTANT: Answer the user's question NOW using the data above. Do not ask for a
                     missing_model = False
                     if provider_name == "ollama" and "not found" in error_msg:
                         missing_model = True
-                        logger.info(f"Ollama model missing. User needs to pull the model first.")
+                        logger.info("Ollama model missing. User needs to pull the model first.")
                     
                     # Use fallback response
                     response = self._generate_fallback_response(
@@ -208,7 +202,7 @@ IMPORTANT: Answer the user's question NOW using the data above. Do not ask for a
                     "processing_time_ms": processing_time,
                     "model": "fallback"
                 }
-            except:
+            except Exception:
                 return (
                     "I apologize, but I encountered an error processing your request. The system is currently using fallback mode. Please try rephrasing your question.",
                     {

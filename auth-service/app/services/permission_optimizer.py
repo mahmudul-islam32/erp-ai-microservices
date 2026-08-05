@@ -1,7 +1,7 @@
 # Permission Optimizer Service - Two Sum Implementation
 # This service validates if user roles can be combined for required permissions
 
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict
 from dataclasses import dataclass
 from enum import Enum
 

@@ -28,7 +28,7 @@ export const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({ filters, onFil
     });
   };
 
-  const hasActiveFilters = filters.search || filters.department || filters.status || filters.employment_type;
+  const hasActiveFilters = Boolean(filters.search || filters.department || filters.status || filters.employment_type);
 
   const statusOptions = [
     { label: 'All Statuses', value: '' },

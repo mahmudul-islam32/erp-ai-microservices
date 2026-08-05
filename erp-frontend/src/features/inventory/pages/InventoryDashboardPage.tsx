@@ -146,21 +146,21 @@ export const InventoryDashboardPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <Button
-                variant="outline"
+                variant="tertiary"
                 className="w-full justify-start"
                 onClick={() => navigate('/dashboard/inventory/products/create')}
               >
                 Add New Product
               </Button>
               <Button
-                variant="outline"
+                variant="tertiary"
                 className="w-full justify-start"
                 onClick={() => navigate('/dashboard/inventory/stock')}
               >
                 Manage Stock
               </Button>
               <Button
-                variant="outline"
+                variant="tertiary"
                 className="w-full justify-start"
                 onClick={() => navigate('/dashboard/inventory/categories')}
               >

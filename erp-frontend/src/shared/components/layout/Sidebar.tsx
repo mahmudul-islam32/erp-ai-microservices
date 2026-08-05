@@ -7,7 +7,6 @@ import {
   ShoppingCart,
   Users,
   Settings,
-  FileText,
   Warehouse,
   Tag,
   Box,
@@ -523,7 +522,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     return currentPath === item.path;
   };
 
-  const renderNavItem = (item: NavItem, depth: number = 0, isLast: boolean = false) => {
+  const renderNavItem = (item: NavItem, depth: number = 0, _isLast: boolean = false) => {
     const isExpanded = expandedItems.includes(item.path);
     const hasChildren = item.children && item.children.length > 0;
     const isActive = isItemActive(item);

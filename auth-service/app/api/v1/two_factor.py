@@ -14,7 +14,6 @@ from app.api.dependencies import get_current_active_user
 from app.models import UserInDB
 from datetime import timedelta
 from app.config import settings
-from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)

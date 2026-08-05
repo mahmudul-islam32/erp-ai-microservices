@@ -79,13 +79,13 @@ async def create_indexes():
         # Drop old payment_reference index if it exists
         try:
             await payments_collection.drop_index("payment_reference_1")
-        except:
+        except Exception:
             pass  # Index might not exist
         
         # Drop reference_number unique index if it exists (causing issues with null values)
         try:
             await payments_collection.drop_index("reference_number_1")
-        except:
+        except Exception:
             pass  # Index might not exist
         
         # Create indexes - reference_number is just a regular index (not unique)

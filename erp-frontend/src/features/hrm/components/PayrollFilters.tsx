@@ -29,7 +29,7 @@ export const PayrollFilters: React.FC<PayrollFiltersProps> = ({ filters, onFilte
     });
   };
 
-  const hasActiveFilters = filters.search || filters.employee_id || filters.status || filters.pay_period_start || filters.pay_period_end;
+  const hasActiveFilters = Boolean(filters.search || filters.employee_id || filters.status || filters.pay_period_start || filters.pay_period_end);
 
   const statusOptions = [
     { label: 'All Statuses', value: '' },

@@ -21,7 +21,7 @@ export const WarehouseFilters: React.FC<WarehouseFiltersProps> = ({ filters, onF
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.search || filters.isActive !== undefined || filters.isMainWarehouse !== undefined;
+  const hasActiveFilters = Boolean(filters.search || filters.isActive !== undefined || filters.isMainWarehouse !== undefined);
 
   return (
     <FilterPanel

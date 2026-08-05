@@ -76,8 +76,8 @@ export const NotificationsPage: React.FC = () => {
         actions={
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
+              variant="tertiary"
+              size="small"
               leftIcon={<RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />}
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -87,7 +87,7 @@ export const NotificationsPage: React.FC = () => {
             {unreadCount > 0 && (
               <Button
                 variant="primary"
-                size="sm"
+                size="small"
                 leftIcon={<Check className="h-4 w-4" />}
                 onClick={handleMarkAllAsRead}
                 disabled={isMarkingAll}

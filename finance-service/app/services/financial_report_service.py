@@ -1,10 +1,9 @@
 from app.database import get_database
-from app.models.financial_report import FinancialReport, FinancialReportCreate, ReportType
+from app.models.financial_report import ReportType
 from app.models.account import AccountType
 from app.models.journal_entry import JournalEntryStatus
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from datetime import datetime, date
-from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)

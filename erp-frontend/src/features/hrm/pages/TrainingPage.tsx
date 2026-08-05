@@ -131,7 +131,7 @@ export const TrainingPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button variant="outline" size="sm">View</Button>
+                      <Button variant="tertiary" size="small">View</Button>
                     </td>
                   </tr>
                 ))}

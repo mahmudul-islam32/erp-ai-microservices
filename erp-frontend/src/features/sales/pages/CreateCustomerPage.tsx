@@ -251,7 +251,7 @@ export const CreateCustomerPage: React.FC = () => {
             <CardFooter align="right">
               <Button
                 type="button"
-                variant="outline"
+                variant="tertiary"
                 onClick={() => navigate('/dashboard/sales/customers')}
               >
                 Cancel

@@ -14,5 +14,15 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    // The project compiles with `strict: false` and leans on `any` at API
+    // boundaries. Keeping this visible as a warning avoids a red build while
+    // tightening it stays tied to enabling strict mode.
+    '@typescript-eslint/no-explicit-any': 'warn',
+    // Worth surfacing, but not reliably safe to correct mechanically.
+    'react-hooks/exhaustive-deps': 'warn',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+    ],
   },
 }

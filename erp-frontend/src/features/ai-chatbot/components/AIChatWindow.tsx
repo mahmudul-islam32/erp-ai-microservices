@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader2, Trash2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, Trash2, ChevronLeft } from 'lucide-react';
 import { chatbotApi } from '../services/chatbotApi';
 import type { Message, Conversation } from '../types';
 import { ModelSelector } from './ModelSelector';
@@ -8,11 +8,13 @@ import { toast } from 'sonner';
 interface AIChatWindowProps {
   conversation: Conversation | null;
   onConversationChange: (conversation: Conversation | null) => void;
+  onCloseMobile?: () => void;
 }
 
 export const AIChatWindow: React.FC<AIChatWindowProps> = ({
   conversation,
   onConversationChange,
+  onCloseMobile,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -103,12 +105,8 @@ export const AIChatWindow: React.FC<AIChatWindowProps> = ({
         selectedModel
       );
       
-      // Replace temp message with actual user message (if returned)
-      // Add AI response
-      setMessages((prev) => {
-        const filtered = prev.filter((m) => m.id !== userMessage.id);
-        return [...filtered, aiMessage];
-      });
+      // Keep user message and append AI response (API returns only the AI message)
+      setMessages((prev) => [...prev, aiMessage]);
 
       // Reload conversation to get updated metadata
       const updatedConv = await chatbotApi.getConversation(currentConversation.id);
@@ -169,10 +167,20 @@ export const AIChatWindow: React.FC<AIChatWindowProps> = ({
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Bot className="h-6 w-6 text-primary-600" />
-          <div>
-            <h2 className="font-semibold text-slate-900">
+        <div className="flex items-center gap-3 min-w-0">
+          {onCloseMobile && (
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="lg:hidden p-2 -ml-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+              aria-label="Back to conversations"
+            >
+              <ChevronLeft className="h-5 w-5 text-slate-600" />
+            </button>
+          )}
+          <Bot className="h-6 w-6 text-primary-600 flex-shrink-0" />
+          <div className="min-w-0">
+            <h2 className="font-semibold text-slate-900 truncate">
               {conversation?.title || 'AI Assistant'}
             </h2>
             {conversation && (
@@ -182,7 +190,7 @@ export const AIChatWindow: React.FC<AIChatWindowProps> = ({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <ModelSelector
             selectedProvider={selectedProvider}
             selectedModel={selectedModel}
@@ -207,81 +215,78 @@ export const AIChatWindow: React.FC<AIChatWindowProps> = ({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-3 space-y-2.5">
         {isLoadingMessages && messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+            <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <Bot className="h-16 w-16 text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              Start a conversation with AI Assistant
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <Bot className="h-12 w-12 text-slate-300 mb-3" />
+            <h3 className="text-base font-semibold text-slate-900 mb-1.5">
+              Start a conversation
             </h3>
-            <p className="text-sm text-slate-500 max-w-md">
-              Ask me anything about your ERP system: sales data, inventory levels, financial reports, and more.
+            <p className="text-sm text-slate-500 max-w-sm">
+              Ask about sales, inventory, finance, and more.
             </p>
-            <div className="mt-6 text-sm text-slate-400 space-y-1">
-              <p>Try asking:</p>
-              <p>"What were my sales last month?"</p>
-              <p>"Show me low stock items"</p>
-              <p>"Generate a revenue report"</p>
+            <div className="mt-4 text-xs text-slate-400 space-y-0.5">
+              <p>Try: &quot;What were my sales last month?&quot;</p>
+              <p>&quot;Show me low stock items&quot;</p>
+              <p>&quot;Generate a revenue report&quot;</p>
             </div>
           </div>
         ) : (
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex gap-3 ${
+              className={`flex gap-2 ${
                 message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
               {message.role === 'assistant' && (
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                    <Bot className="h-5 w-5 text-primary-600" />
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-6 w-6 rounded-full bg-primary-100 flex items-center justify-center">
+                    <Bot className="h-3.5 w-3.5 text-primary-600" />
                   </div>
                 </div>
               )}
 
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                className={`max-w-[85%] rounded-xl px-3 py-1.5 shadow-sm ${
                   message.role === 'user'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-slate-100 text-slate-900'
+                    ? 'bg-primary-600 text-white rounded-br-md'
+                    : 'bg-slate-100 text-slate-800 rounded-bl-md border border-slate-200/60'
                 }`}
               >
-                <div className="whitespace-pre-wrap break-words">{message.content}</div>
-                {message.metadata && (
-                  <div className="text-xs opacity-70 mt-2 flex items-center gap-2 flex-wrap">
+                <div className="text-sm leading-snug whitespace-pre-wrap break-words">
+                  {message.content}
+                </div>
+                {message.metadata && (message.metadata.provider || message.metadata.model || message.metadata.processing_time_ms) && (
+                  <div className="text-[11px] text-slate-500 mt-1.5 pt-1.5 border-t border-slate-200/50 flex items-center gap-1.5 flex-wrap">
                     {message.metadata.provider && (
-                      <span className="px-2 py-0.5 bg-slate-200 rounded text-slate-600">
+                      <span className="px-1.5 py-0.5 bg-slate-200/70 rounded text-slate-600">
                         {message.metadata.provider}
                       </span>
                     )}
                     {message.metadata.model && message.metadata.model !== 'fallback' && (
-                      <span className="px-2 py-0.5 bg-slate-200 rounded text-slate-600">
+                      <span className="px-1.5 py-0.5 bg-slate-200/70 rounded text-slate-600">
                         {message.metadata.model}
                       </span>
                     )}
-                    {message.metadata.processing_time_ms && (
-                      <span className="text-slate-500">
-                        {Math.round(message.metadata.processing_time_ms)}ms
-                      </span>
+                    {message.metadata.processing_time_ms != null && (
+                      <span>{Math.round(message.metadata.processing_time_ms)}ms</span>
                     )}
-                    {message.metadata.tokens_used && (
-                      <span className="text-slate-500">
-                        {message.metadata.tokens_used} tokens
-                      </span>
+                    {message.metadata.tokens_used != null && (
+                      <span>{message.metadata.tokens_used} tokens</span>
                     )}
                   </div>
                 )}
               </div>
 
               {message.role === 'user' && (
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
-                    <User className="h-5 w-5 text-slate-600" />
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-6 w-6 rounded-full bg-slate-300 flex items-center justify-center">
+                    <User className="h-3.5 w-3.5 text-slate-600" />
                   </div>
                 </div>
               )}
@@ -290,14 +295,14 @@ export const AIChatWindow: React.FC<AIChatWindowProps> = ({
         )}
 
         {isLoading && (
-          <div className="flex gap-3 justify-start">
-            <div className="flex-shrink-0">
-              <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                <Bot className="h-5 w-5 text-primary-600" />
+          <div className="flex gap-2 justify-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <div className="h-6 w-6 rounded-full bg-primary-100 flex items-center justify-center">
+                <Bot className="h-3.5 w-3.5 text-primary-600" />
               </div>
             </div>
-            <div className="bg-slate-100 rounded-lg px-4 py-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
+            <div className="bg-slate-100 rounded-xl rounded-bl-md px-3 py-1.5 shadow-sm border border-slate-200/60">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary-600" />
             </div>
           </div>
         )}
@@ -306,22 +311,22 @@ export const AIChatWindow: React.FC<AIChatWindowProps> = ({
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-200 px-6 py-4">
+      <div className="border-t border-slate-200 px-4 sm:px-6 py-3 bg-slate-50/50">
         <div className="flex gap-2 items-end">
           <textarea
             ref={inputRef}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about your ERP system..."
-            className="flex-1 min-h-[60px] max-h-[200px] px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+            placeholder="Ask about your ERP..."
+            className="flex-1 min-h-[44px] max-h-[160px] py-2.5 px-3 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none placeholder:text-slate-400"
             rows={1}
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim() || isLoading}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+            className="h-[44px] px-4 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors shrink-0"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

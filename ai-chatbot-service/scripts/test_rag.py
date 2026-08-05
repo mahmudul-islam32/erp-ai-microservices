@@ -15,7 +15,6 @@ import argparse
 import os
 import sys
 import requests
-import json
 from typing import Optional
 
 
@@ -24,7 +23,7 @@ def check_service_health(base_url: str) -> bool:
     try:
         response = requests.get(f"{base_url}/health", timeout=5)
         return response.status_code == 200
-    except:
+    except Exception:
         return False
 
 
@@ -56,7 +55,7 @@ def test_search(base_url: str, token: str) -> bool:
             timeout=10
         )
         return response.status_code == 200
-    except:
+    except Exception:
         return False
 
 
@@ -79,7 +78,7 @@ def test_ingest(base_url: str, token: str) -> bool:
             timeout=30
         )
         return response.status_code == 201
-    except:
+    except Exception:
         return False
 
 
@@ -116,7 +115,7 @@ def main():
         print("   To test RAG fully, provide a token with --token or set JWT_TOKEN env var")
         print()
         print("To get a token, login via:")
-        print(f"  curl -X POST http://localhost:8001/api/v1/auth/login \\")
+        print("  curl -X POST http://localhost:8001/api/v1/auth/login \\")
         print("    -H 'Content-Type: application/json' \\")
         print("    -d '{\"email\": \"admin@erp.com\", \"password\": \"admin123\"}'")
         sys.exit(0)
@@ -125,7 +124,7 @@ def main():
     print("2. Checking knowledge base statistics...")
     stats = get_knowledge_base_stats(base_url, args.token)
     if stats:
-        print(f"   ✓ Knowledge base accessible")
+        print("   ✓ Knowledge base accessible")
         print(f"   - Total chunks: {stats.get('total_chunks', 0)}")
         print(f"   - Unique documents: {stats.get('unique_documents', 0)}")
     else:

@@ -1,12 +1,11 @@
 from typing import List, Optional, Dict, Any
-from datetime import datetime, date
-from bson import ObjectId
+from datetime import datetime
 from fastapi import HTTPException
 from fastapi import status as http_status
 import logging
 
 from app.database.connection import get_database
-from app.models.employee import Employee, EmployeeCreate, EmployeeUpdate, EmployeeResponse, EmployeeStatus
+from app.models.employee import EmployeeCreate, EmployeeUpdate, EmployeeResponse, EmployeeStatus
 from app.services.auth_service import AuthService
 
 logger = logging.getLogger(__name__)

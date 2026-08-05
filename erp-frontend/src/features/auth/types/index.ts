@@ -1,5 +1,10 @@
 export interface User {
   id: string;
+  /**
+   * Raw Mongo identifier. Some endpoints serialise by alias and return `_id`
+   * rather than `id`, so call sites read `user.id || user._id`.
+   */
+  _id?: string;
   email: string;
   first_name: string;
   last_name: string;
@@ -40,3 +45,18 @@ export interface AuthState {
   requires2FASetup?: boolean;
 }
 
+
+/** Returned by the login endpoint when the account has 2FA enabled. */
+export interface TwoFactorRequiredResponse {
+  requires_2fa: boolean;
+  email: string;
+  message: string;
+}
+
+export type LoginResult = LoginResponse | TwoFactorRequiredResponse;
+
+/** Narrows a login result to the 2FA challenge branch. */
+export const isTwoFactorRequired = (
+  result: LoginResult
+): result is TwoFactorRequiredResponse =>
+  'requires_2fa' in result && Boolean(result.requires_2fa);

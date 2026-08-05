@@ -8,13 +8,12 @@ import { settingsApi, SettingsCategory, SecuritySettings } from '../../settings/
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { getCurrentUser } from '../store/authSlice';
 import { toast } from 'sonner';
-import { User, Camera, Save, Lock } from 'lucide-react';
+import { Camera, Save, Lock } from 'lucide-react';
 
 export const ProfileSettingsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [securitySettings, setSecuritySettings] = useState<SecuritySettings | null>(null);
@@ -308,8 +307,8 @@ export const ProfileSettingsPage: React.FC = () => {
                     Upload a profile picture. Maximum file size: 5MB
                   </p>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="tertiary"
+                    size="small"
                     onClick={() => {
                       if (formData.profile_image) {
                         setFormData((prev) => ({ ...prev, profile_image: '' }));

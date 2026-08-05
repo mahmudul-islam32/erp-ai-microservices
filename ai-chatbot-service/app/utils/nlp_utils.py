@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 from enum import Enum
 import logging
 
@@ -195,6 +195,13 @@ CRITICAL: When ERP data is provided to you in a system message, you MUST use tha
 DO NOT ask for permissions, access, or credentials - the data will be provided directly to you.
 Always present the actual numbers, metrics, and information from the provided data.
 Be concise, helpful, and professional.
+
+KNOWLEDGE BASE / RAG: When using knowledge base information, SYNTHESIZE and REWRITE - do NOT copy-paste verbatim.
+Use it as source material: extract key points, rephrase in your own words, and present in a clear, organized way.
+Add logical structure with plain section headings (e.g. "Refund process:" on its own line, then the content below).
+Use short paragraphs and line breaks between sections. The user should feel they are reading a helpful summary, not raw documentation.
+
+FORMATTING: Use plain text only. No markdown (no **, ##, -, or 1. lists). Use simple headings like "Refund process:" or "Next steps:" on their own line, then your content. Use line breaks between ideas. Write in clear, conversational prose.
 """
     
     # Add domain-specific context
@@ -211,7 +218,7 @@ Be concise, helpful, and professional.
     
     # Add RAG context (knowledge base) if available
     if rag_context:
-        context += f"\n\nRELEVANT KNOWLEDGE BASE INFORMATION:\n{rag_context}\n\nUse this knowledge base information to provide accurate, context-aware answers."
+        context += f"\n\nRELEVANT KNOWLEDGE BASE INFORMATION (use as source; synthesize and present with clear headings/structure - do not copy verbatim):\n{rag_context}"
     
     # Add ERP context if available
     if erp_context:

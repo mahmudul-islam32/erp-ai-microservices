@@ -3,11 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppDispatch, RootState } from '../../../app/store';
 import { fetchEmployee } from '../store/hrmSlice';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../../users/types';
 import { Button } from '../../../shared/components/ui/Button';
-import { IconButton } from '../../../shared/components/ui/IconButton';
 import { Edit, Trash2 } from 'lucide-react';
 
 export const EmployeeDetailPage: React.FC = () => {
@@ -126,7 +125,7 @@ export const EmployeeDetailPage: React.FC = () => {
             <div className="flex space-x-3">
               {canEdit && (
                 <Button
-                  variant="outline"
+                  variant="tertiary"
                   onClick={() => navigate(`/dashboard/hrm/employees/${id}/edit`)}
                   leftIcon={<Edit className="h-4 w-4" />}
                 >

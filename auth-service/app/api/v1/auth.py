@@ -14,7 +14,6 @@ from app.services.settings_service import settings_service
 from app.api.dependencies import get_current_active_user
 from datetime import timedelta, datetime
 from app.config import settings
-from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -558,9 +557,10 @@ async def change_password(
 async def forgot_password(request: ResetPasswordRequest):
     """Initiate password reset process"""
     try:
-        # Check if user exists
-        user = await user_service.get_user_by_email(request.email)
-        
+        # Look the user up but deliberately discard the result: the lookup keeps the
+        # response time comparable whether or not the account exists.
+        await user_service.get_user_by_email(request.email)
+
         # Always return success to prevent email enumeration
         # In production, send actual reset email here
         return {"message": "If the email exists, a password reset link has been sent"}

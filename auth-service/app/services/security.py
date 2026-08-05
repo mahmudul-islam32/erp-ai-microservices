@@ -13,27 +13,13 @@ class SecurityService:
     
     @staticmethod
     def _truncate_password(password: str) -> str:
-        """Truncate password to 72 bytes for bcrypt"""
-        # bcrypt has a 72 byte limit
-        # Truncate at byte level, then find the last valid UTF-8 boundary
-        password_bytes = password.encode('utf-8')
-        if len(password_bytes) <= 72:
+        """Truncate a password to bcrypt's 72-byte limit without splitting a character."""
+        encoded = password.encode('utf-8')
+        if len(encoded) <= 72:
             return password
-        
-        # Truncate to 72 bytes
-        truncated = password_bytes[:72]
-        
-        # Find the last valid UTF-8 character boundary
-        # UTF-8 continuation bytes start with 10xxxxxx (0x80-0xBF)
-        while len(truncated) > 0 and (truncated[-1] & 0xC0) == 0x80:
-            truncated = truncated[:-1]
-        
-        try:
-            return truncated.decode('utf-8')
-        except UnicodeDecodeError:
-            # If still invalid, just use the first 72 bytes as-is
-            return password[:72]
-    
+        # errors='ignore' drops a trailing partial character rather than raising.
+        return encoded[:72].decode('utf-8', errors='ignore')
+
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash"""

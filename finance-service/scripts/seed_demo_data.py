@@ -7,7 +7,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, date, timedelta
-from bson import ObjectId
 
 # Database configuration
 # Use MongoDB Atlas from environment variables

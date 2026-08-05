@@ -38,7 +38,6 @@ async def seed_invoices():
     
     # Create invoices using InvoiceInDB model
     created_invoices = []
-    invoice_statuses = [InvoiceStatus.DRAFT, InvoiceStatus.SENT, InvoiceStatus.PAID, InvoiceStatus.OVERDUE]
     
     # Create 10 invoices from random orders
     selected_orders = random.sample(orders, min(10, len(orders)))

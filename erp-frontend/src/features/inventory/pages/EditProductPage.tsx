@@ -62,9 +62,11 @@ export const EditProductPage: React.FC = () => {
   useEffect(() => {
     if (selectedProduct) {
       // Extract categoryId - it might be populated as an object or just a string
-      const categoryId = selectedProduct.categoryId && typeof selectedProduct.categoryId === 'object' 
-        ? selectedProduct.categoryId._id 
-        : selectedProduct.categoryId;
+      const rawCategory = selectedProduct.categoryId;
+      const categoryId: string =
+        typeof rawCategory === 'object' && rawCategory !== null
+          ? String(rawCategory._id ?? '')
+          : String(rawCategory ?? '');
       
       reset({
         sku: selectedProduct.sku,
@@ -312,7 +314,7 @@ export const EditProductPage: React.FC = () => {
             </CardContent>
 
             <CardFooter align="right">
-              <Button type="button" variant="outline" onClick={() => navigate('/dashboard/inventory/products')}>Cancel</Button>
+              <Button type="button" variant="tertiary" onClick={() => navigate('/dashboard/inventory/products')}>Cancel</Button>
               <Button type="submit" variant="primary" isLoading={isSubmitting}>Update Product</Button>
             </CardFooter>
           </Card>

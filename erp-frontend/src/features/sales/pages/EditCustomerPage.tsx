@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { updateCustomer, fetchCustomerById } from '../store/customersSlice';
+import type { Address } from '../services/customersApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardContent, CardFooter } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
@@ -61,7 +62,7 @@ export const EditCustomerPage: React.FC = () => {
 
   useEffect(() => {
     if (selectedCustomer) {
-      const billingAddress = selectedCustomer.billing_address || {};
+      const billingAddress: Partial<Address> = selectedCustomer.billing_address || {};
       reset({
         first_name: selectedCustomer.first_name || '',
         last_name: selectedCustomer.last_name || '',
@@ -311,7 +312,7 @@ export const EditCustomerPage: React.FC = () => {
             <CardFooter align="right">
               <Button
                 type="button"
-                variant="outline"
+                variant="tertiary"
                 onClick={() => navigate('/dashboard/sales/customers')}
               >
                 Cancel

@@ -1,8 +1,8 @@
 import { authApi } from '../../../shared/api/client';
-import { LoginCredentials, LoginResponse, User } from '../types';
+import { LoginCredentials, LoginResult, User } from '../types';
 
 export const authService = {
-  login: async (credentials: LoginCredentials): Promise<LoginResponse | { requires_2fa: boolean; email: string; message: string }> => {
+  login: async (credentials: LoginCredentials): Promise<LoginResult> => {
     const response = await authApi.post('/api/v1/auth/login', {
       email: credentials.username,
       password: credentials.password

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useAppSelector } from '../../app/hooks';
 import { Permission, UserRole } from '../../features/users/types';
 
@@ -20,10 +19,12 @@ export const usePermissions = () => {
     }
     
     // Check if user has the permission (handle both Permission enum and string)
-    const permissionStr = typeof permission === 'string' ? permission : permission.toString();
+    // Permission is a string enum, so String() covers both enum members and
+    // plain strings without a redundant typeof branch.
+    const permissionStr = String(permission);
     return user.permissions?.some(p => {
       // Handle both Permission enum values and string permissions
-      const userPermStr = typeof p === 'string' ? p : p.toString();
+      const userPermStr = String(p);
       return userPermStr === permissionStr;
     }) || false;
   };

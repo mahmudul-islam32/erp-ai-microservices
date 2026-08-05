@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Edit, CreditCard, FileText, Receipt } from 'lucide-react';
+import { Edit, CreditCard, Receipt } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchOrderById } from '../store/ordersSlice';
 import { invoicesApi } from '../services/invoicesApi';

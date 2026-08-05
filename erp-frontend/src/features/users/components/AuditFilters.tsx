@@ -1,7 +1,7 @@
 import React from 'react';
 import { AuditFilters as IAuditFilters } from '../types';
 import { FilterPanel } from '../../../shared/components/ui/FilterPanel';
-import { FilterSearchInput, FilterSelect } from '../../../shared/components/ui/FilterField';
+import { FilterSelect } from '../../../shared/components/ui/FilterField';
 
 interface AuditFiltersProps {
   filters: IAuditFilters;
@@ -26,13 +26,14 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({ filters, onFiltersCh
     });
   };
 
-  const hasActiveFilters = 
-    filters.action || 
-    filters.resource || 
-    filters.status || 
+  const hasActiveFilters = Boolean(
+    filters.action ||
+    filters.resource ||
+    filters.status ||
     filters.user_id ||
     filters.start_date ||
-    filters.end_date;
+    filters.end_date
+  );
 
   const actionOptions = [
     { value: 'login', label: 'Login' },

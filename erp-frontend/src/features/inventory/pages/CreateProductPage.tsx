@@ -166,7 +166,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('sku')}
                   error={errors.sku?.message}
                   placeholder="e.g., PROD-001"
-                  helpText="Unique product identifier"
+                  helperText="Unique product identifier"
                 />
 
                 <Input
@@ -210,7 +210,7 @@ export const CreateProductPage: React.FC = () => {
                 {...register('tags')}
                 error={errors.tags?.message}
                 placeholder="e.g., electronics, premium, featured (comma-separated)"
-                helpText="Tags for categorization and search"
+                helperText="Tags for categorization and search"
               />
             </CardContent>
           </Card>
@@ -228,7 +228,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('price')}
                   error={errors.price?.message}
                   placeholder="0.00"
-                  helpText="Price customers pay"
+                  helperText="Price customers pay"
                 />
 
                 <Input
@@ -238,7 +238,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('cost')}
                   error={errors.cost?.message}
                   placeholder="0.00"
-                  helpText="Your cost/purchase price"
+                  helperText="Your cost/purchase price"
                 />
 
                 <Input
@@ -246,7 +246,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('unit')}
                   error={errors.unit?.message}
                   placeholder="e.g., pcs, kg, liter"
-                  helpText="Unit for counting stock"
+                  helperText="Unit for counting stock"
                 />
               </div>
 
@@ -276,7 +276,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('initialStock')}
                   error={errors.initialStock?.message}
                   placeholder="0"
-                  helpText="Starting inventory quantity"
+                  helperText="Starting inventory quantity"
                 />
 
                 <Select
@@ -290,7 +290,7 @@ export const CreateProductPage: React.FC = () => {
                       label: wh.name,
                     })),
                   ]}
-                  helpText="Required if adding initial stock"
+                  helperText="Required if adding initial stock"
                 />
               </div>
 
@@ -316,7 +316,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('reorderPoint')}
                   error={errors.reorderPoint?.message}
                   placeholder="0"
-                  helpText="Alert when stock falls below this"
+                  helperText="Alert when stock falls below this"
                 />
 
                 <Input
@@ -325,7 +325,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('reorderQuantity')}
                   error={errors.reorderQuantity?.message}
                   placeholder="0"
-                  helpText="Suggested quantity to reorder"
+                  helperText="Suggested quantity to reorder"
                 />
 
                 <Input
@@ -334,7 +334,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('minStockLevel')}
                   error={errors.minStockLevel?.message}
                   placeholder="0"
-                  helpText="Minimum inventory to maintain"
+                  helperText="Minimum inventory to maintain"
                 />
 
                 <Input
@@ -343,7 +343,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('maxStockLevel')}
                   error={errors.maxStockLevel?.message}
                   placeholder="0"
-                  helpText="Maximum inventory capacity"
+                  helperText="Maximum inventory capacity"
                 />
               </div>
             </CardContent>
@@ -362,7 +362,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('weight')}
                   error={errors.weight?.message}
                   placeholder="0.00"
-                  helpText="Product weight for shipping"
+                  helperText="Product weight for shipping"
                 />
 
                 <Input
@@ -370,7 +370,7 @@ export const CreateProductPage: React.FC = () => {
                   {...register('dimensions')}
                   error={errors.dimensions?.message}
                   placeholder="e.g., 30x20x10 cm"
-                  helpText="Length x Width x Height"
+                  helperText="Length x Width x Height"
                 />
               </div>
             </CardContent>
@@ -417,7 +417,7 @@ export const CreateProductPage: React.FC = () => {
             <CardFooter align="right">
               <Button
                 type="button"
-                variant="outline"
+                variant="tertiary"
                 onClick={() => navigate('/dashboard/inventory/products')}
                 disabled={isSubmitting}
               >

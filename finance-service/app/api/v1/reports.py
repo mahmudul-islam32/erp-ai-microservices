@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from app.services.financial_report_service import FinancialReportService
 from app.api.dependencies import require_finance_access
 from datetime import date

@@ -6,7 +6,6 @@ import { clsx } from 'clsx';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { logout } from '../../../features/auth/store/authSlice';
 import { toggleTheme } from '../../../features/theme/store/themeSlice';
-import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { NotificationBell } from '../../../features/notifications';
 import { ChatButton } from '../../../features/chat';

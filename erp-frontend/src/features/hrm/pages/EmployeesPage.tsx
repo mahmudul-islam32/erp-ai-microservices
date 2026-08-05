@@ -17,7 +17,6 @@ import {
   DeleteConfirmationModal,
 } from '../../../shared/components/ui';
 import { Employee } from '../types';
-import { employeeApi } from '../services/hrmApi';
 import { toast } from 'sonner';
 import { Users, CheckCircle, Clock, XCircle, Download, Plus } from 'lucide-react';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
@@ -45,7 +44,6 @@ export const EmployeesPage: React.FC = () => {
   
   const canCreate = hasPermission(Permission.HR_CREATE);
   const canDelete = hasPermission(Permission.HR_DELETE);
-  const canUpdate = hasPermission(Permission.HR_UPDATE);
 
   // Update itemsPerPage when settings change
   useEffect(() => {
@@ -146,7 +144,7 @@ export const EmployeesPage: React.FC = () => {
   };
 
   const handleExport = () => {
-    const csv = employeeApi.exportToCSV ? employeeApi.exportToCSV(filteredEmployees) : exportToCSV(filteredEmployees);
+    const csv = exportToCSV(filteredEmployees);
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

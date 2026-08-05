@@ -9,7 +9,6 @@ import { useLayout } from '../../contexts/LayoutContext';
 export const MainLayout: React.FC = () => {
   const { layoutType } = useLayout();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

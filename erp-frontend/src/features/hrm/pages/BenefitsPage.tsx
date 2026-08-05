@@ -41,7 +41,7 @@ export const BenefitsPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Plans</p>
-              <p className="text-2xl font-semibold text-gray-900">{benefits.active_plans ?? benefits.summary?.active_plans ?? 0}</p>
+              <p className="text-2xl font-semibold text-gray-900">{benefits.summary?.active_plans ?? 0}</p>
             </div>
           </div>
         </Card>
@@ -138,7 +138,7 @@ export const BenefitsPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button variant="outline" size="sm">View</Button>
+                      <Button variant="tertiary" size="small">View</Button>
                     </td>
                   </tr>
                 ))}

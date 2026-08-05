@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 import logging
 from app.services.llm_providers.base import LLMProvider
 
