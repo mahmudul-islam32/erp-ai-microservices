@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status as http_status, Depends, Query
 from typing import List, Optional
-from datetime import datetime, date
 
 from app.services.recruitment_service import RecruitmentService
 from app.models.recruitment import (

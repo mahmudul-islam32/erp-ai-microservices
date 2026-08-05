@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import List, Optional, Dict
 import logging
 
-from app.models.message import MessageCreate, MessageInDB, MessageResponse, MessageRole
-from app.models.conversation import ConversationCreate, ConversationInDB, ConversationResponse
+from app.models.message import MessageInDB, MessageRole
+from app.models.conversation import ConversationCreate, ConversationInDB
 from app.services.nlp_service import NLPService
 from app.services.erp_data_service import ERPDataService
 from app.services.rag_service import RAGService
@@ -137,7 +137,7 @@ class ChatbotService:
                 raise ValueError("Conversation not found or access denied")
             
             # Save user message
-            user_message = await self._save_message(
+            await self._save_message(
                 conversation_id=conversation_id,
                 user_id=user_id,
                 content=message_content,

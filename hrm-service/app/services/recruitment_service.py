@@ -5,7 +5,7 @@ from fastapi import HTTPException, status as http_status
 import logging
 
 from app.database.connection import get_database
-from app.models.recruitment import JobPosting, JobPostingCreate, JobPostingUpdate, Application, ApplicationCreate, ApplicationUpdate, Interview, InterviewCreate, InterviewUpdate, RecruitmentAnalytics
+from app.models.recruitment import JobPosting, JobPostingCreate, Application, ApplicationCreate, RecruitmentAnalytics
 from app.services.employee_service import EmployeeService
 
 logger = logging.getLogger(__name__)
@@ -427,8 +427,6 @@ class RecruitmentService:
             status_results = await self.db.applications.aggregate(status_pipeline).to_list(length=None)
             status_distribution = {item["_id"]: item["count"] for item in status_results}
             
-            # Cost per hire (simplified)
-            cost_per_hire = 5000.0  # USD
             
             return RecruitmentAnalytics(
                 total_job_postings=total_job_postings,

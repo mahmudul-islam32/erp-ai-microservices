@@ -5,7 +5,7 @@ from app.models import (
 )
 from app.services.external_services import auth_service
 from pymongo.errors import DuplicateKeyError
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
 import logging
@@ -117,7 +117,7 @@ class CustomerService:
                 except Exception as user_error:
                     # Log error but don't fail customer creation
                     logger.error(f"Error creating user account for customer {customer_data.email}: {user_error}")
-                    logger.warning(f"Customer record was created but user account creation failed. Customer can be linked to existing user account manually.")
+                    logger.warning("Customer record was created but user account creation failed. Customer can be linked to existing user account manually.")
             else:
                 logger.warning("No auth token provided. Customer record created but user account was not created.")
             
@@ -265,7 +265,7 @@ class CustomerService:
                         except Exception as user_sync_error:
                             # Log error but don't fail customer update
                             logger.error(f"Error syncing user account for customer update: {user_sync_error}")
-                            logger.warning(f"Customer update completed but user account sync failed. User account can be updated manually.")
+                            logger.warning("Customer update completed but user account sync failed. User account can be updated manually.")
                     
                     return CustomerResponse(**updated_customer)
             
@@ -316,7 +316,7 @@ class CustomerService:
                     except Exception as user_sync_error:
                         # Log error but don't fail customer deletion
                         logger.error(f"Error syncing user deletion for customer: {user_sync_error}")
-                        logger.warning(f"Customer deletion completed but user account deletion sync failed. User account can be deleted manually.")
+                        logger.warning("Customer deletion completed but user account deletion sync failed. User account can be deleted manually.")
 
             return result.modified_count > 0
 

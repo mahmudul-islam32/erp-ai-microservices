@@ -2,8 +2,6 @@ from app.database import get_database
 from app.models.currency import Currency, CurrencyCreate, CurrencyRate, CurrencyRateCreate, CurrencyConversion
 from typing import List, Optional
 from datetime import datetime, date
-from bson import ObjectId
-import httpx
 import logging
 
 logger = logging.getLogger(__name__)

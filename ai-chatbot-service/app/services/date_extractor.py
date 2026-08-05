@@ -2,8 +2,8 @@
 Date extraction and parsing utilities for user queries
 """
 import re
-from datetime import date, datetime, timedelta
-from typing import Optional, Tuple, List
+from datetime import date
+from typing import Optional, Tuple
 from calendar import monthrange
 
 

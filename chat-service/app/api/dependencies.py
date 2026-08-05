@@ -1,10 +1,10 @@
-from fastapi import Depends, HTTPException, status, WebSocket, Query
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from app.config import settings
 from app.database import get_database
 from app.services.chat_service import ChatService
-from typing import Optional, Dict
+from typing import Dict
 import logging
 
 logger = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 import logging
 import httpx
 from app.services.llm_providers.base import LLMProvider
@@ -82,7 +82,7 @@ class HuggingFaceProvider(LLMProvider):
                     raise Exception(f"Hugging Face API error: {response.status_code} - {error_text}")
                     
         except httpx.TimeoutException:
-            logger.error(f"Timeout calling Hugging Face API")
+            logger.error("Timeout calling Hugging Face API")
             raise Exception("Hugging Face API timeout")
         except httpx.RequestError as e:
             logger.error(f"Request error calling Hugging Face API: {e}")

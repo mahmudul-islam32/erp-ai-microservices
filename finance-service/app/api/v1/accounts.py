@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from app.models.account import Account, AccountCreate, AccountUpdate, AccountType
 from app.services.account_service import AccountService
-from app.api.dependencies import require_finance_access, require_finance_write, require_finance_admin
+from app.api.dependencies import require_finance_access, require_finance_admin
 from typing import List, Optional
 
 router = APIRouter(prefix="/accounts", tags=["Chart of Accounts"])

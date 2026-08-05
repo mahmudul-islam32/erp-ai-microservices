@@ -1,7 +1,6 @@
 from fastapi import WebSocket
 from typing import Dict, List
 import logging
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ class ConnectionManager:
         for user_id in user_ids:
             logger.info(f"📤 Sending to user: {user_id}")
             await self.send_personal_message(user_id, message)
-        logger.info(f"✅ Broadcast complete")
+        logger.info("✅ Broadcast complete")
     
     def is_user_online(self, user_id: str) -> bool:
         """Check if user is online"""

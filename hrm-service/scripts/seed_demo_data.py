@@ -8,7 +8,6 @@ import asyncio
 import sys
 import os
 from datetime import datetime, date, timedelta
-from decimal import Decimal
 from bson import ObjectId
 import random
 
@@ -16,14 +15,14 @@ import random
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database.connection import get_database
-from app.models.employee import Employee, EmployeeCreate, EmployeeStatus, EmploymentType, Gender
-from app.models.payroll import Payroll, PayrollCreate, PayrollStatus
-from app.models.attendance import Attendance, AttendanceCreate, AttendanceStatus
-from app.models.leave import Leave, LeaveCreate, LeaveType, LeaveStatus
-from app.models.performance import PerformanceReview, PerformanceReviewCreate, ReviewStatus
-from app.models.recruitment import JobPosting, JobPostingCreate, Application, ApplicationCreate, ApplicationStatus
-from app.models.training import Training, TrainingCreate, EmployeeTraining, EmployeeTrainingCreate, TrainingStatus
-from app.models.benefits import BenefitPlan, BenefitPlanCreate, EmployeeBenefit, EmployeeBenefitCreate, BenefitStatus
+from app.models.employee import EmployeeStatus, EmploymentType, Gender
+from app.models.payroll import PayrollStatus
+from app.models.attendance import AttendanceStatus
+from app.models.leave import LeaveType, LeaveStatus
+from app.models.performance import ReviewStatus
+from app.models.recruitment import ApplicationStatus
+from app.models.training import TrainingStatus
+from app.models.benefits import BenefitStatus
 
 # Sample data
 DEPARTMENTS = [
@@ -424,7 +423,7 @@ class HRMDataSeeder:
         
         # Create job postings
         job_postings = []
-        for i in range(10):
+        for _i in range(10):
             posting_data = {
                 "job_id": f"JOB-{datetime.now().strftime('%Y%m%d')}-{str(ObjectId())[:6].upper()}",
                 "title": random.choice(JOB_TITLES),
@@ -660,7 +659,7 @@ class HRMDataSeeder:
         await self.seed_benefits()
         
         print("🎉 HRM demo data seeding completed successfully!")
-        print(f"📊 Summary:")
+        print("📊 Summary:")
         print(f"   - Employees: {await self.db.employees.count_documents({})}")
         print(f"   - Payroll Records: {await self.db.payrolls.count_documents({})}")
         print(f"   - Attendance Records: {await self.db.attendance.count_documents({})}")

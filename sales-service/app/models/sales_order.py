@@ -1,8 +1,7 @@
-from pydantic import BaseModel, Field, validator, field_validator
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional, Dict
 from datetime import datetime, date
 from enum import Enum
-from decimal import Decimal
 
 
 class OrderStatus(str, Enum):

@@ -4,7 +4,7 @@ from app.models import (
     ProductStatus, ProductType
 )
 from pymongo.errors import DuplicateKeyError
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
 import logging

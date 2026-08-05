@@ -10,7 +10,7 @@ from app.models.payment import (
     PaymentStatusResponse
 )
 from app.services.stripe_service import stripe_service
-from app.api.dependencies import get_current_user, get_token_from_request
+from app.api.dependencies import get_token_from_request
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ async def stripe_webhook(
         # Get raw request body
         payload = await request.body()
         
-        logger.info(f"🔄 Processing Stripe webhook event")
+        logger.info("🔄 Processing Stripe webhook event")
         
         # Verify webhook signature
         try:

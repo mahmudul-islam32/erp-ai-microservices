@@ -1,8 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field, validator, field_validator
-from typing import List, Optional, Dict, Any
-from datetime import datetime, date
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import Optional
+from datetime import datetime
 from enum import Enum
-from decimal import Decimal
 
 
 class CustomerStatus(str, Enum):

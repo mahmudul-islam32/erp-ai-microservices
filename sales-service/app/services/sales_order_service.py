@@ -1,7 +1,7 @@
 from app.database.connection import get_database
 from app.models import (
     SalesOrderCreate, SalesOrderUpdate, SalesOrderResponse, SalesOrderInDB,
-    OrderLineItem, OrderLineItemCreate, OrderStatus, PaymentStatus
+    OrderLineItem, OrderStatus, PaymentStatus
 )
 from app.services.customer_service import customer_service
 from app.services.external_services import inventory_service, auth_service
@@ -11,8 +11,7 @@ from app.services.notification_helper import (
     get_user_info,
     send_notification_to_supervisors
 )
-from pymongo.errors import DuplicateKeyError
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime, date
 from bson import ObjectId
 from app.config import settings

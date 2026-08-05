@@ -43,7 +43,7 @@ class UserService:
                 if security_setting and security_setting.security:
                     # Convert Pydantic model to dict, ensuring boolean values are preserved
                     security_settings = security_setting.security.dict()
-                    logger.info(f"Using security settings for user creation:")
+                    logger.info("Using security settings for user creation:")
                     logger.info(f"  - min_length: {security_settings.get('password_min_length')}")
                     logger.info(f"  - require_uppercase: {security_settings.get('password_require_uppercase')}")
                     logger.info(f"  - require_lowercase: {security_settings.get('password_require_lowercase')}")
@@ -103,7 +103,6 @@ class UserService:
             created_user = await users_collection.find_one({"_id": result.inserted_id})
             if created_user:
                 created_user["id"] = str(created_user["_id"])
-                user_id = created_user["id"]
                 del created_user["_id"]  # Remove the original _id field
                 
                 # Send notification to admins (NOT the new user)
@@ -174,7 +173,7 @@ class UserService:
                     except Exception as customer_error:
                         # Log error but don't fail user creation
                         logger.error(f"Error creating customer record for user {user_data.email}: {customer_error}")
-                        logger.warning(f"User account was created but customer record creation failed. Customer record can be created manually later.")
+                        logger.warning("User account was created but customer record creation failed. Customer record can be created manually later.")
                 
                 # Ensure 2FA field exists
                 if "two_factor_enabled" not in created_user:
@@ -395,7 +394,7 @@ class UserService:
                     except Exception as customer_sync_error:
                         # Log error but don't fail user update
                         logger.error(f"Error syncing customer record for user update: {customer_sync_error}")
-                        logger.warning(f"User update completed but customer record sync failed. Customer record can be updated manually.")
+                        logger.warning("User update completed but customer record sync failed. Customer record can be updated manually.")
                 
                 # Ensure 2FA field exists
                 if "two_factor_enabled" not in updated_user:
@@ -488,7 +487,7 @@ class UserService:
                     except Exception as customer_sync_error:
                         # Log error but don't fail user deletion
                         logger.error(f"Error syncing customer deletion for user: {customer_sync_error}")
-                        logger.warning(f"User deletion completed but customer record deletion sync failed. Customer record can be deleted manually.")
+                        logger.warning("User deletion completed but customer record deletion sync failed. Customer record can be deleted manually.")
 
             return result.matched_count > 0
 
@@ -591,7 +590,7 @@ class UserService:
                 if security_setting and security_setting.security:
                     # Convert Pydantic model to dict, ensuring boolean values are preserved
                     security_settings = security_setting.security.dict()
-                    logger.info(f"Using security settings for password validation:")
+                    logger.info("Using security settings for password validation:")
                     logger.info(f"  - min_length: {security_settings.get('password_min_length')}")
                     logger.info(f"  - require_uppercase: {security_settings.get('password_require_uppercase')}")
                     logger.info(f"  - require_lowercase: {security_settings.get('password_require_lowercase')}")

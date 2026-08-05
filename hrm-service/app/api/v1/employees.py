@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
-from datetime import date
 
 from app.models.employee import EmployeeCreate, EmployeeUpdate, EmployeeResponse, EmployeeStatus
 from app.services.employee_service import EmployeeService
-from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/employees", tags=["Employees"])
 

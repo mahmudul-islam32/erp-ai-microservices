@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect, Request
 from fastapi import Request as FastAPIRequest
-from typing import List, Optional
+from typing import List
 import logging
 
 from app.models.message import (
     MessageCreate,
-    MessageInDB,
     MessageResponse,
     ConversationCreate,
-    ConversationInDB,
     ConversationResponse
 )
 from app.services.chat_service import ChatService

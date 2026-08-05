@@ -1,8 +1,7 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
-from decimal import Decimal
 
 
 class ProductStatus(str, Enum):

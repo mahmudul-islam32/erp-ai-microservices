@@ -3,8 +3,7 @@ import qrcode
 import io
 import base64
 import secrets
-from typing import Optional, Tuple, List
-from app.config import settings
+from typing import Tuple, List
 import logging
 
 logger = logging.getLogger(__name__)

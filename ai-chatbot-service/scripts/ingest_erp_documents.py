@@ -16,7 +16,6 @@ import argparse
 import os
 import sys
 import requests
-import json
 
 
 def get_token_from_args_or_env(args_token, env_var="JWT_TOKEN"):
@@ -492,7 +491,7 @@ def main():
             print("Knowledge Base Statistics:")
             print(f"  Total chunks: {stats.get('total_chunks', 0)}")
             print(f"  Unique documents: {stats.get('unique_documents', 0)}")
-    except:
+    except Exception:
         pass
     
     print()

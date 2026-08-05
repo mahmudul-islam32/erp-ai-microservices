@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models import (
-    SalesOrderCreate, SalesOrderUpdate, SalesOrderResponse, OrderStatus, PaymentStatus
+    SalesOrderCreate, SalesOrderUpdate, SalesOrderResponse, OrderStatus
 )
 from app.models.pagination import PaginationResponse
 from app.services import sales_order_service
 from app.api.dependencies import (
-    get_current_active_user, require_sales_access, require_sales_write, 
+    require_sales_access, require_sales_write, 
     get_token_from_request, require_sales_access_flexible
 )
 from app.services import customer_service

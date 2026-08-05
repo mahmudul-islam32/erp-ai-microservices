@@ -4,11 +4,9 @@ from datetime import datetime
 from typing import List, Optional, Dict, Tuple
 import logging
 import numpy as np
-from math import sqrt
 
-from app.models.knowledge_base import KnowledgeChunkCreate, KnowledgeChunkInDB, KnowledgeChunkResponse
+from app.models.knowledge_base import KnowledgeChunkInDB, KnowledgeChunkResponse
 from app.services.embedding_service import EmbeddingService
-from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +109,7 @@ class RAGService:
             
             # Insert chunks
             chunks_to_insert = []
-            for i, (chunk_text, embedding) in enumerate(zip(text_chunks, embeddings)):
+            for i, (chunk_text, embedding) in enumerate(zip(text_chunks, embeddings, strict=False)):
                 chunk_data = {
                     "content": chunk_text,
                     "metadata": metadata or {},

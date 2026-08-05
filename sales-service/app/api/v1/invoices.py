@@ -5,7 +5,7 @@ from app.models import (
 from app.models.pagination import PaginationResponse
 from app.services import invoice_service, customer_service
 from app.api.dependencies import (
-    get_current_active_user, require_sales_access, require_sales_write, get_token_from_request
+    require_sales_access, require_sales_write, get_token_from_request
 )
 from typing import List, Optional
 from datetime import date
