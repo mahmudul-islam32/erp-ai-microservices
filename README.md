@@ -123,13 +123,13 @@ cd auth-service && pip install -r requirements-dev.txt && pytest
 # Python lint across all services
 ruff check .
 
-# Frontend build
-cd erp-frontend && npm ci && npx vite build
+# Frontend type check, build and lint
+cd erp-frontend && npm ci && npm run typecheck && npm run build && npm run lint
 ```
 
-CI runs the auth-service tests, Ruff, a frontend build, and Gitleaks secret scanning on every push and pull request.
+CI runs the auth-service tests, Ruff, a frontend type check and build, and Gitleaks secret scanning on every push and pull request.
 
-Frontend type checking (`npm run typecheck`) and ESLint (`npm run lint`) are wired up but not yet gated in CI — there is an existing backlog of errors to work through first.
+ESLint is not gated yet: a handful of unused-variable errors remain, and `no-explicit-any` is a warning until the frontend can compile under `strict: true`.
 
 ---
 
