@@ -66,8 +66,8 @@ jobs:
       - name: Lint
         run: ruff check .
 
-  frontend-build:
-    name: Frontend build
+  frontend:
+    name: Frontend typecheck and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,9 +82,17 @@ jobs:
         working-directory: erp-frontend
         run: npm ci
 
-      # Type checking and ESLint are not gated yet — the existing codebase has a
-      # backlog of type and lint errors (see `npm run typecheck` / `npm run lint`).
-      # This job matches what the production Dockerfile does today.
+      - name: Type check
+        working-directory: erp-frontend
+        run: npm run typecheck
+
+      # `npm run build` runs tsc and then vite build.
       - name: Build
         working-directory: erp-frontend
-        run: npx vite build
+        run: npm run build
+
+      # ESLint is not gated yet: ~28 unused-variable errors remain, and
+      # no-explicit-any is a warning until the project can enable strict mode.
+      - name: Lint (advisory)
+        working-directory: erp-frontend
+        run: npm run lint || true
