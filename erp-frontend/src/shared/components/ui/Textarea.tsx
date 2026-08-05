@@ -22,22 +22,31 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
+    // A textarea's value type includes readonly string[]; Input takes a scalar.
+    const scalarValue =
+      typeof value === 'string' || typeof value === 'number' ? value : value?.join('\n');
+
     return (
       <div className="w-full">
         <Input
+          // Input renders either an input or a textarea, so its ref type is the
+          // intersection; this wrapper only ever renders the textarea branch.
+          ref={ref as React.Ref<HTMLInputElement & HTMLTextAreaElement>}
           id={id || label?.toLowerCase().replace(/\s+/g, '-') || 'textarea'}
           type="textarea"
           label={label}
-          value={value}
+          value={scalarValue}
           required={required}
           onChange={onChange as any}
           onValueChange={(val) =>
             onChange?.({
-              target: { value: val },
+              target: { value: val }
             } as React.ChangeEvent<HTMLTextAreaElement>)
           }
           className={className}
-          {...props}
+          // Input's props intersect input and textarea attributes, so textarea
+          // event handlers are not structurally assignable to that intersection.
+          {...(props as Record<string, unknown>)}
         />
         {error && (
           <p className="mt-1 text-sm" style={{ color: 'var(--status-error)' }}>

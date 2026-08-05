@@ -1,6 +1,37 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, EmergencyContact } from '../types';
+
+export interface EmployeeFormValues {
+  employee_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  gender: string;
+  department: string;
+  position: string;
+  employment_type: string;
+  status: string;
+  start_date: string;
+  salary: number | string;
+  notes: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+  };
+  emergency_contact: {
+    name: string;
+    relationship: string;
+    phone: string;
+    email: string;
+  };
+  skills: string[];
+  certifications: string[];
+}
 
 interface EmployeeFormProps {
   initialData?: any;
@@ -15,34 +46,34 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   onSubmit,
   onCancel,
   isEdit = false,
-  loading = false,
+  loading = false
 }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-    setValue,
-  } = useForm({
+    setValue
+  } = useForm<EmployeeFormValues>({
     defaultValues: initialData || {
       address: {
         street: '',
         city: '',
         state: '',
         postal_code: '',
-        country: '',
+        country: ''
       },
       emergency_contact: {
         name: '',
         relationship: '',
         phone: '',
-        email: '',
+        email: ''
       },
       skills: [],
       certifications: [],
       status: 'active',
-      employment_type: 'full_time',
-    },
+      employment_type: 'full_time'
+    }
   });
 
   // Update form values when initialData changes (for edit mode)
@@ -81,14 +112,14 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
         city: data.address?.city || '',
         state: data.address?.state || '',
         postal_code: data.address?.postal_code || '',
-        country: data.address?.country || '',
+        country: data.address?.country || ''
       },
       emergency_contact: {
         name: data.emergency_contact?.name || '',
         relationship: data.emergency_contact?.relationship || '',
         phone: data.emergency_contact?.phone || '',
-        email: data.emergency_contact?.email || undefined,
-      },
+        email: data.emergency_contact?.email || undefined
+      }
     };
     
     console.log('Formatted employee data:', formattedData);
@@ -118,7 +149,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               {...register('first_name', {
                 required: 'First name is required',
                 minLength: { value: 1, message: 'First name is required' },
-                maxLength: { value: 50, message: 'First name must be less than 50 characters' },
+                maxLength: { value: 50, message: 'First name must be less than 50 characters' }
               })}
               placeholder="John"
               className={`block w-full px-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
@@ -141,7 +172,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               {...register('last_name', {
                 required: 'Last name is required',
                 minLength: { value: 1, message: 'Last name is required' },
-                maxLength: { value: 50, message: 'Last name must be less than 50 characters' },
+                maxLength: { value: 50, message: 'Last name must be less than 50 characters' }
               })}
               placeholder="Doe"
               className={`block w-full px-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
@@ -164,9 +195,9 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               {...register('email', {
                 required: 'Email is required',
                 pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2}$/i,
+                  message: 'Invalid email address'
+                }
               })}
               placeholder="john.doe@example.com"
               className={`block w-full px-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
@@ -187,7 +218,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               type="tel"
               id="phone"
               {...register('phone', {
-                required: 'Phone number is required',
+                required: 'Phone number is required'
               })}
               placeholder="+1 (555) 123-4567"
               className={`block w-full px-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
@@ -208,7 +239,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               type="date"
               id="date_of_birth"
               {...register('date_of_birth', {
-                required: 'Date of birth is required',
+                required: 'Date of birth is required'
               })}
               className={`block w-full px-3 py-2.5 border rounded-lg leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${
                 errors.date_of_birth ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
@@ -462,7 +493,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
               step="0.01"
               {...register('salary', {
                 required: 'Salary is required',
-                min: { value: 0, message: 'Salary must be positive' },
+                min: { value: 0, message: 'Salary must be positive' }
               })}
               placeholder="50000"
               className={`block w-full px-3 py-2.5 border rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out ${

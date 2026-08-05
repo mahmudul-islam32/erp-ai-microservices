@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Conversation, Message, ConversationCreate, MessageCreate } from '../types';
+import type { Conversation, Message, ConversationCreate } from '../types';
 
 const AI_CHATBOT_API_URL = import.meta.env.VITE_AI_CHATBOT_SERVICE_URL || 'http://localhost:8008';
 

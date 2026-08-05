@@ -18,9 +18,9 @@ const initialState: OrdersState = {
   total: 0,
 };
 
-export const fetchOrders = createAsyncThunk('orders/fetchAll', async (params: any = {}, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk('orders/fetchAll', async (params: Record<string, unknown> | void, { rejectWithValue }) => {
   try {
-    return await ordersApi.getAll(params);
+    return await ordersApi.getAll(params || {});
   } catch (error: any) {
     return rejectWithValue(error.response?.data?.detail || 'Failed to fetch orders');
   }

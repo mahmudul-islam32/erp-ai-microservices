@@ -8,7 +8,6 @@ export interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  showCloseButton?: boolean;
 }
 
 const sizeMap: Record<string, 'small' | 'medium' | 'large'> = {
@@ -25,7 +24,6 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   size = 'md',
-  showCloseButton = true,
 }) => {
   const designSize = sizeMap[size] || 'medium';
 

@@ -21,7 +21,7 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({ filters, onFiltersCh
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.search || filters.status || filters.paymentStatus;
+  const hasActiveFilters = Boolean(filters.search || filters.status || filters.paymentStatus);
 
   return (
     <FilterPanel

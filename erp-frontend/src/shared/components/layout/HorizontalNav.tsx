@@ -4,13 +4,11 @@ import { clsx } from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { Menu as HeadlessMenu, Transition } from '@headlessui/react';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Permission, UserRole } from '../../../features/users/types';
 import { baseNavigation, NavItem } from './Sidebar';
 
 export const HorizontalNav: React.FC = () => {
   const location = useLocation();
   const { hasPermission, hasAnyPermission, hasAllPermissions, hasServiceAccess, hasAnyRole, user } = usePermissions();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // Filter navigation items based on permissions (same logic as Sidebar)
   const navigation = useMemo(() => {

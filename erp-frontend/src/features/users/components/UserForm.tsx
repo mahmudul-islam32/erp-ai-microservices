@@ -10,6 +10,21 @@ import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 
+/**
+ * The fields this form registers. `password` only appears when creating a user,
+ * so it is optional here even though CreateUserData requires it.
+ */
+interface UserFormValues {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  department?: string;
+  role?: UserRole;
+  status: string;
+  password?: string;
+}
+
 interface UserFormProps {
   initialData?: UpdateUserData & { email?: string };
   onSubmit: (data: CreateUserData | UpdateUserData) => void;
@@ -100,7 +115,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm({
+  } = useForm<UserFormValues>({
     defaultValues: {
       ...initialData,
       status: initialData?.status || 'active',
@@ -109,7 +124,12 @@ export const UserForm: React.FC<UserFormProps> = ({
   const password = watch('password');
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form
+      // Every field the API requires is marked required in its Controller rules,
+      // so validation guarantees they are present by the time this runs.
+      onSubmit={handleSubmit((values) => onSubmit(values as CreateUserData | UpdateUserData))}
+      className="space-y-8"
+    >
       {/* Personal Information Section */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../services/authService';
-import { AuthState, LoginCredentials, User } from '../types';
+import { AuthState, LoginCredentials, User, isTwoFactorRequired } from '../types';
 import { toast } from 'sonner';
 
 const initialState: AuthState = {
@@ -21,7 +21,7 @@ export const login = createAsyncThunk(
       const response = await authService.login(credentials);
       
       // Check if 2FA is required
-      if (response && typeof response === 'object' && 'requires_2fa' in response && response.requires_2fa) {
+      if (isTwoFactorRequired(response)) {
         // Return the 2FA requirement response without error
         return response;
       }
@@ -134,7 +134,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       
       // Check if 2FA is required (response has requires_2fa field)
-      if (action.payload && typeof action.payload === 'object' && 'requires_2fa' in action.payload) {
+      if (isTwoFactorRequired(action.payload)) {
         // Don't set authenticated state, just return the 2FA requirement
         state.error = null;
         return;

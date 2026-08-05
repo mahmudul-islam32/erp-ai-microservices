@@ -15,7 +15,7 @@ export const SalesSettingsPage: React.FC = () => {
   const canReadSettings = hasPermission(Permission.SETTINGS_READ);
   const canUpdateSettings = hasPermission(Permission.SETTINGS_UPDATE);
   
-  const [settings, setSettings] = useState<SalesSettings | null>(null);
+  const [, setSettings] = useState<SalesSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<SalesSettings>({

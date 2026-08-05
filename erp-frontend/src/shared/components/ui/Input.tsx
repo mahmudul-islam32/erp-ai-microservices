@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { Info } from 'lucide-react';
 
 import '@/styles/design-input.css';
@@ -10,7 +10,8 @@ type CommonAttributes = Omit<
   Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange' | 'id'>;
 
 export interface InputProps extends CommonAttributes {
-  id: string;
+  /** Optional. Falls back to a generated id so the label stays associated. */
+  id?: string;
   type?: string;
   label?: string;
   placeholder?: string;
@@ -25,8 +26,10 @@ export interface InputProps extends CommonAttributes {
   onValueChange?: (value: string) => void;
 }
 
-export const Input: React.FC<InputProps> = ({
-  id,
+type InputElement = HTMLInputElement & HTMLTextAreaElement;
+
+export const Input = React.forwardRef<InputElement, InputProps>(({
+  id: providedId,
   type = 'text',
   label = '',
   placeholder = '',
@@ -40,7 +43,9 @@ export const Input: React.FC<InputProps> = ({
   onChange,
   onValueChange,
   ...rest
-}) => {
+}, ref) => {
+  const generatedId = useId();
+  const id = providedId ?? generatedId;
   const isTextarea = type === 'textarea';
   const stringValue = value === null || value === undefined ? '' : String(value);
 
@@ -72,6 +77,7 @@ export const Input: React.FC<InputProps> = ({
 
       {isTextarea ? (
         <textarea
+          ref={ref}
           id={id}
           className="design-input__field"
           placeholder={placeholder}
@@ -83,6 +89,7 @@ export const Input: React.FC<InputProps> = ({
         />
       ) : (
         <input
+          ref={ref}
           id={id}
           type={type}
           className="design-input__field"
@@ -107,6 +114,8 @@ export const Input: React.FC<InputProps> = ({
       )}
     </div>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 export default Input;

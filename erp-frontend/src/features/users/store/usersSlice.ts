@@ -39,9 +39,9 @@ const initialState: UsersState = {
 // Async thunks
 export const fetchUsers = createAsyncThunk(
   'users/fetchUsers',
-  async (filters?: UserFilters, { rejectWithValue }) => {
+  async (filters: UserFilters | void, { rejectWithValue }) => {
     try {
-      const users = await usersApi.getAll(filters);
+      const users = await usersApi.getAll(filters || undefined);
       return users;
     } catch (error: any) {
       toast.error('Failed to fetch users');

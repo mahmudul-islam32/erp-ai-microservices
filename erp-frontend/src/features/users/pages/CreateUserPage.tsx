@@ -29,8 +29,8 @@ export const CreateUserPage: React.FC = () => {
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
         <Button
-          variant="ghost"
-          size="sm"
+          variant="tertiary"
+          size="small"
           onClick={() => navigate('/dashboard/users')}
           leftIcon={<ArrowLeft size={16} />}
         >

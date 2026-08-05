@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Minimize2, Maximize2, MessageSquare } from 'lucide-react';
+import { X, Minimize2, MessageSquare } from 'lucide-react';
 import { useAppSelector } from '../../../app/hooks';
 import { useChat } from '../hooks/useChat';
 import { ConversationList } from './ConversationList';

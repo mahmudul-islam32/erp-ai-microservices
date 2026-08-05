@@ -45,6 +45,7 @@ export const SettingsPage: React.FC = () => {
     [SettingsCategory.INTEGRATIONS]: null,
     [SettingsCategory.GENERAL]: null,
     [SettingsCategory.SECURITY]: null,
+    [SettingsCategory.APPEARANCE]: null,
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -61,6 +62,7 @@ export const SettingsPage: React.FC = () => {
     [SettingsCategory.INTEGRATIONS]: {},
     [SettingsCategory.GENERAL]: {},
     [SettingsCategory.SECURITY]: {},
+    [SettingsCategory.APPEARANCE]: {},
   });
 
   useEffect(() => {
@@ -86,6 +88,7 @@ export const SettingsPage: React.FC = () => {
         [SettingsCategory.INTEGRATIONS]: null,
         [SettingsCategory.GENERAL]: null,
         [SettingsCategory.SECURITY]: null,
+        [SettingsCategory.APPEARANCE]: null,
       };
 
       allSettings.forEach((setting) => {
@@ -231,7 +234,7 @@ export const SettingsPage: React.FC = () => {
           password_require_numbers: securityData.password_require_numbers,
           password_require_special_chars: securityData.password_require_special_chars,
           'formSecurity has password_require_numbers': 'password_require_numbers' in formSecurity,
-          'formSecurity.password_require_numbers value': formSecurity.password_require_numbers,
+          'formSecurity.password_require_numbers value': (formSecurity as Record<string, unknown>).password_require_numbers,
         });
         
         data = {

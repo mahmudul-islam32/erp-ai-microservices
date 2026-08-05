@@ -92,7 +92,8 @@ export const AttendanceForm: React.FC<AttendanceFormProps> = ({
       if (outTime <= inTime) return 0;
       
       const totalMinutes = outTime - inTime;
-      return (totalMinutes / 60).toFixed(2);
+      // Return a number on every path; the callers compare and submit it numerically.
+      return Number((totalMinutes / 60).toFixed(2));
     } catch {
       return 0;
     }
@@ -108,7 +109,7 @@ export const AttendanceForm: React.FC<AttendanceFormProps> = ({
       clock_out_time: data.clock_out_time || undefined,
       status: data.status,
       notes: data.notes || undefined,
-      total_hours: totalHours ? parseFloat(totalHours) : undefined,
+      total_hours: totalHours > 0 ? totalHours : undefined
     };
     
     onSubmit(formattedData);
@@ -125,7 +126,7 @@ export const AttendanceForm: React.FC<AttendanceFormProps> = ({
               id="employee_id"
               label="Employee"
               {...register('employee_id', {
-                required: 'Employee is required',
+                required: 'Employee is required'
               })}
               disabled={isEdit || loadingEmployees}
               options={[
@@ -151,7 +152,7 @@ export const AttendanceForm: React.FC<AttendanceFormProps> = ({
               type="date"
               label="Date"
               {...register('date', {
-                required: 'Date is required',
+                required: 'Date is required'
               })}
               error={errors.date?.message as string}
             />
@@ -202,7 +203,7 @@ export const AttendanceForm: React.FC<AttendanceFormProps> = ({
               id="status"
               label="Attendance Status"
               {...register('status', {
-                required: 'Status is required',
+                required: 'Status is required'
               })}
               options={[
                 { value: 'present', label: 'Present' },
@@ -233,7 +234,7 @@ export const AttendanceForm: React.FC<AttendanceFormProps> = ({
       <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
         <Button
           type="button"
-          variant="outline"
+          variant="tertiary"
           onClick={onCancel}
           disabled={loading}
         >

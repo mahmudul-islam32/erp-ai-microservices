@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Search, TrendingUp, TrendingDown, ArrowRightLeft } from 'lucide-react';
+import { TrendingUp, ArrowRightLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProducts } from '../store/productsSlice';
 import { fetchWarehouses } from '../store/warehousesSlice';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
-import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
+import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
 import { Input } from '../../../shared/components/ui/Input';
 import { Table, Column } from '../../../shared/components/ui/Table';
@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { inventoryStockApi } from '../services/inventoryApi';
+import type { AdjustStockData, TransferStockData } from '../services/inventoryApi';
 import { toast } from 'sonner';
 
 const adjustSchema = z.object({
@@ -85,7 +86,10 @@ export const StockManagementPage: React.FC = () => {
 
   const onAdjustSubmit = async (data: AdjustFormData) => {
     try {
-      await inventoryStockApi.adjust(data);
+      // zod validated these fields, but tsconfig has strictNullChecks off, which
+      // makes z.infer mark every key optional. Cast at this boundary until the
+      // project can turn strict mode on.
+      await inventoryStockApi.adjust(data as AdjustStockData);
       toast.success('Stock adjusted successfully');
       setIsAdjustModalOpen(false);
       dispatch(fetchProducts()); // Refresh products to get updated stock
@@ -96,7 +100,10 @@ export const StockManagementPage: React.FC = () => {
 
   const onTransferSubmit = async (data: TransferFormData) => {
     try {
-      await inventoryStockApi.transfer(data);
+      // zod validated these fields, but tsconfig has strictNullChecks off, which
+      // makes z.infer mark every key optional. Cast at this boundary until the
+      // project can turn strict mode on.
+      await inventoryStockApi.transfer(data as TransferStockData);
       toast.success('Stock transferred successfully');
       setIsTransferModalOpen(false);
       dispatch(fetchProducts()); // Refresh products
@@ -166,8 +173,8 @@ export const StockManagementPage: React.FC = () => {
       render: (product) => (
         <div className="flex gap-2">
           <Button
-            size="sm"
-            variant="outline"
+            size="small"
+            variant="tertiary"
             leftIcon={<TrendingUp className="h-3 w-3" />}
             onClick={(e) => {
               e.stopPropagation();
@@ -177,8 +184,8 @@ export const StockManagementPage: React.FC = () => {
             Adjust
           </Button>
           <Button
-            size="sm"
-            variant="outline"
+            size="small"
+            variant="tertiary"
             leftIcon={<ArrowRightLeft className="h-3 w-3" />}
             onClick={(e) => {
               e.stopPropagation();
@@ -230,7 +237,6 @@ export const StockManagementPage: React.FC = () => {
         <div className="p-4 border-b border-slate-200">
           <Input
             placeholder="Search products by name or SKU..."
-            leftIcon={<Search className="h-4 w-4" />}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -305,7 +311,7 @@ export const StockManagementPage: React.FC = () => {
           </div>
 
           <ModalFooter align="right">
-            <Button type="button" variant="outline" onClick={() => setIsAdjustModalOpen(false)}>
+            <Button type="button" variant="tertiary" onClick={() => setIsAdjustModalOpen(false)}>
               Cancel
             </Button>
             <Button
@@ -378,7 +384,7 @@ export const StockManagementPage: React.FC = () => {
           </div>
 
           <ModalFooter align="right">
-            <Button type="button" variant="outline" onClick={() => setIsTransferModalOpen(false)}>
+            <Button type="button" variant="tertiary" onClick={() => setIsTransferModalOpen(false)}>
               Cancel
             </Button>
             <Button

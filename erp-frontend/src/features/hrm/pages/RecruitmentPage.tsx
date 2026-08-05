@@ -121,7 +121,7 @@ export const RecruitmentPage: React.FC = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="tertiary" className="flex items-center gap-2">
               <FunnelIcon className="h-4 w-4" />
               Filter
             </Button>
@@ -204,10 +204,10 @@ export const RecruitmentPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="tertiary" size="small">
                           View
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="tertiary" size="small">
                           Edit
                         </Button>
                       </div>

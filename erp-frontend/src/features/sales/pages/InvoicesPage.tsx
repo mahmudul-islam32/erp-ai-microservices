@@ -144,8 +144,8 @@ export const InvoicesPage: React.FC = () => {
       render: (invoice) => (
         <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
-            size="sm"
+            variant="tertiary"
+            size="small"
             onClick={(e) => {
               e.stopPropagation();
               const invoiceId = invoice.id || invoice._id || invoice.invoice_number;
@@ -162,8 +162,8 @@ export const InvoicesPage: React.FC = () => {
             View
           </Button>
           <Button
-            variant="ghost"
-            size="sm"
+            variant="tertiary"
+            size="small"
             onClick={(e) => {
               e.stopPropagation();
               const invoiceId = invoice.id || invoice._id || invoice.invoice_number;

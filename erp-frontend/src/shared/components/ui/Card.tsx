@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import type { LucideIcon } from 'lucide-react';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -20,28 +21,28 @@ export const Card: React.FC<CardProps> = ({
     none: '',
     sm: 'p-3',
     md: 'p-4',
-    lg: 'p-6',
+    lg: 'p-6'
   };
 
   const shadows = {
     none: '',
     sm: 'shadow-sm',
     md: 'shadow-md',
-    lg: 'shadow-lg',
+    lg: 'shadow-lg'
   };
 
   const paddingMap = {
     none: '0',
     sm: 'var(--spacing-inset-small)',
     md: 'var(--spacing-inset-medium)',
-    lg: 'var(--card-padding)',
+    lg: 'var(--card-padding)'
   };
 
   const shadowMap = {
     none: 'none',
     sm: 'var(--box-shadow-light)',
     md: 'var(--box-shadow)',
-    lg: 'var(--box-shadow-hover)',
+    lg: 'var(--box-shadow-hover)'
   };
 
   const isDashboard = variant === 'dashboard';
@@ -57,7 +58,7 @@ export const Card: React.FC<CardProps> = ({
         borderRadius: 'var(--card-radius)',
         padding: paddingMap[padding],
         boxShadow,
-        border,
+        border
       }}
       {...props}
     >
@@ -69,12 +70,14 @@ export const Card: React.FC<CardProps> = ({
 export interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   subtitle?: string;
+  icon?: LucideIcon;
   actions?: React.ReactNode;
 }
 
 export const CardHeader: React.FC<CardHeaderProps> = ({
   title,
   subtitle,
+  icon: Icon,
   actions,
   children,
   className,
@@ -86,6 +89,14 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
       style={{ marginBottom: 'var(--spacing-stack-medium)' }}
       {...props}
     >
+      {Icon && (
+        <Icon
+          className="shrink-0"
+          style={{ marginRight: 'var(--spacing-inline-small)', color: 'var(--text-secondary)' }}
+          size={20}
+          aria-hidden="true"
+        />
+      )}
       <div className="flex-1">
         {title && (
           <h3
@@ -93,7 +104,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
             style={{
               fontSize: 'var(--font-size-lg)',
               color: 'var(--text-primary)',
-              margin: 0,
+              margin: 0
             }}
           >
             {title}
@@ -105,7 +116,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
               fontSize: 'var(--font-size-sm)',
               color: 'var(--text-secondary)',
               marginTop: 'var(--spacing-stack-xxsmall)',
-              marginBottom: 0,
+              marginBottom: 0
             }}
           >
             {subtitle}
@@ -146,7 +157,7 @@ export const CardFooter: React.FC<CardFooterProps> = ({
     left: 'justify-start',
     center: 'justify-center',
     right: 'justify-end',
-    between: 'justify-between',
+    between: 'justify-between'
   };
 
   return (
@@ -155,7 +166,7 @@ export const CardFooter: React.FC<CardFooterProps> = ({
       style={{
         marginTop: 'var(--spacing-stack-medium)',
         paddingTop: 'var(--spacing-stack-medium)',
-        borderTop: 'var(--border-default)',
+        borderTop: 'var(--border-default)'
       }}
       {...props}
     >

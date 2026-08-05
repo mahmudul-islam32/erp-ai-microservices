@@ -20,7 +20,7 @@ export const CategoryFilters: React.FC<CategoryFiltersProps> = ({ filters, onFil
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.search || filters.isActive !== undefined;
+  const hasActiveFilters = Boolean(filters.search || filters.isActive !== undefined);
 
   return (
     <FilterPanel

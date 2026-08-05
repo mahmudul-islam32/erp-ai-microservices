@@ -29,7 +29,7 @@ import '@/styles/users.css';
 export const PayrollPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { payrolls, payrollSummary, loading } = useSelector((state: RootState) => state.hrm.payroll);
+  const { payrolls, summary: payrollSummary, loading } = useSelector((state: RootState) => state.hrm.payroll);
   const { hasPermission } = usePermissions();
   const { defaultItemsPerPage } = usePaginationSettings();
 
@@ -45,7 +45,6 @@ export const PayrollPage: React.FC = () => {
   
   const canCreate = hasPermission(Permission.HR_CREATE);
   const canDelete = hasPermission(Permission.HR_DELETE);
-  const canUpdate = hasPermission(Permission.HR_UPDATE);
 
   // Update itemsPerPage when settings change
   useEffect(() => {

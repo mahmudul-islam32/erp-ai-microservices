@@ -15,7 +15,6 @@ import {
   DeleteConfirmationModal,
 } from '../../../shared/components/ui';
 import { Attendance } from '../types';
-import { attendanceApi } from '../services/hrmApi';
 import { toast } from 'sonner';
 import { Clock, CheckCircle, XCircle, AlertCircle, Download, Plus } from 'lucide-react';
 import { usePermissions } from '../../../shared/hooks/usePermissions';
@@ -43,7 +42,6 @@ export const AttendancePage: React.FC = () => {
   
   const canCreate = hasPermission(Permission.HR_CREATE);
   const canDelete = hasPermission(Permission.HR_DELETE);
-  const canUpdate = hasPermission(Permission.HR_UPDATE);
 
   // Update itemsPerPage when settings change
   useEffect(() => {

@@ -164,7 +164,7 @@ export const EditOrderPage: React.FC = () => {
                     { value: 'cancelled', label: 'Cancelled' },
                     { value: 'returned', label: 'Returned' },
                   ]}
-                  helpText="Current order status"
+                  helperText="Current order status"
                 />
 
                 <div>
@@ -209,7 +209,7 @@ export const EditOrderPage: React.FC = () => {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="Notes visible to customer"
-                helpText="These notes will be visible to the customer"
+                helperText="These notes will be visible to the customer"
               />
 
               <Textarea
@@ -218,7 +218,7 @@ export const EditOrderPage: React.FC = () => {
                 onChange={(e) => setInternalNotes(e.target.value)}
                 rows={3}
                 placeholder="Internal notes (not visible to customer)"
-                helpText="These notes are for internal use only"
+                helperText="These notes are for internal use only"
               />
             </CardContent>
           </Card>
@@ -227,7 +227,7 @@ export const EditOrderPage: React.FC = () => {
           <div className="flex justify-end gap-3">
             <Button
               type="button"
-              variant="outline"
+              variant="tertiary"
               onClick={() => navigate(`/dashboard/sales/orders/${id}`)}
               disabled={isSubmitting}
               leftIcon={<X className="h-4 w-4" />}

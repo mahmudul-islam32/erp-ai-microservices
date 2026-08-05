@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  DollarSign, 
   ShoppingCart, 
   Users, 
   TrendingUp, 
@@ -380,7 +379,7 @@ export const SalesDashboardPage: React.FC = () => {
         <CardHeader 
           title="Recent Orders"
           subtitle="Latest 5 orders"
-          action={
+          actions={
             <button
               onClick={() => navigate('/dashboard/sales/orders')}
               className="text-sm text-primary-600 hover:text-primary-700 font-medium"

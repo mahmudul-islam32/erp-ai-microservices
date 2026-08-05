@@ -121,7 +121,7 @@ const PaymentForm: React.FC<StripePaymentFormProps & { clientSecret: string }> =
       <div className="flex justify-end gap-3">
         <Button
           type="button"
-          variant="outline"
+          variant="tertiary"
           onClick={onCancel}
           disabled={isProcessing}
         >
@@ -218,7 +218,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = (props) => {
     return (
       <div className="flex flex-col items-center justify-center py-8">
         <p className="text-danger-600 mb-4">{error || 'Failed to initialize payment'}</p>
-        <Button variant="outline" onClick={props.onCancel}>
+        <Button variant="tertiary" onClick={props.onCancel}>
           Close
         </Button>
       </div>

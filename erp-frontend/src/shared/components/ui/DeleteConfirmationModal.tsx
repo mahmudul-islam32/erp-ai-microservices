@@ -69,7 +69,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
           {loading ? 'Deleting...' : 'Delete'}
         </Button>
         <Button
-          variant="outline"
+          variant="tertiary"
           onClick={onClose}
           disabled={loading}
         >

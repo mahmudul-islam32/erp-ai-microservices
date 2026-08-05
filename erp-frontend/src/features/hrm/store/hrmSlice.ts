@@ -21,8 +21,8 @@ const initialEmployeeState: EmployeeState = {
 
 export const fetchEmployees = createAsyncThunk(
   'hrm/fetchEmployees',
-  async (params?: { skip?: number; limit?: number; department?: string; status?: string; search?: string }) => {
-    const response = await employeeApi.getEmployees(params);
+  async (params: { skip?: number; limit?: number; department?: string; status?: string; search?: string } | void) => {
+    const response = await employeeApi.getEmployees(params || undefined);
     return response;
   }
 );
@@ -86,8 +86,8 @@ const initialPayrollState: PayrollState = {
 
 export const fetchPayrolls = createAsyncThunk(
   'hrm/fetchPayrolls',
-  async (params?: { skip?: number; limit?: number; employee_id?: string; status?: string; pay_period_start?: string; pay_period_end?: string }) => {
-    const response = await payrollApi.getPayrolls(params);
+  async (params: { skip?: number; limit?: number; employee_id?: string; status?: string; pay_period_start?: string; pay_period_end?: string } | void) => {
+    const response = await payrollApi.getPayrolls(params || undefined);
     return response;
   }
 );
@@ -177,8 +177,8 @@ export const fetchAttendance = createAsyncThunk(
 
 export const fetchAttendanceRecords = createAsyncThunk(
   'hrm/fetchAttendanceRecords',
-  async (params?: { skip?: number; limit?: number; employee_id?: string; date_from?: string; date_to?: string }) => {
-    const response = await attendanceApi.getAttendanceRecords(params);
+  async (params: { skip?: number; limit?: number; employee_id?: string; date_from?: string; date_to?: string } | void) => {
+    const response = await attendanceApi.getAttendanceRecords(params || undefined);
     return response;
   }
 );
@@ -226,8 +226,8 @@ const initialLeaveState: LeaveState = {
 
 export const fetchLeaves = createAsyncThunk(
   'hrm/fetchLeaves',
-  async (params?: { skip?: number; limit?: number; employee_id?: string; status?: string; leave_type?: string; start_date?: string; end_date?: string }) => {
-    const response = await leaveApi.getLeaveRequests(params);
+  async (params: { skip?: number; limit?: number; employee_id?: string; status?: string; leave_type?: string; start_date?: string; end_date?: string } | void) => {
+    const response = await leaveApi.getLeaveRequests(params || undefined);
     return response;
   }
 );
@@ -301,13 +301,13 @@ const initialPerformanceState: PerformanceState = {
 
 export const fetchPerformanceReviews = createAsyncThunk(
   'hrm/fetchPerformanceReviews',
-  async (params?: { skip?: number; limit?: number; employee_id?: string; reviewer_id?: string; status?: string; review_type?: string }) => {
+  async (params: { skip?: number; limit?: number; employee_id?: string; reviewer_id?: string; status?: string; review_type?: string } | void) => {
     console.log('🚀 fetchPerformanceReviews - Starting API call');
     console.log('📋 Params:', params);
     console.log('🌐 API URL:', `${import.meta.env.VITE_HRM_SERVICE_URL || 'http://localhost:8007'}/api/v1/performance/reviews`);
     
     try {
-      const response = await performanceApi.getPerformanceReviews(params);
+      const response = await performanceApi.getPerformanceReviews(params || undefined);
       console.log('✅ fetchPerformanceReviews - API response received:', response);
       console.log('📊 Response length:', response?.length);
       console.log('👤 First review:', response?.[0]);
@@ -367,13 +367,13 @@ export const fetchPerformanceSummary = createAsyncThunk(
 
 export const fetchPerformanceAnalytics = createAsyncThunk(
   'hrm/fetchPerformanceAnalytics',
-  async (department?: string) => {
+  async (department: string | void) => {
     console.log('🚀 fetchPerformanceAnalytics - Starting API call');
     console.log('📋 Department:', department);
     console.log('🌐 API URL:', `${import.meta.env.VITE_HRM_SERVICE_URL || 'http://localhost:8007'}/api/v1/performance/analytics`);
     
     try {
-      const response = await performanceApi.getPerformanceAnalytics(department);
+      const response = await performanceApi.getPerformanceAnalytics(department || undefined);
       console.log('✅ fetchPerformanceAnalytics - API response received:', response);
       return response;
     } catch (error) {
@@ -392,8 +392,8 @@ export const fetchPerformanceAnalytics = createAsyncThunk(
 // Recruitment async thunks
 export const fetchJobPostings = createAsyncThunk(
   'hrm/fetchJobPostings',
-  async (params?: { skip?: number; limit?: number; department?: string; status?: string; employment_type?: string }) => {
-    const response = await recruitmentApi.getJobPostings(params);
+  async (params: { skip?: number; limit?: number; department?: string; status?: string; employment_type?: string } | void) => {
+    const response = await recruitmentApi.getJobPostings(params || undefined);
     return response;
   }
 );
@@ -408,16 +408,16 @@ export const fetchJobPosting = createAsyncThunk(
 
 export const fetchApplications = createAsyncThunk(
   'hrm/fetchApplications',
-  async (params?: { skip?: number; limit?: number; job_id?: string; status?: string }) => {
-    const response = await recruitmentApi.getApplications(params);
+  async (params: { skip?: number; limit?: number; job_id?: string; status?: string } | void) => {
+    const response = await recruitmentApi.getApplications(params || undefined);
     return response;
   }
 );
 
 export const fetchRecruitmentAnalytics = createAsyncThunk(
   'hrm/fetchRecruitmentAnalytics',
-  async (department?: string) => {
-    const response = await recruitmentApi.getRecruitmentAnalytics(department);
+  async (department: string | void) => {
+    const response = await recruitmentApi.getRecruitmentAnalytics(department || undefined);
     return response;
   }
 );
@@ -425,15 +425,15 @@ export const fetchRecruitmentAnalytics = createAsyncThunk(
 // Training thunks
 export const fetchTrainingPrograms = createAsyncThunk(
   'hrm/fetchTrainingPrograms',
-  async (params?: { skip?: number; limit?: number; category?: string; status?: string }) => {
-    return await trainingApi.getPrograms(params);
+  async (params: { skip?: number; limit?: number; category?: string; status?: string } | void) => {
+    return await trainingApi.getPrograms(params || undefined);
   }
 );
 
 export const fetchTrainingEnrollments = createAsyncThunk(
   'hrm/fetchTrainingEnrollments',
-  async (params?: { skip?: number; limit?: number; employee_id?: string; training_program_id?: string; status?: string }) => {
-    return await trainingApi.getEnrollments(params);
+  async (params: { skip?: number; limit?: number; employee_id?: string; training_program_id?: string; status?: string } | void) => {
+    return await trainingApi.getEnrollments(params || undefined);
   }
 );
 
@@ -444,15 +444,15 @@ export const fetchTrainingSummary = createAsyncThunk('hrm/fetchTrainingSummary',
 // Benefits thunks
 export const fetchBenefitPlans = createAsyncThunk(
   'hrm/fetchBenefitPlans',
-  async (params?: { skip?: number; limit?: number; category?: string; status?: string }) => {
-    return await benefitsApi.getPlans(params);
+  async (params: { skip?: number; limit?: number; category?: string; status?: string } | void) => {
+    return await benefitsApi.getPlans(params || undefined);
   }
 );
 
 export const fetchBenefitEnrollments = createAsyncThunk(
   'hrm/fetchBenefitEnrollments',
-  async (params?: { skip?: number; limit?: number; employee_id?: string; plan_id?: string; status?: string }) => {
-    return await benefitsApi.getEnrollments(params);
+  async (params: { skip?: number; limit?: number; employee_id?: string; plan_id?: string; status?: string } | void) => {
+    return await benefitsApi.getEnrollments(params || undefined);
   }
 );
 
@@ -463,8 +463,8 @@ export const fetchBenefitSummary = createAsyncThunk('hrm/fetchBenefitSummary', a
 // HR analytics (dashboard)
 export const fetchHRDashboard = createAsyncThunk(
   'hrm/fetchHRDashboard',
-  async (params?: { period_days?: number; department?: string }) => {
-    return await hrAnalyticsApi.getDashboard(params);
+  async (params: { period_days?: number; department?: string } | void) => {
+    return await hrAnalyticsApi.getDashboard(params || undefined);
   }
 );
 

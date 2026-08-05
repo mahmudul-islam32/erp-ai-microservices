@@ -7,7 +7,6 @@ import { LoginPage } from './features/auth/pages/LoginPage';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
 import { PermissionRoute } from './shared/components/PermissionRoute';
 import { MainLayout } from './shared/components/layout/MainLayout';
-import { AppearanceLoader } from './shared/components/AppearanceLoader';
 import { AppearanceProvider } from './shared/contexts/AppearanceContext';
 import { LayoutProvider } from './shared/contexts/LayoutContext';
 import { Permission, UserRole } from './features/users/types';
