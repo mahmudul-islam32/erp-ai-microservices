@@ -24,7 +24,7 @@ export const ProductsPage: React.FC = () => {
   const { products, isLoading } = productsState;
   const { categories } = categoriesState;
   const { hasPermission } = usePermissions();
-  const [filters, setFilters] = useState<ProductFiltersType>({});
+  const [filters, setFilters] = useState<ProductFilters>({});
   const [productToDelete, setProductToDelete] = useState<any>(null);
   
   const canCreate = hasPermission(Permission.INVENTORY_CREATE);
@@ -165,8 +165,10 @@ export const ProductsPage: React.FC = () => {
 
     // Category filter
     if (filters.category) {
-      const productCategoryId = typeof product.categoryId === 'object' 
-        ? product.categoryId._id 
+      // `typeof null === 'object'`, so the null check has to come first or a product
+      // whose category was deleted throws on the property access.
+      const productCategoryId = product.categoryId && typeof product.categoryId === 'object'
+        ? product.categoryId._id
         : product.categoryId;
       if (productCategoryId !== filters.category) return false;
     }

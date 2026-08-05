@@ -43,7 +43,7 @@ export const accountsApi = {
     financeApi.get<Account>(`/accounts/${id}`),
   
   getByCode: (code: string) =>
-    financeApi.get<Account>(`/accounts/code/${id}`),
+    financeApi.get<Account>(`/accounts/code/${code}`),
   
   getHierarchy: () =>
     financeApi.get<any[]>('/accounts/hierarchy'),
