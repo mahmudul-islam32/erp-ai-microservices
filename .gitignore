@@ -1,4 +1,14 @@
-# Add to .gitignore
+# Secrets — never commit. Only *.env.example files are tracked.
+.env
+*.env
+!*.env.example
+!.env.example
+*.backup
+*.bak
+*.pem
+*.key
+CORRECTED_ENV.txt
+
 __pycache__/
 *.py[cod]
 *$py.class
