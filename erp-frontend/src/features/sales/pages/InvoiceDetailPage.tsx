@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Download, ArrowLeft, FileText, User, Calendar, DollarSign } from 'lucide-react';
+import { Download, ArrowLeft, User, Calendar, DollarSign } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
@@ -131,7 +131,7 @@ export const InvoiceDetailPage: React.FC = () => {
         actions={
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="tertiary"
               onClick={() => navigate('/dashboard/sales/invoices')}
               leftIcon={<ArrowLeft className="h-4 w-4" />}
             >

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 import '@/styles/design-select.css';
@@ -10,7 +10,8 @@ export interface Option {
 
 export interface SelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'value' | 'onChange' | 'id'> {
-  id: string;
+  /** Optional. Falls back to a generated id so the label stays associated. */
+  id?: string;
   label: string;
   value?: string;
   required?: boolean;
@@ -26,7 +27,7 @@ export interface SelectProps
 }
 
 export const Select: React.FC<SelectProps> = ({
-  id,
+  id: providedId,
   label,
   value = '',
   required = false,
@@ -65,6 +66,8 @@ export const Select: React.FC<SelectProps> = ({
     setIsOpen(false);
   };
 
+  const generatedId = useId();
+  const id = providedId ?? generatedId;
   const infoButtonId = helpId || id;
 
   return (

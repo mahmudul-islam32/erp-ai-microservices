@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../../app/store';
 import { fetchUsers } from '../store/usersSlice';
 import { accessControlApi } from '../services/usersApi';
-import { AccessControlEntry, Permission } from '../types';
+import { AccessControlEntry } from '../types';
 import { GrantAccessModal } from '../components/GrantAccessModal';
 import { format } from 'date-fns';
 import { toast } from 'sonner';

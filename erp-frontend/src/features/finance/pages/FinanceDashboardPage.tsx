@@ -8,8 +8,7 @@ import {
   TrendingUp as ArrowTrendingUpIcon,
   TrendingDown as ArrowTrendingDownIcon,
 } from 'lucide-react';
-import { reportsApi, accountsApi, customerInvoicesApi, vendorInvoicesApi } from '../services/financeApi';
-import { ProfitLossReport, BalanceSheetReport } from '../types';
+import { reportsApi, customerInvoicesApi, vendorInvoicesApi } from '../services/financeApi';
 import { toast } from 'sonner';
 
 export const FinanceDashboardPage: React.FC = () => {

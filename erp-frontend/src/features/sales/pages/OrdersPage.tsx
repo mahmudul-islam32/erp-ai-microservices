@@ -171,7 +171,7 @@ export const OrdersPage: React.FC = () => {
         <div className="flex items-center gap-2">
           {!isCustomer && (
             <Button
-              size="sm"
+              size="small"
               variant="primary"
               leftIcon={<Receipt className="h-3 w-3" />}
               onClick={(e) => handleCreateInvoice(order.id, e)}

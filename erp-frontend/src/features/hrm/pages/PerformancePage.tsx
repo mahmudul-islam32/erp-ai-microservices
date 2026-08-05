@@ -226,7 +226,7 @@ export const PerformancePage: React.FC = () => {
               <option value="medium">Medium (3-4)</option>
                 <option value="low">Low (&lt;3)</option>
             </select>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="tertiary" className="flex items-center gap-2">
               <FunnelIcon className="h-4 w-4" />
               More Filters
             </Button>
@@ -322,10 +322,10 @@ export const PerformancePage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="tertiary" size="small">
                           View
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="tertiary" size="small">
                           Edit
                         </Button>
                       </div>

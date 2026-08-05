@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card, CardHeader, CardContent } from '../../../shared/components/ui/Card';
 import { StatCard } from '../../../shared/components/ui/StatCard';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 import { 
-  TrendingUp, Users, Package, ShoppingCart, DollarSign, 
-  AlertCircle, TrendingDown, Activity 
+  Users, Package, ShoppingCart, DollarSign, 
+  AlertCircle 
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchOrders } from '../../sales/store/ordersSlice';
 import { fetchCustomers } from '../../sales/store/customersSlice';
 import { fetchProducts } from '../../inventory/store/productsSlice';
-import { formatCurrency, formatDate } from '../../../shared/utils/format';
+import { formatCurrency } from '../../../shared/utils/format';
 import { UserRole } from '../../users/types';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -297,7 +296,7 @@ export const DashboardPage: React.FC = () => {
           <CardHeader 
             title="Recent Orders" 
             subtitle="Latest 5 orders"
-            action={
+            actions={
               <button
                 onClick={() => navigate('/dashboard/sales/orders')}
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -335,7 +334,7 @@ export const DashboardPage: React.FC = () => {
           <CardHeader 
             title="Low Stock Products" 
             subtitle="Products at or below reorder point"
-            action={
+            actions={
               <button
                 onClick={() => navigate('/dashboard/inventory/stock')}
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"

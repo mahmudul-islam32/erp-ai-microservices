@@ -21,7 +21,7 @@ export const CustomerFilters: React.FC<CustomerFiltersProps> = ({ filters, onFil
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.search || filters.status || filters.customerType;
+  const hasActiveFilters = Boolean(filters.search || filters.status || filters.customerType);
 
   return (
     <FilterPanel

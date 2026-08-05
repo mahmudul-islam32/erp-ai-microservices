@@ -20,7 +20,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ filters, onFiltersChan
     });
   };
 
-  const hasActiveFilters = filters.search || filters.role || filters.status || filters.department;
+  const hasActiveFilters = Boolean(filters.search || filters.role || filters.status || filters.department);
 
   const roleOptions = [
     { label: 'All Roles', value: '' },

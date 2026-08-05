@@ -10,9 +10,14 @@ export interface LineItem {
 
 export interface SalesOrder {
   id: string;
+  /** Some endpoints serialise by alias and return `_id` rather than `id`. */
+  _id?: string;
   order_number: string;
   customer_id: string;
   customer?: any;
+  customer_name?: string;
+  customer_email?: string;
+  internal_notes?: string;
   line_items: LineItem[];
   subtotal: number;
   tax_amount: number;

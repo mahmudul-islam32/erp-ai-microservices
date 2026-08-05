@@ -14,7 +14,7 @@ export const FinancialSettingsPage: React.FC = () => {
   const canReadSettings = hasPermission(Permission.SETTINGS_READ);
   const canUpdateSettings = hasPermission(Permission.SETTINGS_UPDATE);
   
-  const [settings, setSettings] = useState<FinancialSettings | null>(null);
+  const [, setSettings] = useState<FinancialSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<FinancialSettings>({

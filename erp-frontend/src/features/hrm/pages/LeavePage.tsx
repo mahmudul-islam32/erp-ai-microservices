@@ -18,7 +18,7 @@ import {
 
 export const LeavePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { leaves, isLoading, error } = useAppSelector((state) => state.hrm.leave);
+  const { leaves, loading: isLoading, error } = useAppSelector((state) => state.hrm.leave);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -140,7 +140,7 @@ export const LeavePage: React.FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Days</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {(leaves || []).reduce((sum, l) => sum + (l.duration_days || 0), 0)}
+                  {(leaves || []).reduce((sum, l) => sum + (l.total_days || 0), 0)}
                 </p>
               </div>
             </div>
@@ -183,7 +183,7 @@ export const LeavePage: React.FC = () => {
               <option value="sick_leave">Sick Leave</option>
               <option value="personal_leave">Personal Leave</option>
             </select>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="tertiary" className="flex items-center gap-2">
               <FunnelIcon className="h-4 w-4" />
               More Filters
             </Button>
@@ -268,7 +268,7 @@ export const LeavePage: React.FC = () => {
                       {new Date(leave.end_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {leave.duration_days} days
+                      {leave.total_days} days
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -280,15 +280,15 @@ export const LeavePage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="tertiary" size="small">
                           View
                         </Button>
                         {leave.status === 'pending' && (
                           <>
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                            <Button size="small" className="bg-green-600 hover:bg-green-700">
                               Approve
                             </Button>
-                            <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50">
+                            <Button variant="tertiary" size="small" className="text-red-600 border-red-600 hover:bg-red-50">
                               Reject
                             </Button>
                           </>

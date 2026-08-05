@@ -167,9 +167,9 @@ export const ProductsPage: React.FC = () => {
     if (filters.category) {
       // `typeof null === 'object'`, so the null check has to come first or a product
       // whose category was deleted throws on the property access.
-      const productCategoryId = product.categoryId && typeof product.categoryId === 'object'
-        ? product.categoryId._id
-        : product.categoryId;
+      const rawCategory = product.categoryId;
+      const productCategoryId =
+        typeof rawCategory === 'object' && rawCategory !== null ? rawCategory._id : rawCategory;
       if (productCategoryId !== filters.category) return false;
     }
 

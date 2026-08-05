@@ -93,15 +93,17 @@ apiClient.interceptors.response.use(
     // Handle other errors
     let message = 'An error occurred';
     
-    if (error.response?.data?.detail) {
-      const detail = error.response.data.detail;
+    const errorData = error.response?.data as { detail?: unknown } | undefined;
+    if (errorData?.detail) {
+      const detail = errorData.detail;
       if (Array.isArray(detail)) {
         // FastAPI validation errors - array of error objects
         message = detail.map((err: any) => err.msg || err.message || 'Validation error').join(', ');
       } else if (typeof detail === 'string') {
         message = detail;
-      } else if (typeof detail === 'object') {
-        message = detail.msg || detail.message || JSON.stringify(detail);
+      } else if (typeof detail === 'object' && detail !== null) {
+        const obj = detail as { msg?: string; message?: string };
+        message = obj.msg || obj.message || JSON.stringify(detail);
       }
     } else if (error.message) {
       message = error.message;

@@ -20,7 +20,7 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({ filters, onFilte
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.search || filters.status;
+  const hasActiveFilters = Boolean(filters.search || filters.status);
 
   return (
     <FilterPanel

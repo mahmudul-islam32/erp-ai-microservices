@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../store/categoriesSlice';
+import type { CreateCategoryData } from '../services/categoriesApi';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
@@ -84,7 +85,9 @@ export const CategoriesPage: React.FC = () => {
         handleCloseModal();
       }
     } else {
-      const result = await dispatch(createCategory(data));
+      // zod validated these fields; strictNullChecks is off, so z.infer marks
+      // every key optional. Cast at this boundary.
+      const result = await dispatch(createCategory(data as CreateCategoryData));
       if (createCategory.fulfilled.match(result)) {
         handleCloseModal();
       }
@@ -273,7 +276,7 @@ export const CategoriesPage: React.FC = () => {
           </div>
 
           <ModalFooter align="right">
-            <Button type="button" variant="outline" onClick={handleCloseModal}>
+            <Button type="button" variant="tertiary" onClick={handleCloseModal}>
               Cancel
             </Button>
             <Button type="submit" variant="primary" isLoading={isSubmitting}>

@@ -14,12 +14,11 @@ import { usePermissions } from '../../../shared/hooks/usePermissions';
 import { Permission } from '../types';
 
 export const SecurityPage: React.FC = () => {
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { requires2FASetup } = useAppSelector((state) => state.auth);
   const { hasPermission } = usePermissions();
   
-  const [settings, setSettings] = useState<SecuritySettings | null>(null);
+  const [, setSettings] = useState<SecuritySettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<SecuritySettings>>({});
@@ -508,7 +507,7 @@ export const SecurityPage: React.FC = () => {
                   </div>
                   <Button
                     variant="secondary"
-                    size="sm"
+                    size="small"
                     onClick={() => {
                       navigator.clipboard.writeText(twoFactorSetup.backup_codes.join('\n'));
                       toast.success('Backup codes copied to clipboard');
@@ -581,7 +580,7 @@ export const SecurityPage: React.FC = () => {
                   </code>
                   <Button
                     variant="secondary"
-                    size="sm"
+                    size="small"
                     onClick={() => {
                       navigator.clipboard.writeText(twoFactorSetup.secret);
                       toast.success('Secret copied to clipboard');

@@ -219,7 +219,7 @@ const chatSlice = createSlice({
           conversation.last_message_at = action.payload.created_at;
         }
       })
-      .addCase(sendMessage.rejected, (state, action) => {
+      .addCase(sendMessage.rejected, (state, _action) => {
         // Remove the LAST temporary message on error
         const tempMessageIndex = state.messages.length - 1;
         if (tempMessageIndex >= 0 && state.messages[tempMessageIndex]._id.startsWith('temp-')) {

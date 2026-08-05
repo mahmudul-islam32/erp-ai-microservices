@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../../store';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '../../../app/hooks';
+import { RootState } from '../../../app/store';
 import { fetchEmployees, fetchEmployeeStatistics } from '../store/hrmSlice';
 import { fetchPayrolls, fetchPayrollSummary } from '../store/hrmSlice';
 import { fetchLeaves } from '../store/hrmSlice';
 import { fetchPerformanceReviews, fetchPerformanceAnalytics } from '../store/hrmSlice';
-import { fetchAttendanceSummary } from '../store/hrmSlice';
 
 // Icons
 import {
@@ -17,7 +17,6 @@ import {
   UserGroupIcon,
   DocumentTextIcon,
   AcademicCapIcon,
-  HeartIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   ExclamationTriangleIcon
@@ -60,7 +59,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: Icon, c
 };
 
 const HRMDashboardPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { employees, payroll, leave, performance, attendance } = useSelector((state: RootState) => state.hrm);
   
   const [dateRange, setDateRange] = useState({
