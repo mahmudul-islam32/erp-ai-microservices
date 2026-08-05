@@ -86,11 +86,11 @@ cat > github-secrets-template.txt << 'EOF'
 
 EC2_HOST=your-ec2-public-ip
 EC2_USER=ubuntu
-EC2_SSH_KEY=REDACTED
+EC2_SSH_KEY=<contents-of-your-private-key-file>
 MONGODB_URL=mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true&w=majority
-JWT_SECRET_KEY=REDACTED
-STRIPE_SECRET_KEY=REDACTED
-STRIPE_PUBLISHABLE_KEY=REDACTED
+JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
+STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
 VITE_AUTH_SERVICE_URL=http://YOUR_EC2_IP:8001
 VITE_INVENTORY_SERVICE_URL=http://YOUR_EC2_IP:8002
 VITE_SALES_SERVICE_URL=http://YOUR_EC2_IP:8003

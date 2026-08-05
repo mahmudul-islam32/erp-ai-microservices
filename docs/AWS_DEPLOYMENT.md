@@ -297,7 +297,7 @@ GITHUB_USERNAME=your-github-username
 MONGODB_URL=mongodb+srv://erp_admin:YOUR_PASSWORD@erp-cluster.xxxxx.mongodb.net/?retryWrites=true&w=majority
 
 # JWT Configuration
-JWT_SECRET_KEY=REDACTED
+JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
@@ -310,9 +310,9 @@ DEFAULT_TAX_RATE=0.08
 DEFAULT_CURRENCY=USD
 
 # Stripe Configuration
-STRIPE_SECRET_KEY=REDACTED
-STRIPE_PUBLISHABLE_KEY=REDACTED
-STRIPE_WEBHOOK_SECRET=REDACTED
+STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_signing_secret
 ```
 
 **Save and exit**: Press `Ctrl+X`, then `Y`, then `Enter`

@@ -147,17 +147,17 @@ APP_ENV=production
 
 # MongoDB (use defaults or customize)
 MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=REDACTED
+MONGO_INITDB_ROOT_PASSWORD=<generate-a-strong-password>
 
 # Stripe (for payment processing)
-STRIPE_PUBLISHABLE_KEY=REDACTED
-STRIPE_SECRET_KEY=REDACTED
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
 
 # Email (optional - for notifications)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=REDACTED
+SMTP_PASSWORD=<your-app-specific-password>
 ```
 
 ### Step 3: Start the Application
@@ -254,7 +254,7 @@ APP_DEBUG=false
 
 # MongoDB Configuration
 MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=REDACTED!
+MONGO_INITDB_ROOT_PASSWORD=<generate-a-strong-password>
 MONGO_HOST=mongodb
 MONGO_PORT=27017
 MONGO_DATABASE=erp_db
@@ -262,11 +262,11 @@ MONGO_DATABASE=erp_db
 # Redis Configuration
 REDIS_HOST=redis
 REDIS_PORT=6379
-REDIS_PASSWORD=REDACTED!
+REDIS_PASSWORD=<generate-a-strong-password>
 
 # Auth Service
 AUTH_SERVICE_PORT=8001
-JWT_SECRET_KEY=REDACTED
+JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
@@ -284,14 +284,14 @@ VITE_INVENTORY_SERVICE_URL=http://localhost:8002
 VITE_SALES_SERVICE_URL=http://localhost:8003
 
 # Stripe Payment (Optional)
-STRIPE_PUBLISHABLE_KEY=REDACTED
-STRIPE_SECRET_KEY=REDACTED
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
 
 # Email Configuration (Optional)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=REDACTED
+SMTP_PASSWORD=<your-app-specific-password>
 SMTP_FROM=noreply@yourdomain.com
 
 # Demo Data
@@ -415,7 +415,7 @@ STRIPE_SECRET_KEY=sk_test_xxx        # Stripe secret key
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=REDACTED
+SMTP_PASSWORD=<your-app-specific-password>
 SMTP_FROM=noreply@yourdomain.com
 SMTP_USE_TLS=true
 ```

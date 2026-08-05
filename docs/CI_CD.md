@@ -85,10 +85,10 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
    ```bash
    # MongoDB Configuration
    MONGODB_USERNAME=admin
-   MONGODB_PASSWORD=REDACTED
+   MONGODB_PASSWORD=<generate-a-strong-password>
    
    # JWT Configuration
-   JWT_SECRET_KEY=REDACTED
+   JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
    ACCESS_TOKEN_EXPIRE_MINUTES=30
    REFRESH_TOKEN_EXPIRE_DAYS=7
    

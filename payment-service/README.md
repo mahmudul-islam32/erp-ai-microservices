@@ -36,7 +36,7 @@ LOG_LEVEL=INFO
 AUTH_SERVICE_URL=http://auth-service:8001
 
 # JWT Settings
-SECRET_KEY=REDACTED
+SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 ALGORITHM=HS256
 
 # Stripe Configuration

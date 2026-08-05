@@ -116,10 +116,10 @@ nano .env
 
 ```env
 # Required changes:
-MONGODB_PASSWORD=REDACTED
-JWT_SECRET_KEY=REDACTED
-STRIPE_SECRET_KEY=REDACTED
-STRIPE_PUBLISHABLE_KEY=REDACTED
+MONGODB_PASSWORD=<generate-a-strong-password>
+JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
+STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
 ```
 
 **Generate JWT Secret:**
@@ -180,7 +180,7 @@ Click **"New repository secret"** and add the following:
 cat ~/.ssh/erp-ec2-key
 
 # Copy the entire output including:
-# REDACTED-PRIVATE-KEY
+# <contents of your private key file>
 ```
 
 Paste this **entire content** as the `EC2_SSH_KEY` secret.
@@ -196,10 +196,10 @@ Create `.env` file on EC2 at `~/erp/.env`:
 ```env
 # MongoDB
 MONGODB_USERNAME=admin
-MONGODB_PASSWORD=REDACTED
+MONGODB_PASSWORD=<generate-a-strong-password>
 
 # JWT
-JWT_SECRET_KEY=REDACTED
+JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 

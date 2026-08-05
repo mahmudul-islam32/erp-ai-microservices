@@ -159,7 +159,7 @@ AUTH_SERVICE_URL=http://auth-service:8001
 NOTIFICATION_SERVICE_URL=http://notification-service:8004
 
 # JWT Configuration
-SECRET_KEY=REDACTED
+SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 ALGORITHM=HS256
 
 # HRM Specific Settings

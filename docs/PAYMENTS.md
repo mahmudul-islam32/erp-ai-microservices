@@ -61,9 +61,9 @@ Create a `.env` file in the project root (or update existing one):
 
 ```bash
 # Stripe Configuration
-STRIPE_SECRET_KEY=REDACTED
-STRIPE_PUBLISHABLE_KEY=REDACTED
-STRIPE_WEBHOOK_SECRET=REDACTED
+STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_signing_secret
 STRIPE_API_VERSION=2023-10-16
 STRIPE_CURRENCY=usd
 ```

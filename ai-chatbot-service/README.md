@@ -91,7 +91,7 @@ DEFAULT_LLM_PROVIDER=openai  # Options: openai, ollama, huggingface, fallback
 DEFAULT_LLM_MODEL=  # Uses provider default if empty
 
 # OpenAI Configuration
-OPENAI_API_KEY=REDACTED  # Optional - leave empty for fallback
+OPENAI_API_KEY=sk-your_openai_api_key  # Optional - leave empty for fallback
 OPENAI_MODEL=gpt-3.5-turbo  # or gpt-4, gpt-4-turbo-preview
 OPENAI_TEMPERATURE=0.7
 OPENAI_MAX_TOKENS=1000
@@ -132,7 +132,7 @@ The chatbot supports **multiple LLM providers**, including open-source models! Y
 
 ```bash
 # Required
-OPENAI_API_KEY=REDACTED
+OPENAI_API_KEY=sk-your_openai_api_key
 DEFAULT_LLM_PROVIDER=openai
 DEFAULT_LLM_MODEL=gpt-3.5-turbo  # or gpt-4, gpt-4-turbo-preview
 

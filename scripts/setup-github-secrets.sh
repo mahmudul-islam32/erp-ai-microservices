@@ -63,7 +63,7 @@ show_secret "EC2_HOST" \
 
 show_secret "EC2_SSH_KEY" \
     "Private SSH key to access EC2 (entire .pem file content)" \
-    "REDACTED-PRIVATE-KEY" \
+    "<contents of your private key file>" \
     "true"
 
 show_secret "EC2_USER" \
@@ -110,7 +110,7 @@ echo ""
 echo -e "${YELLOW}Special instructions for EC2_SSH_KEY:${NC}"
 echo "1. Open your .pem file: ${GREEN}cat ~/.ssh/your-key.pem${NC}"
 echo "2. Copy the ENTIRE content including:"
-echo "   ${BLUE}REDACTED-PRIVATE-KEY${NC}"
+echo "   ${BLUE}<contents of your private key file>${NC}"
 echo "3. Paste it as the secret value in GitHub"
 echo ""
 
