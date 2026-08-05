@@ -1,9 +1,9 @@
 # Sales Analytics Service - Two Sum Implementation
 # This service finds sales combinations that meet targets using Two Sum algorithm
 
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 
 class SalesTargetType(Enum):
@@ -81,7 +81,7 @@ class SalesAnalyticsService:
             if transaction1.id in used_transactions:
                 continue
                 
-            for j, transaction2 in enumerate(daily_sales[i+1:], i+1):
+            for _j, transaction2 in enumerate(daily_sales[i+1:], i+1):
                 if transaction2.id in used_transactions:
                     continue
                     
@@ -264,7 +264,6 @@ def example_usage():
     print(f"Transactions for $800: {result1}")
     
     # Test 2: Find daily sales combinations
-    today = datetime.now().date()
     result2 = analytics.find_daily_sales_combinations(800.0, datetime.now())
     print(f"Daily combinations for $800: {result2}")
     

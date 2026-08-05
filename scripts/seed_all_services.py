@@ -74,7 +74,7 @@ def run_python_seed(script_path, service_name, description, database_name=None):
         env['DATABASE_NAME'] = database_name
     
     try:
-        result = subprocess.run(
+        subprocess.run(
             [sys.executable, script_path],
             env=env,
             cwd=Path(script_path).parent.parent,
@@ -84,7 +84,7 @@ def run_python_seed(script_path, service_name, description, database_name=None):
         print_colored(f"   ✅ {description} seeded successfully", Colors.GREEN)
         print()
         return True
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print_colored(f"   ❌ Failed to seed {description}", Colors.RED)
         print()
         return False
@@ -127,7 +127,7 @@ def run_inventory_seed():
     
     try:
         # Run using ts-node
-        result = subprocess.run(
+        subprocess.run(
             ["npx", "ts-node", str(seed_script)],
             cwd=inventory_dir,
             env=env,

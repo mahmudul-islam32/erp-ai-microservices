@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from typing import List, Optional, Any, Dict
+from typing import Optional, Any, Dict
 from datetime import datetime
 
 from app.database.connection import get_database

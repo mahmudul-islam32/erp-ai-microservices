@@ -5,8 +5,8 @@ from app.models import (
 )
 from app.services import customer_service
 from app.api.dependencies import (
-    get_current_active_user, require_sales_access, require_sales_write, 
-    require_sales_access_flexible, require_sales_access_exclude_customers
+    require_sales_write, 
+    require_sales_access_exclude_customers
 )
 from typing import List, Optional
 import logging

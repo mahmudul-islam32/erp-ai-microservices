@@ -1,14 +1,12 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from bson import ObjectId
-from fastapi import HTTPException, status as http_status
 import logging
 
 from app.database.connection import get_database
 from app.models.audit_log import (
     AuditLogInDB,
     AuditLogResponse,
-    AuditLogCreate,
     AuditLogFilters,
     AuditAction,
     AuditStatus

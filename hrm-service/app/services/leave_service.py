@@ -1,11 +1,11 @@
-from typing import List, Optional, Dict, Any
-from datetime import datetime, date, timedelta
+from typing import List, Optional
+from datetime import datetime, date
 from bson import ObjectId
 from fastapi import HTTPException, status
 import logging
 
 from app.database.connection import get_database
-from app.models.leave import Leave, LeaveCreate, LeaveUpdate, LeaveResponse, LeaveStatus, LeaveType, LeaveBalance, LeaveSummary, LeavePolicy
+from app.models.leave import LeaveCreate, LeaveUpdate, LeaveResponse, LeaveStatus, LeaveType, LeaveBalance, LeaveSummary
 from app.services.employee_service import EmployeeService
 
 logger = logging.getLogger(__name__)

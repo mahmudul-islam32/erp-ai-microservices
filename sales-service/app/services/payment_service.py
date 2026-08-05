@@ -1,6 +1,5 @@
-from typing import List, Optional, Dict, Any
-from datetime import datetime, date, timedelta
-from decimal import Decimal
+from typing import List, Optional
+from datetime import datetime, date
 import logging
 import uuid
 import asyncio
@@ -9,18 +8,16 @@ from bson import ObjectId
 
 from app.database.connection import get_database
 from app.models.payment import (
-    PaymentCreate, PaymentUpdate, PaymentResponse, PaymentInDB,
+    PaymentCreate, PaymentResponse, PaymentInDB,
     RefundCreate, RefundResponse, PaymentStatus, PaymentMethod,
     TransactionType,
     CardPaymentDetails, CashPaymentDetails, CashPaymentCreate
 )
-from app.models.sales_order import SalesOrderCreate, OrderLineItemCreate
 from app.services.sales_order_service import SalesOrderService
 from app.services.customer_service import CustomerService
 from app.services.notification_client import NotificationClient
 from app.services.notification_helper import (
     get_notification_recipients_for_sales_action,
-    get_user_info,
     send_notification_to_supervisors
 )
 

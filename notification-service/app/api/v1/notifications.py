@@ -4,8 +4,7 @@ import logging
 
 from app.models.notification import (
     NotificationCreate,
-    NotificationInDB,
-    NotificationUpdate
+    NotificationInDB
 )
 from app.services.notification_service import NotificationService
 from app.services.websocket_manager import ws_manager

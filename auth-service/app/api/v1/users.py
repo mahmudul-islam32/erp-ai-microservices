@@ -9,7 +9,6 @@ from app.api.dependencies import (
 )
 from typing import List, Optional
 from datetime import datetime
-from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)

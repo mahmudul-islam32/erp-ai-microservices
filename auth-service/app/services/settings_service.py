@@ -1,12 +1,10 @@
 from app.database import get_database
 from app.models.settings import (
-    SettingsCreate, SettingsUpdate, SettingsResponse, SettingsInDB, SettingsCategory,
+    SettingsUpdate, SettingsResponse, SettingsCategory,
     CompanyInfo, FinancialSettings, SalesSettings, InventorySettings,
-    EmailSettings, NotificationSettings, IntegrationSettings, GeneralSettings, SecuritySettings,
-    AppearanceSettings
+    EmailSettings, NotificationSettings, IntegrationSettings, GeneralSettings, AppearanceSettings
 )
 from typing import Optional, List, Dict, Any
-from bson import ObjectId
 from datetime import datetime
 import logging
 

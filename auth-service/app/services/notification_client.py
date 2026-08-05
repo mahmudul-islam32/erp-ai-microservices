@@ -47,7 +47,7 @@ class NotificationClient:
                 "action_label": action_label
             }
             
-            logger.info(f"   Payload ready, making POST request...")
+            logger.info("   Payload ready, making POST request...")
             
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.post(

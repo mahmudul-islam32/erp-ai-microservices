@@ -4,7 +4,7 @@ Sends notifications to admins about user management actions
 """
 import httpx
 import logging
-from typing import List, Set
+from typing import Set
 import os
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ async def get_admin_users(auth_service_url: str = None) -> Set[str]:
     
     try:
         # Get super admins
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0):
             # Note: This is a self-referential call within auth service
             # We'll query the database directly instead
             from app.database import get_database
@@ -89,7 +89,7 @@ async def send_user_management_notification(
                         "subject_user_email": subject_user_email,
                         "details": details
                     },
-                    action_url=f"/dashboard/users",
+                    action_url="/dashboard/users",
                     action_label="View Users",
                     auth_token=auth_token  # ✅ FIXED: Pass the authentication token!
                 )

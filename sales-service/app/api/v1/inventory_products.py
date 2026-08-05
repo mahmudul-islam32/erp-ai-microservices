@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import List, Optional
+from typing import Optional
 import logging
 
 from ..dependencies import get_current_user, get_inventory_service, require_sales_access_flexible

@@ -204,7 +204,7 @@ async def seed_demo_data():
     actions = ["login", "logout", "create", "update", "delete", "view"]
     resources = ["user", "product", "order", "customer", "invoice"]
     
-    for i in range(50):
+    for _i in range(50):
         user = random.choice(created_users)
         
         # Handle both dict and UserResponse objects
@@ -245,7 +245,7 @@ async def seed_demo_data():
     print("\n🔐 Creating sample active sessions...")
     
     sessions = []
-    for i in range(10):
+    for _i in range(10):
         user = random.choice(created_users[:7])  # Only for active employees
         
         # Handle both dict and UserResponse objects

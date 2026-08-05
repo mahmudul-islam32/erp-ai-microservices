@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi import Request as FastAPIRequest
 from typing import List, Optional
 import logging
 
-from app.models.message import MessageCreate, MessageInDB, MessageResponse, MessageSendRequest
-from app.models.conversation import ConversationCreate, ConversationInDB, ConversationResponse
+from app.models.message import MessageResponse, MessageSendRequest
+from app.models.conversation import ConversationCreate, ConversationResponse
 from app.models.knowledge_base import DocumentIngestRequest, DocumentIngestResponse, KnowledgeChunkResponse
 from app.services.chatbot_service import ChatbotService
 from app.services.rag_service import RAGService

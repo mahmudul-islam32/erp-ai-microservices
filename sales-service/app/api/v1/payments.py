@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from app.models.payment import (
-    PaymentCreate, PaymentUpdate, PaymentResponse, RefundCreate, RefundResponse,
+    PaymentCreate, PaymentResponse, RefundCreate, RefundResponse,
     PaymentMethod, PaymentStatus, CashPaymentCreate,
     StripePaymentIntentCreate, StripePaymentConfirm
 )
@@ -9,13 +9,12 @@ from app.services.payment_service import payment_service
 from app.services.stripe_service import stripe_service
 from app.services.external_services import inventory_service
 from app.api.dependencies import (
-    get_current_active_user, require_sales_access, require_sales_write, 
+    require_sales_access, require_sales_write, 
     get_token_from_request, require_sales_access_flexible
 )
 from typing import List, Optional, Union
 from datetime import date
 import logging
-import stripe
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["Payments"])
@@ -531,7 +530,6 @@ async def confirm_stripe_payment(
         # Update order status if payment succeeded
         if payment_status == PaymentStatus.COMPLETED:
             from app.services.sales_order_service import sales_order_service
-            from app.models.sales_order import OrderStatus
             
             # Update order payment status and order status
             order = await sales_order_service.get_order_by_id(confirm_data.order_id)
@@ -644,7 +642,7 @@ async def create_stripe_refund(
             )
         
         # Create refund in Stripe
-        stripe_refund = await stripe_service.create_refund(
+        await stripe_service.create_refund(
             payment_intent_id=payment.gateway_details.stripe_payment_intent_id,
             amount=refund_data.amount,
             reason=refund_data.reason,

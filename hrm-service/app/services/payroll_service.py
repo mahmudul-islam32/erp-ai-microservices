@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime, date
 from bson import ObjectId
 from fastapi import HTTPException
@@ -6,7 +6,7 @@ from fastapi import status as http_status
 import logging
 
 from app.database.connection import get_database
-from app.models.payroll import Payroll, PayrollCreate, PayrollUpdate, PayrollResponse, PayrollStatus, PayrollCalculation, PayrollSummary
+from app.models.payroll import PayrollCreate, PayrollUpdate, PayrollResponse, PayrollStatus, PayrollCalculation, PayrollSummary
 from app.services.employee_service import EmployeeService
 
 logger = logging.getLogger(__name__)

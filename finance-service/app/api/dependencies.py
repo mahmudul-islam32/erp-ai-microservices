@@ -48,7 +48,7 @@ def require_finance_access():
     async def check_access(current_user: Dict = Depends(get_current_user)):
         permissions = current_user.get("permissions", [])
         logger.info(f"Checking finance access. User permissions: {permissions}")
-        logger.info(f"Required: finance:read, finance:admin, or admin")
+        logger.info("Required: finance:read, finance:admin, or admin")
         
         has_access = any(p in ["finance:read", "finance:admin", "admin"] for p in permissions)
         logger.info(f"Has access: {has_access}")

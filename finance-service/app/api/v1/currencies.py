@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models.currency import Currency, CurrencyCreate, CurrencyRate, CurrencyRateCreate, CurrencyConversion
+from app.models.currency import Currency, CurrencyCreate, CurrencyRate, CurrencyRateCreate
 from app.services.currency_service import CurrencyService
 from app.api.dependencies import require_finance_access, require_finance_admin
 from typing import List, Optional

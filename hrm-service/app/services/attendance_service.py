@@ -1,11 +1,10 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime, date, time, timedelta
-from bson import ObjectId
 from fastapi import HTTPException, status
 import logging
 
 from app.database.connection import get_database
-from app.models.attendance import Attendance, AttendanceCreate, AttendanceUpdate, AttendanceResponse, AttendanceStatus, Timesheet, AttendanceSummary
+from app.models.attendance import AttendanceResponse, AttendanceStatus, Timesheet, AttendanceSummary
 from app.services.employee_service import EmployeeService
 
 logger = logging.getLogger(__name__)

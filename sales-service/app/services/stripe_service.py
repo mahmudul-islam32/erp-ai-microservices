@@ -12,10 +12,6 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 import logging
 from app.config import settings
-from app.models.payment import (
-    PaymentMethod, PaymentStatus, TransactionType,
-    StripePaymentIntentCreate, PaymentGatewayDetails
-)
 
 logger = logging.getLogger(__name__)
 

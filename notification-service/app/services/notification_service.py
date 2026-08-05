@@ -6,7 +6,6 @@ import logging
 
 from app.models.notification import (
     NotificationCreate,
-    NotificationUpdate,
     NotificationInDB,
     NotificationType,
     NotificationPriority

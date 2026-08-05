@@ -1,7 +1,6 @@
 from app.database import get_database
 from typing import List, Dict, Any, Optional
 from datetime import date, datetime, timedelta
-from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,8 +21,6 @@ class AnalyticsService:
     async def get_sales_dashboard(self, start_date: date, end_date: date) -> Dict[str, Any]:
         """Get sales dashboard analytics"""
         try:
-            db = get_database()
-            
             # Get key metrics
             total_revenue = await self._get_total_revenue(start_date, end_date)
             total_orders = await self._get_total_orders(start_date, end_date)

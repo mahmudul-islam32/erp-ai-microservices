@@ -1,5 +1,4 @@
 import httpx
-from app.config import settings
 from typing import Optional, Dict, Any
 import logging
 import os

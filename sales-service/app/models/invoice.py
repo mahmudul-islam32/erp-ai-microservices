@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 from enum import Enum
-from bson import ObjectId
 
 
 class InvoiceStatus(str, Enum):

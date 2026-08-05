@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
-from typing import List, Optional
+from typing import List
 from bson import ObjectId
 
 from app.models.session import SessionResponse

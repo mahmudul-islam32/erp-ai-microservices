@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from app.services import analytics_service
-from app.api.dependencies import get_current_active_user, require_sales_access
+from app.api.dependencies import require_sales_access
 from typing import Optional
-from datetime import date, datetime
+from datetime import date
 import logging
 
 logger = logging.getLogger(__name__)

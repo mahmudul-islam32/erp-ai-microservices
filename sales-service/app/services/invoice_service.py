@@ -1,22 +1,19 @@
 from app.database import get_database
 from app.models import (
     InvoiceCreate, InvoiceUpdate, InvoiceResponse, InvoiceInDB, InvoiceStatus,
-    PaymentCreate, PaymentResponse, PaymentInDB, PaymentMethod, PaymentStatus
+    PaymentInDB, PaymentStatus
 )
 from app.services.customer_service import customer_service
 from app.services.sales_order_service import sales_order_service
 from app.services.notification_client import NotificationClient
 from app.services.notification_helper import (
     get_notification_recipients_for_sales_action,
-    get_user_info,
     send_notification_to_supervisors
 )
 from app.services.external_services import auth_service
-from pymongo.errors import DuplicateKeyError
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime, date, timedelta
 from bson import ObjectId
-from app.config import settings
 import logging
 import os
 
@@ -287,7 +284,7 @@ class InvoiceService:
                     # Parse string date
                     try:
                         invoice_dict["invoice_date"] = datetime.fromisoformat(invoice_dict["invoice_date"].replace('Z', '+00:00')).date()
-                    except:
+                    except Exception:
                         invoice_dict["invoice_date"] = datetime.strptime(invoice_dict["invoice_date"], "%Y-%m-%d").date()
             
             if "due_date" in invoice_dict:
@@ -297,7 +294,7 @@ class InvoiceService:
                     # Parse string date
                     try:
                         invoice_dict["due_date"] = datetime.fromisoformat(invoice_dict["due_date"].replace('Z', '+00:00')).date()
-                    except:
+                    except Exception:
                         invoice_dict["due_date"] = datetime.strptime(invoice_dict["due_date"], "%Y-%m-%d").date()
             
             # Ensure required fields have defaults
@@ -316,7 +313,7 @@ class InvoiceService:
             if "status" in invoice_dict and isinstance(invoice_dict["status"], str):
                 try:
                     invoice_dict["status"] = InvoiceStatus(invoice_dict["status"].lower())
-                except:
+                except Exception:
                     invoice_dict["status"] = InvoiceStatus.DRAFT
             
             return InvoiceInDB(**invoice_dict)
@@ -364,7 +361,7 @@ class InvoiceService:
                 elif isinstance(invoice_dict["invoice_date"], str):
                     try:
                         invoice_dict["invoice_date"] = datetime.fromisoformat(invoice_dict["invoice_date"].replace('Z', '+00:00')).date()
-                    except:
+                    except Exception:
                         invoice_dict["invoice_date"] = datetime.strptime(invoice_dict["invoice_date"], "%Y-%m-%d").date()
             
             if "due_date" in invoice_dict:
@@ -373,7 +370,7 @@ class InvoiceService:
                 elif isinstance(invoice_dict["due_date"], str):
                     try:
                         invoice_dict["due_date"] = datetime.fromisoformat(invoice_dict["due_date"].replace('Z', '+00:00')).date()
-                    except:
+                    except Exception:
                         invoice_dict["due_date"] = datetime.strptime(invoice_dict["due_date"], "%Y-%m-%d").date()
             
             # Ensure required fields have defaults
@@ -392,7 +389,7 @@ class InvoiceService:
             if "status" in invoice_dict and isinstance(invoice_dict["status"], str):
                 try:
                     invoice_dict["status"] = InvoiceStatus(invoice_dict["status"].lower())
-                except:
+                except Exception:
                     invoice_dict["status"] = InvoiceStatus.DRAFT
             
             return InvoiceInDB(**invoice_dict)
@@ -478,10 +475,10 @@ class InvoiceService:
             # Sort by invoice_date, issue_date, or created_at (handle old data structure)
             try:
                 cursor = invoices_collection.find(filter_query).skip(skip).limit(limit).sort("invoice_date", -1)
-            except:
+            except Exception:
                 try:
                     cursor = invoices_collection.find(filter_query).skip(skip).limit(limit).sort("issue_date", -1)
-                except:
+                except Exception:
                     cursor = invoices_collection.find(filter_query).skip(skip).limit(limit).sort("created_at", -1)
             invoices = await cursor.to_list(length=limit)
 
@@ -533,7 +530,7 @@ class InvoiceService:
                                 invoice_dict['payment_status'] = PaymentStatus.PROCESSING
                             else:
                                 invoice_dict['payment_status'] = PaymentStatus.PENDING
-                        except:
+                        except Exception:
                             invoice_dict['payment_status'] = PaymentStatus.PENDING
                     
                     if 'balance_due' not in invoice_dict:
@@ -779,14 +776,12 @@ class InvoiceService:
     async def generate_invoice_pdf(self, invoice_id: str) -> Optional[bytes]:
         """Generate invoice PDF using reportlab"""
         try:
-            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.lib.pagesizes import letter
             from reportlab.lib.units import inch
             from reportlab.lib import colors
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
-            from reportlab.pdfgen import canvas
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
             from io import BytesIO
-            from datetime import datetime as dt
             
             # Get invoice
             invoice = await self.get_invoice_by_id(invoice_id)
@@ -921,7 +916,7 @@ class InvoiceService:
                     order = await sales_order_service.get_order_by_id(invoice.order_id)
                     if order and hasattr(order, 'line_items'):
                         line_items = order.line_items
-                except:
+                except Exception:
                     pass
             
             # Helper function to safely get value from dict or object
