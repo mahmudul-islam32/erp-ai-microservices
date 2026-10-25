@@ -159,6 +159,7 @@ ESLint is not gated yet: a handful of unused-variable errors remain, and `no-exp
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Service boundaries, data flow, design decisions |
 | [Installation](docs/INSTALLATION.md) | Detailed setup, configuration, troubleshooting |
+| [Environment](docs/ENVIRONMENT.md) | Variables read by docker-compose.yml and their defaults |
 | [Deployment](docs/DEPLOYMENT.md) | Docker Compose production deployment |
 | [AWS Deployment](docs/AWS_DEPLOYMENT.md) | EC2 + Terraform provisioning |
 | [CI/CD](docs/CI_CD.md) | GitHub Actions pipeline and required secrets |
