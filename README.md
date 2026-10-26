@@ -110,6 +110,13 @@ The app is served at **http://localhost:8080**. Each service exposes interactive
 docker compose logs -f auth-service
 ```
 
+By default `docker compose up -d` starts `frontend-dev`, the Vite dev server with hot reload. The production build of the frontend (served by nginx) sits behind the `production` profile. Both bind port 8080, so stop the dev container before starting it:
+
+```bash
+docker compose stop frontend-dev
+docker compose --profile production up -d frontend
+```
+
 > **Note:** `.env` is gitignored and must never be committed. `.env.example` documents every required variable.
 
 ---
