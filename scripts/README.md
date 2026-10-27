@@ -453,9 +453,9 @@ If scripts fail:
 6. Check disk space: `df -h`
 
 For issues, refer to:
-- [AWS_DEPLOYMENT_GUIDE.md](../AWS_DEPLOYMENT_GUIDE.md)
-- [QUICK_DEPLOY.md](../QUICK_DEPLOY.md)
-- [CICD_SETUP_COMPLETE.md](../CICD_SETUP_COMPLETE.md)
+- [AWS Deployment](../docs/AWS_DEPLOYMENT.md)
+- [Deployment](../docs/DEPLOYMENT.md)
+- [CI/CD](../docs/CI_CD.md)
 
 ---
 
