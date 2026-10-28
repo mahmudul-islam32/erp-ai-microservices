@@ -174,6 +174,7 @@ ESLint is not gated yet: a handful of unused-variable errors remain, and `no-exp
 | [Payments](docs/PAYMENTS.md) | Stripe integration and webhook handling |
 | [User Guide](docs/USER_GUIDE.md) | End-user walkthrough |
 | [Scripts](scripts/README.md) | Setup, seeding, deployment and health-check scripts |
+| [Terraform](terraform/README.md) | Variables, commands and outputs for the AWS EC2 Terraform setup |
 
 ---
 
