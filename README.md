@@ -173,6 +173,7 @@ ESLint is not gated yet: a handful of unused-variable errors remain, and `no-exp
 | [API Reference](docs/API.md) | Endpoint reference |
 | [Payments](docs/PAYMENTS.md) | Stripe integration and webhook handling |
 | [User Guide](docs/USER_GUIDE.md) | End-user walkthrough |
+| [Scripts](scripts/README.md) | Setup, seeding, deployment and health-check scripts |
 
 ---
 
