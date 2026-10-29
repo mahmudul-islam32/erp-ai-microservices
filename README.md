@@ -175,6 +175,7 @@ ESLint is not gated yet: a handful of unused-variable errors remain, and `no-exp
 | [User Guide](docs/USER_GUIDE.md) | End-user walkthrough |
 | [Scripts](scripts/README.md) | Setup, seeding, deployment and health-check scripts |
 | [Terraform](terraform/README.md) | Variables, commands and outputs for the AWS EC2 Terraform setup |
+| [Setup Wizard](setup-wizard/README.md) | Browser-based visual guide to the installation options |
 
 ---
 
