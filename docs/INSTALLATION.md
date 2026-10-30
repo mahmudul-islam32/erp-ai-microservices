@@ -807,13 +807,13 @@ docker system prune -a --volumes
 
 After successful installation:
 
-1. ✅ **Read the [User Manual](USER_MANUAL.md)** - Learn how to use the system
+1. ✅ **Read the [User Guide](USER_GUIDE.md)** - Learn how to use the system
 2. ✅ **Configure branding** - Add your company logo and colors
 3. ✅ **Add users** - Create accounts for your team
 4. ✅ **Import data** - Add your products, customers, etc.
 5. ✅ **Configure Stripe** - Set up payment processing
 6. ✅ **Set up email** - Configure SMTP for notifications
-7. ✅ **Customize** - See [Customization Guide](CUSTOMIZATION_GUIDE.md)
+7. ✅ **Customize** - See [Environment Variables](ENVIRONMENT.md) for the settings you can change
 8. ✅ **Deploy to production** - See [Deployment Guide](DEPLOYMENT.md)
 
 ---
@@ -823,9 +823,8 @@ After successful installation:
 Need help with installation?
 
 - 📧 **Email**: support@yourdomain.com
-- 📖 **Documentation**: [Full documentation](README.md)
+- 📖 **Documentation**: [Full documentation](../README.md#documentation)
 - 💬 **Live Chat**: [Support portal]
-- 🎥 **Video Tutorial**: [Installation video](documentation/videos/installation.mp4)
 
 ---
 
