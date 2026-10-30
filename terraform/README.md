@@ -61,7 +61,7 @@ terraform output
 
 ## Documentation
 
-For detailed instructions, see [TERRAFORM_DEPLOYMENT.md](../docs/TERRAFORM_DEPLOYMENT.md)
+After the instance is up, see [AWS_DEPLOYMENT.md](../docs/AWS_DEPLOYMENT.md) for configuring the server, GitHub secrets and the first deployment.
 
 ## Support
 

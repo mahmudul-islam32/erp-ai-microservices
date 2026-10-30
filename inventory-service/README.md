@@ -365,7 +365,7 @@ See `.env.example` for all available configuration options.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ## 🆘 Support
 
