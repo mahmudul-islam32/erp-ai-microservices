@@ -264,9 +264,9 @@ Redux slices:
 
 ## 📖 Documentation
 
-- [Environment Setup](./ENV_SETUP.md)
-- Stripe Integration Guide (in `/docs`)
-- API documentation (in backend services)
+- [Environment Variables](../docs/ENVIRONMENT.md)
+- [Stripe Integration Guide](../docs/PAYMENTS.md)
+- [API Reference](../docs/API.md)
 
 ## 🤝 Contributing
 
