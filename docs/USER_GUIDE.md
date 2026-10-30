@@ -893,7 +893,7 @@ A: See UPDATE_GUIDE.md
 
 **Current Version**: 1.0.0
 
-See [CHANGELOG.md](../CHANGELOG.md) for version history and upcoming features.
+See the [commit history](https://github.com/mahmudul-islam32/erp-ai-microservices/commits/main) for recent changes.
 
 **Planned Features:**
 - Multi-language support (v1.1.0)
@@ -914,7 +914,7 @@ We value your feedback! Help us improve:
 
 **Thank you for choosing our ERP System!** 🎉
 
-For technical documentation, see [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
+For technical documentation, see [Architecture](ARCHITECTURE.md) and the [API Reference](API.md).
 
 ---
 
