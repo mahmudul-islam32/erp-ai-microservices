@@ -399,9 +399,10 @@ Before going live:
 
 ## Additional Resources
 
-- [Stripe Payment Flow Diagram](./STRIPE_PAYMENT_FLOW.md)
-- [Backend API Documentation](./sales-service/README.md)
-- [Frontend Component Library](./erp-frontend/README.md)
+- [Payment flow and system components](#architecture)
+- [Payment service README](../payment-service/README.md)
+- [Sales service README](../sales-service/README.md)
+- [Frontend README](../erp-frontend/README.md)
 
 ---
 
