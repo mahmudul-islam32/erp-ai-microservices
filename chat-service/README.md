@@ -37,11 +37,15 @@ After connecting, the server sends `{"type": "connection", "user_id": ...}`. Sen
 
 ## Environment Variables
 
-- `MONGODB_URL` - MongoDB connection string
+Settings are read from the environment or a `.env` file (names are case-insensitive).
+
+- `MONGODB_URL` - MongoDB connection string (required, the service will not start without it)
 - `DATABASE_NAME` - Database name (default: erp_chat)
-- `AUTH_SERVICE_URL` - URL of auth service for user verification
-- `JWT_SECRET_KEY` - Secret key for JWT validation
-- `SERVICE_PORT` - Port to run on (default: 8005)
+- `AUTH_SERVICE_URL` - URL of auth service for user verification (default: http://auth-service:8001)
+- `JWT_SECRET_KEY` - Secret key for JWT validation; must match the auth service
+- `JWT_ALGORITHM` - JWT signing algorithm (default: HS256)
+- `SERVICE_PORT` - Port used when running `python main.py` (default: 8005)
+- `ENVIRONMENT` - Environment name (default: development)
 
 ## Tech Stack
 
