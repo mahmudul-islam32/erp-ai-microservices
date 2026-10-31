@@ -25,6 +25,10 @@ Real-time chat and messaging service for the ERP system.
 - `GET /api/v1/chat/unread-count` - Get total unread count
 - `POST /api/v1/chat/conversations/{id}/mark-read` - Mark all messages in a conversation as read for the current user
 
+All REST endpoints need an `Authorization: Bearer <token>` header. The list endpoints are paginated with `skip` and `limit` query parameters: conversations default to 50 (max 100) and messages default to 100 (max 200).
+
+The service also exposes `GET /` (service name, version and status) and `GET /health`, which the Docker health check calls.
+
 ### WebSocket
 
 - `WS /api/v1/chat/ws?token=JWT_TOKEN` - Real-time chat connection
