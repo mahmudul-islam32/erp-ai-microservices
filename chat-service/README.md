@@ -64,6 +64,8 @@ uvicorn main:app --host 0.0.0.0 --port 8005 --reload
 
 ```bash
 docker build -t chat-service .
-docker run -p 8005:8005 chat-service
+docker run -p 8005:8005 -e MONGODB_URL="mongodb://host.docker.internal:27017" chat-service
 ```
+
+The image always listens on port 8005, regardless of `SERVICE_PORT`. In the full stack, `docker compose up -d chat-service` sets these variables for you and builds `MONGODB_URL` from the `MONGODB_ATLAS_*` values in the root `.env` file.
 
