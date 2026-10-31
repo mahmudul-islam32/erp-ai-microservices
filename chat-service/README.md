@@ -33,6 +33,8 @@ The service also exposes `GET /` (service name, version and status) and `GET /he
 
 - `WS /api/v1/chat/ws?token=JWT_TOKEN` - Real-time chat connection
 
+After connecting, the server sends `{"type": "connection", "user_id": ...}`. Send the text `ping` to keep the connection alive; the server answers `pong`. When a message is sent through the REST API, every participant who is connected receives `{"type": "message", "action": "created", "conversation_id": ..., "data": {...}}`. An invalid token closes the socket with code 1008 (policy violation).
+
 ## Environment Variables
 
 - `MONGODB_URL` - MongoDB connection string
