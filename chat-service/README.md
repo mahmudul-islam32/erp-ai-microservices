@@ -23,6 +23,7 @@ Real-time chat and messaging service for the ERP system.
 - `POST /api/v1/chat/messages` - Send a message
 - `DELETE /api/v1/chat/messages/{id}` - Delete a message
 - `GET /api/v1/chat/unread-count` - Get total unread count
+- `POST /api/v1/chat/conversations/{id}/mark-read` - Mark all messages in a conversation as read for the current user
 
 ### WebSocket
 
