@@ -35,13 +35,23 @@ Real-time notification microservice for the ERP system using FastAPI and WebSock
 
 ### Client → Server
 
+Send the plain text `ping` (not JSON) to keep the connection alive. The server answers with the plain text `pong`. Any other text from the client is ignored.
+
+### Server → Client
+
+Right after connecting, the server sends a confirmation:
+
 ```json
 {
-  "type": "ping"
+  "type": "connection",
+  "message": "Connected to notification service",
+  "timestamp": "2024-01-15T10:30:00"
 }
 ```
 
-### Server → Client
+If the client sends nothing for `WEBSOCKET_HEARTBEAT_INTERVAL` seconds (default 30), the server sends `{"type": "heartbeat"}`.
+
+When a notification is created for the user:
 
 ```json
 {
