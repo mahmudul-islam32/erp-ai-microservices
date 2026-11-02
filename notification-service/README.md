@@ -68,6 +68,16 @@ When a notification is created for the user:
 }
 ```
 
+The `data` object is the full notification, including `user_id`, `metadata`, `action_url`, `action_label`, `is_read` and `updated_at`.
+
+Other changes made through the REST API are pushed to all of the user's open connections:
+
+```json
+{ "type": "notification", "action": "read", "notification_id": "notification_id" }
+{ "type": "notification", "action": "mark_all_read", "count": 3 }
+{ "type": "notification", "action": "deleted", "notification_id": "notification_id" }
+```
+
 ## Notification Types
 
 - `order_created`, `order_updated`, `order_cancelled`
