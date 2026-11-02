@@ -83,10 +83,12 @@ Other changes made through the REST API are pushed to all of the user's open con
 - `order_created`, `order_updated`, `order_cancelled`
 - `invoice_created`, `invoice_paid`, `invoice_overdue`
 - `user_created`, `user_updated`, `user_deleted`
+- `product_created`, `product_updated`, `product_deleted`
 - `inventory_low_stock`, `inventory_out_of_stock`, `inventory_restocked`
+- `stock_adjusted`, `stock_movement`
 - `payment_received`, `payment_failed`
 - `system_alert`, `system_update`
-- `custom`
+- `custom` (the default when `type` is omitted)
 
 ## Priority Levels
 
