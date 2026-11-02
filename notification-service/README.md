@@ -101,12 +101,19 @@ Other changes made through the REST API are pushed to all of the user's open con
 
 ## Environment Variables
 
-- `ENVIRONMENT` - Environment (development/production)
-- `MONGODB_URL` - MongoDB connection URL
-- `DATABASE_NAME` - Database name
-- `SECRET_KEY` - JWT secret key
-- `SERVICE_PORT` - Service port (default: 8004)
-- `LOG_LEVEL` - Logging level
+| Variable | Default | Notes |
+|---|---|---|
+| `MONGODB_URL` | none | Required; the service will not start without it |
+| `DATABASE_NAME` | `erp_notifications` | |
+| `SECRET_KEY` | placeholder value | Must match the auth service so its JWTs verify; change it in production |
+| `ALGORITHM` | `HS256` | JWT signing algorithm |
+| `SERVICE_HOST` | `0.0.0.0` | Used by `python main.py` |
+| `SERVICE_PORT` | `8004` | Used by `python main.py`; the Docker image always listens on 8004 |
+| `WEBSOCKET_HEARTBEAT_INTERVAL` | `30` | Seconds of client silence before the server sends a heartbeat |
+| `ENVIRONMENT` | `development` | `development` turns on auto-reload with `python main.py` |
+| `LOG_LEVEL` | `INFO` | |
+
+`AUTH_SERVICE_URL` and `REDIS_URL` are read into the settings but not used by the current code.
 
 ## Development
 
@@ -125,6 +132,9 @@ python main.py
 docker build -t notification-service .
 
 # Run container
-docker run -p 8004:8004 notification-service
+docker run -p 8004:8004 \
+  -e MONGODB_URL=mongodb://host.docker.internal:27017 \
+  -e SECRET_KEY=<same-as-auth-service> \
+  notification-service
 ```
 
