@@ -18,10 +18,12 @@ Real-time notification microservice for the ERP system using FastAPI and WebSock
 
 ### REST API
 
+Every `/api/v1/notifications` endpoint needs an `Authorization: Bearer <JWT>` header signed with the same `SECRET_KEY` as the auth service. Reading, marking and deleting only work on the caller's own notifications (others return 403), while `POST` can create a notification for any `user_id`. Interactive docs are at `/docs` and `/redoc`.
+
 - `GET /health` - Health check
 - `POST /api/v1/notifications/` - Create a notification
-- `GET /api/v1/notifications/` - Get user notifications (with pagination)
-- `GET /api/v1/notifications/unread-count` - Get unread notification count
+- `GET /api/v1/notifications/` - Get user notifications, newest first. Query parameters: `skip` (default 0), `limit` (1 to 100, default 50) and `unread_only` (default `false`)
+- `GET /api/v1/notifications/unread-count` - Get unread notification count, returned as `{"unread_count": n}`
 - `GET /api/v1/notifications/{id}` - Get specific notification
 - `PATCH /api/v1/notifications/{id}/read` - Mark notification as read
 - `POST /api/v1/notifications/mark-all-read` - Mark all notifications as read
