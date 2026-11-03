@@ -72,20 +72,25 @@ Change these passwords before using the system anywhere public.
 
 ## Environment Variables
 
-```bash
-# JWT Configuration
-JWT_SECRET_KEY=your-secret-key
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
+Settings are read from the environment or a `.env` file (see `app/config.py`). Only `MONGODB_URL` is required.
 
-# Database
-MONGODB_URL=mongodb://admin:password123@mongodb:27017/erp_auth?authSource=admin
-DATABASE_NAME=erp_auth
+| Variable | Default | Purpose |
+|---|---|---|
+| `MONGODB_URL` | none (required) | MongoDB connection string |
+| `DATABASE_NAME` | `erp_auth` | Database name |
+| `SECRET_KEY` | `your-super-secret-key-change-this-in-production` | Key used to sign JWTs; always set your own |
+| `ALGORITHM` | `HS256` | JWT signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
+| `ENVIRONMENT` | `development` | Outside `development`, auth cookies are marked `Secure` |
+| `SERVICE_NAME` | `auth-service` | Name reported by `/health` |
+| `SERVICE_HOST` | `0.0.0.0` | Bind address |
+| `SERVICE_PORT` | `8001` | Port |
+| `LOG_LEVEL` | `INFO` | Log level |
+| `SALES_SERVICE_URL` | `http://sales-service:8003` | Sales service base URL |
+| `NOTIFICATION_SERVICE_URL` | `http://notification-service:8004` | Notification service base URL |
 
-# Service
-SERVICE_PORT=8001
-ENVIRONMENT=development
-```
+In `docker-compose.yml`, `SECRET_KEY` is filled from the `JWT_SECRET_KEY` variable in your root `.env`.
 
 ## Security Features
 
