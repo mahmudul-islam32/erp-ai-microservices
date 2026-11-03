@@ -54,11 +54,21 @@ Authentication and authorization service for the ERP system. It issues JWT acces
 - **HR**: hr:create, hr:read, hr:update, hr:delete
 - **AI**: ai:access, ai:admin
 
-## Default Admin Account
+## Demo Accounts
 
-- **Email**: admin@erp.com
-- **Password**: admin123
-- **Role**: super_admin
+The service does not create an admin account on its own. Seed demo users with:
+
+```bash
+docker compose exec auth-service python scripts/seed_demo_data.py
+```
+
+This creates, among others:
+
+- **Super admin**: `admin@example.com` / `Admin123`
+- **Manager**: `manager@example.com` / `Manager123`
+- **Employee**: `employee@example.com` / `Employee123`
+
+Change these passwords before using the system anywhere public.
 
 ## Environment Variables
 
