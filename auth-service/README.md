@@ -1,18 +1,19 @@
-# API Testing Scripts for ERP Auth Service
+# ERP Auth Service
 
-This directory contains scripts to test the Authentication & Authorization microservice.
+Authentication and authorization service for the ERP system. It issues JWT access and refresh tokens, manages users, roles and permissions, and keeps sessions and audit logs. It is a FastAPI app that listens on port 8001 and stores its data in MongoDB.
 
 ## Quick Start
 
-1. **Start the service:**
+1. **Start the stack** from the repository root:
    ```bash
    ./setup.sh
    ```
 
-2. **Test basic authentication:**
+2. **Run the tests:**
    ```bash
-   cd tests
-   ./test-auth.sh
+   cd auth-service
+   pip install -r requirements-dev.txt
+   pytest
    ```
 
 ## API Endpoints
