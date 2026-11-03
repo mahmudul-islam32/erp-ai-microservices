@@ -22,19 +22,29 @@ Authentication and authorization service for the ERP system. It issues JWT acces
 
 - `POST /api/v1/auth/register` - Register new user
 - `POST /api/v1/auth/login` - Login user
+- `POST /api/v1/auth/login/oauth` - Login with an OAuth2 password form (used by the Swagger UI)
 - `POST /api/v1/auth/refresh` - Refresh access token
 - `GET /api/v1/auth/me` - Get current user info
+- `PUT /api/v1/auth/me` - Update current user profile
 - `POST /api/v1/auth/change-password` - Change password
+- `POST /api/v1/auth/forgot-password` - Request a password reset (placeholder: always returns success and sends no email yet)
+- `POST /api/v1/auth/reset-password` - Reset password with a token (placeholder: not implemented yet)
 - `POST /api/v1/auth/logout` - Logout user
 
 ### User Management Endpoints
 
 - `GET /api/v1/users` - List users (with pagination)
 - `POST /api/v1/users` - Create user (Admin only)
+- `GET /api/v1/users/chat-eligible` - List users the current user can chat with
 - `GET /api/v1/users/{id}` - Get user by ID
 - `PUT /api/v1/users/{id}` - Update user
 - `DELETE /api/v1/users/{id}` - Delete user (soft delete)
 - `PUT /api/v1/users/{id}/permissions` - Update user permissions
+- `GET /api/v1/users/roles/permissions` - List default permissions per role
+- `PUT /api/v1/users/roles/{role}/permissions` - Update a role's permissions
+- `GET /api/v1/users/access-control/` - List access control entries
+- `POST /api/v1/users/access-control/` - Add an access control entry
+- `DELETE /api/v1/users/access-control/{entry_id}` - Remove an access control entry
 
 ## User Roles & Permissions
 
