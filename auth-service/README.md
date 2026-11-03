@@ -46,6 +46,43 @@ Authentication and authorization service for the ERP system. It issues JWT acces
 - `POST /api/v1/users/access-control/` - Add an access control entry
 - `DELETE /api/v1/users/access-control/{entry_id}` - Remove an access control entry
 
+### Two-Factor Authentication
+
+- `POST /api/v1/auth/2fa/setup` - Start 2FA setup (returns a new secret and QR code)
+- `POST /api/v1/auth/2fa/verify` - Verify a code to finish enabling 2FA
+- `POST /api/v1/auth/2fa/login` - Complete a login with a 2FA code
+- `POST /api/v1/auth/2fa/disable` - Turn 2FA off
+- `POST /api/v1/auth/2fa/backup-codes` - Generate new backup codes
+- `GET /api/v1/auth/2fa/status` - Show whether 2FA is enabled
+
+### Sessions
+
+- `GET /api/v1/sessions/` - List all sessions (admin only)
+- `GET /api/v1/sessions/me` - List the current user's sessions
+- `GET /api/v1/sessions/user/{user_id}` - List a user's sessions (admin, or the user)
+- `POST /api/v1/sessions/{session_id}/terminate` - End one session
+- `POST /api/v1/sessions/user/{user_id}/terminate-all` - End all of a user's sessions (admin, or the user)
+
+### Audit Logs
+
+- `GET /api/v1/audit-logs/` - List audit logs (admin only)
+- `GET /api/v1/audit-logs/user/{user_id}` - List a user's audit logs (admin, or the user)
+- `GET /api/v1/audit-logs/me` - List the current user's audit logs
+
+### Settings
+
+- `GET /api/v1/settings/` - List settings, optionally filtered by `category`
+- `GET /api/v1/settings/{category}` - Get one settings category
+- `PUT /api/v1/settings/{category}` - Create or update one settings category
+- `DELETE /api/v1/settings/{category}` - Delete one settings category
+
+Settings endpoints need the matching settings permission (for example `settings:read` or `settings:update`).
+
+### Health and Docs
+
+- `GET /health` - Health check
+- `/docs` and `/redoc` - Interactive API docs (always enabled)
+
 ## User Roles & Permissions
 
 ### Roles
