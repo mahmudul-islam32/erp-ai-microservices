@@ -160,10 +160,13 @@ All financial transactions follow double-entry bookkeeping principles:
 3. **Partial** → Partial payment received
 4. **Paid** → Fully paid
 5. **Overdue** → Past due date
+6. **Cancelled** → Invoice voided
+
+Customer invoices move from draft to sent through `POST /api/v1/invoices/customer/{id}/send`.
 
 ## 🧪 Default Chart of Accounts
 
-The system includes a default chart of accounts:
+A new database starts with no accounts. Create the default chart of accounts below with `POST /api/v1/accounts/seed-defaults` (admin access), and the default currencies with `POST /api/v1/currencies/seed-defaults`:
 
 ### Assets (1000)
 - Current Assets (1100)
