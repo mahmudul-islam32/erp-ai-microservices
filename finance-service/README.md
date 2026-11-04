@@ -119,16 +119,15 @@ docker-compose up finance-service
 
 ## 🔐 Security & Permissions
 
-### Required Permissions
-- `finance:read` - View financial data
-- `finance:create` - Create transactions
-- `finance:update` - Update transactions
-- `finance:admin` - Full financial access
+All `/api/v1` endpoints need a JWT from the auth service in an `Authorization: Bearer <token>` header. The service checks the `permissions` list in the token, not the role name. There are three access levels:
 
-### Role-Based Access
-- **Admin/Super Admin**: Full access to all financial features
-- **Manager**: Create and view financial records
-- **Employee**: View-only access to financial reports
+| Level | Accepted permissions | Used by |
+|---|---|---|
+| Read | `finance:read`, `finance:admin` or `admin` | All `GET` endpoints |
+| Write | `finance:create`, `finance:update`, `finance:admin` or `admin` | Journal entries (create, post, reverse), invoices (create, send, pay, record payment), bank accounts and transactions |
+| Admin | `finance:admin` or `admin` | Creating, updating and deleting accounts, creating currencies and exchange rates, and both `seed-defaults` endpoints |
+
+Which permissions a role gets is decided by the auth service, so check there if a user gets a 403.
 
 ## 📈 Business Logic
 
