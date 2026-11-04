@@ -54,9 +54,11 @@ A comprehensive Financial Management & Accounting microservice built with FastAP
 - `POST /api/v1/accounts` - Create account
 - `GET /api/v1/accounts` - List accounts
 - `GET /api/v1/accounts/hierarchy` - Get account hierarchy
+- `GET /api/v1/accounts/code/{account_code}` - Get account by code
 - `GET /api/v1/accounts/{id}` - Get account details
 - `PUT /api/v1/accounts/{id}` - Update account
 - `DELETE /api/v1/accounts/{id}` - Delete account
+- `POST /api/v1/accounts/seed-defaults` - Create the default chart of accounts
 
 ### Journal Entries
 - `POST /api/v1/journal-entries` - Create journal entry
@@ -69,9 +71,12 @@ A comprehensive Financial Management & Accounting microservice built with FastAP
 ### Invoices (AP/AR)
 - `POST /api/v1/invoices/vendor` - Create vendor invoice
 - `GET /api/v1/invoices/vendor` - List vendor invoices
+- `GET /api/v1/invoices/vendor/{id}` - Get vendor invoice
 - `POST /api/v1/invoices/vendor/{id}/pay` - Pay vendor invoice
 - `POST /api/v1/invoices/customer` - Create customer invoice
 - `GET /api/v1/invoices/customer` - List customer invoices
+- `GET /api/v1/invoices/customer/{id}` - Get customer invoice
+- `POST /api/v1/invoices/customer/{id}/send` - Mark customer invoice as sent
 - `POST /api/v1/invoices/customer/{id}/payment` - Record customer payment
 - `GET /api/v1/invoices/aging/{type}` - Get aging report
 
@@ -83,6 +88,7 @@ A comprehensive Financial Management & Accounting microservice built with FastAP
 ### Bank Management
 - `POST /api/v1/banks/accounts` - Create bank account
 - `GET /api/v1/banks/accounts` - List bank accounts
+- `GET /api/v1/banks/accounts/{id}` - Get bank account
 - `POST /api/v1/banks/transactions` - Create bank transaction
 - `GET /api/v1/banks/transactions` - List bank transactions
 
@@ -91,6 +97,11 @@ A comprehensive Financial Management & Accounting microservice built with FastAP
 - `GET /api/v1/currencies` - List currencies
 - `POST /api/v1/currencies/rates` - Create exchange rate
 - `GET /api/v1/currencies/convert` - Convert currency
+- `POST /api/v1/currencies/seed-defaults` - Create the default currencies
+
+### Service
+- `GET /health` - Health check (no auth)
+- `GET /` - Service name, version and links to docs and health
 
 ## 🚀 Quick Start
 
