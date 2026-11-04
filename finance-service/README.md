@@ -103,6 +103,16 @@ A comprehensive Financial Management & Accounting microservice built with FastAP
 - `GET /health` - Health check (no auth)
 - `GET /` - Service name, version and links to docs and health
 
+### Query parameters
+- List endpoints for accounts, journal entries, invoices and bank transactions take `skip` (default 0) and `limit` (default 100, max 500).
+- `GET /api/v1/accounts` filters by `account_type` (`asset`, `liability`, `equity`, `revenue`, `expense`) and `is_active`.
+- `GET /api/v1/journal-entries` filters by `status` (`draft`, `posted`, `reversed`), `start_date` and `end_date`.
+- `GET /api/v1/journal-entries/ledger/general` takes optional `account_id`, `start_date` and `end_date`.
+- Vendor and customer invoice lists filter by `vendor_id` or `customer_id` and `status`.
+- `GET /api/v1/invoices/aging/{type}` accepts `customer` or `vendor` as the type; anything else returns 400.
+- `GET /api/v1/reports/profit-loss` requires `period_start` and `period_end`; balance sheet and trial balance require `as_of_date`. Dates use `YYYY-MM-DD`.
+- `GET /api/v1/currencies/convert` requires `amount`, `from_currency` and `to_currency`, with an optional `conversion_date`.
+
 ## 🚀 Quick Start
 
 ### Development
