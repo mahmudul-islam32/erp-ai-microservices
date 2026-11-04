@@ -184,24 +184,32 @@ The system includes a default chart of accounts:
 
 ## 📝 Environment Variables
 
-```bash
-# Service Configuration
-SERVICE_PORT=8006
-MONGODB_URL=mongodb://admin:password123@mongodb:27017/erp_finance?authSource=admin
-DATABASE_NAME=erp_finance
+Settings are read from the environment or a `.env` file in the service folder. Only `MONGODB_URL` is required; the service will not start without it.
 
-# External Services
-AUTH_SERVICE_URL=http://auth-service:8001
-NOTIFICATION_SERVICE_URL=http://notification-service:8004
+| Variable | Default | Notes |
+|---|---|---|
+| `MONGODB_URL` | none (required) | MongoDB connection string |
+| `DATABASE_NAME` | `erp_finance` | |
+| `ENVIRONMENT` | `development` | |
+| `SERVICE_NAME` | `finance-service` | Shown by `/` and `/health` |
+| `SERVICE_VERSION` | `1.0.0` | |
+| `SERVICE_HOST` | `0.0.0.0` | |
+| `SERVICE_PORT` | `8006` | |
+| `AUTH_SERVICE_URL` | `http://auth-service:8001` | |
+| `NOTIFICATION_SERVICE_URL` | `http://notification-service:8004` | |
+| `SALES_SERVICE_URL` | `http://sales-service:8003` | |
+| `INVENTORY_SERVICE_URL` | `http://inventory-service:8002` | |
+| `SECRET_KEY` | `your-secret-key-change-in-production` | Must match the auth service's signing key, or every token is rejected |
+| `ALGORITHM` | `HS256` | |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | |
+| `DEFAULT_CURRENCY` | `USD` | |
+| `FISCAL_YEAR_START_MONTH` | `1` | 1 is January |
+| `DECIMAL_PLACES` | `2` | |
+| `CURRENCY_API_KEY` | unset | |
+| `CURRENCY_API_URL` | `https://api.exchangerate-api.com/v4/latest` | |
+| `LOG_LEVEL` | `INFO` | |
 
-# JWT Settings
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-
-# Financial Settings
-DEFAULT_CURRENCY=USD
-FISCAL_YEAR_START_MONTH=1
-```
+In `docker-compose.yml`, `SECRET_KEY` comes from `JWT_SECRET_KEY` in the root `.env`, the same value the auth service uses.
 
 ## 📚 API Documentation
 
