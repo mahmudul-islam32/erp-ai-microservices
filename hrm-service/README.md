@@ -93,9 +93,11 @@ A comprehensive Human Resource Management microservice for the ERP system, provi
 - `POST /api/v1/payroll` - Create payroll
 - `PUT /api/v1/payroll/{id}` - Update payroll
 - `POST /api/v1/payroll/{id}/approve` - Approve payroll
+- `DELETE /api/v1/payroll/{id}` - Delete payroll
 - `GET /api/v1/payroll/summary/period` - Get payroll summary
 
 ### Time & Attendance
+- `GET /api/v1/attendance` - List attendance records (filters: `employee_id`, `date_from`, `date_to`)
 - `POST /api/v1/attendance/clock-in` - Clock in
 - `POST /api/v1/attendance/clock-out` - Clock out
 - `GET /api/v1/attendance/{employee_id}/{date}` - Get attendance
@@ -120,6 +122,41 @@ A comprehensive Human Resource Management microservice for the ERP system, provi
 - `POST /api/v1/performance/reviews/{id}/submit` - Submit review
 - `GET /api/v1/performance/{employee_id}/summary` - Get performance summary
 - `GET /api/v1/performance/analytics` - Get performance analytics
+
+### Recruitment
+- `GET /api/v1/recruitment/jobs` - List job postings
+- `GET /api/v1/recruitment/jobs/{job_id}` - Get job posting
+- `POST /api/v1/recruitment/jobs` - Create job posting
+- `PUT /api/v1/recruitment/jobs/{job_id}` - Update job posting
+- `DELETE /api/v1/recruitment/jobs/{job_id}` - Delete job posting
+- `GET /api/v1/recruitment/applications` - List applications
+- `GET /api/v1/recruitment/applications/{application_id}` - Get application
+- `POST /api/v1/recruitment/applications` - Create application
+- `PUT /api/v1/recruitment/applications/{application_id}` - Update application
+- `POST /api/v1/recruitment/applications/{application_id}/shortlist` - Shortlist application
+- `POST /api/v1/recruitment/applications/{application_id}/reject` - Reject application
+- `GET /api/v1/recruitment/interviews` - List interviews
+- `GET /api/v1/recruitment/interviews/{interview_id}` - Get interview
+- `POST /api/v1/recruitment/interviews` - Schedule interview
+- `PUT /api/v1/recruitment/interviews/{interview_id}` - Update interview
+- `GET /api/v1/recruitment/analytics` - Get recruitment analytics
+
+The interview routes are defined, but `RecruitmentService` has no interview methods yet, so they currently return a 500 error.
+
+### Training (read only)
+- `GET /api/v1/training/programs` - List training programs (filters: `category`, `status`)
+- `GET /api/v1/training/enrollments` - List enrollments (filters: `employee_id`, `training_program_id`, `status`)
+- `GET /api/v1/training/summary` - Get training summary
+
+### Benefits (read only)
+- `GET /api/v1/benefits/plans` - List benefit plans (filters: `category`, `status`)
+- `GET /api/v1/benefits/enrollments` - List enrollments (filters: `employee_id`, `plan_id`, `status`)
+- `GET /api/v1/benefits/summary` - Get benefits summary
+
+### HR Analytics
+- `GET /api/v1/analytics/dashboard` - HR dashboard metrics (`period_days` 1-365, default 30; optional `department`)
+
+List endpoints accept `skip` (default 0) and `limit` (default 100, max 1000).
 
 ## Database Schema
 
