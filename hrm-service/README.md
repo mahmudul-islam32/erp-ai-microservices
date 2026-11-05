@@ -222,10 +222,10 @@ Settings are read from environment variables or a `.env` file in the service fol
 pip install -r requirements.txt
 ```
 
-2. Set up environment variables:
+2. Set the required settings. There is no `.env.example` in this folder, so create `.env` yourself with at least:
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
+MONGODB_URL=mongodb://localhost:27017
+SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 ```
 
 3. Run the service:
@@ -233,17 +233,25 @@ cp .env.example .env
 python main.py
 ```
 
-## Docker Deployment
+## Demo Data
 
-The service is configured for Docker deployment:
+`scripts/seed_demo_data.py` fills every HRM collection with sample data (50 employees plus payroll, attendance, leave, reviews, job postings, training and benefits). It deletes the existing data in those collections first, so do not run it against a database you want to keep.
+
+```bash
+python scripts/seed_demo_data.py
+```
+
+## Docker Deployment
 
 ```bash
 # Build the image
 docker build -t hrm-service .
 
 # Run the container
-docker run -p 8007:8007 hrm-service
+docker run -p 8007:8007 -e MONGODB_URL=mongodb://host.docker.internal:27017 hrm-service
 ```
+
+The image runs `uvicorn main:app` on port 8007 as a non-root user. In the full stack, `docker compose up hrm-service` starts it with the settings from `docker-compose.yml`.
 
 ## Frontend Integration
 
