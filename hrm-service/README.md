@@ -178,38 +178,42 @@ Indexes, including unique ones on employee `employee_id` and `email`, are create
 
 ## Configuration
 
-The service can be configured using environment variables:
+Settings are read from environment variables or a `.env` file in the service folder (see `app/config.py`). Names are case-insensitive.
 
-```bash
-# Service Configuration
-SERVICE_NAME=HRM Service
-SERVICE_VERSION=1.0.0
-SERVICE_HOST=0.0.0.0
-SERVICE_PORT=8007
+| Variable | Default | Purpose |
+|---|---|---|
+| `MONGODB_URL` | *(required)* | MongoDB connection string; the service will not start without it |
+| `DATABASE_NAME` | `erp_hrm` | Database name |
+| `SERVICE_NAME` | `HRM Service` | Name shown in logs and `/health` |
+| `SERVICE_VERSION` | `1.0.0` | Service version |
+| `SERVICE_HOST` | `0.0.0.0` | Bind address when started with `python main.py` |
+| `SERVICE_PORT` | `8007` | Port when started with `python main.py` |
+| `ENVIRONMENT` | `development` | `development` enables auto-reload with `python main.py` |
+| `LOG_LEVEL` | `INFO` | Logging level |
+| `DEBUG` | `true` | Debug flag |
+| `AUTH_SERVICE_URL` | `http://auth-service:8001` | Auth service base URL |
+| `NOTIFICATION_SERVICE_URL` | `http://notification-service:8004` | Notification service base URL |
+| `SECRET_KEY` | `your-super-secret-key-change-this-in-production` | JWT secret; always override it |
+| `ALGORITHM` | `HS256` | JWT algorithm |
+| `DEFAULT_CURRENCY` | `USD` | Default currency |
+| `DEFAULT_TIMEZONE` | `UTC` | Default time zone |
+| `MAX_LEAVE_DAYS_PER_YEAR` | `30` | Yearly leave allowance |
+| `DEFAULT_WORKING_HOURS_PER_DAY` | `8.0` | Standard working day |
+| `OVERTIME_THRESHOLD_HOURS` | `40.0` | Weekly hours before overtime |
+| `OVERTIME_MULTIPLIER` | `1.5` | Overtime pay multiplier |
+| `DEFAULT_TAX_RATE` | `0.20` | Income tax rate |
+| `SOCIAL_SECURITY_RATE` | `0.062` | Social security rate |
+| `MEDICARE_RATE` | `0.0145` | Medicare rate |
+| `REVIEW_PERIOD_MONTHS` | `12` | Performance review period |
+| `RATING_SCALE_MAX` | `5` | Highest review rating |
+| `APPLICATION_EXPIRY_DAYS` | `30` | Days before an application expires |
+| `INTERVIEW_SLOTS_PER_DAY` | `8` | Interview slots per day |
+| `CERTIFICATION_VALIDITY_YEARS` | `2` | Certification validity |
+| `MANDATORY_TRAINING_HOURS` | `40` | Required training hours |
+| `HEALTH_INSURANCE_CONTRIBUTION` | `0.20` | Employer health insurance share |
+| `RETIREMENT_MATCH_PERCENTAGE` | `0.05` | Employer retirement match |
 
-# Database
-MONGODB_URL=mongodb://admin:password123@mongodb:27017/erp_hrm?authSource=admin
-DATABASE_NAME=erp_hrm
-
-# External Services
-AUTH_SERVICE_URL=http://auth-service:8001
-NOTIFICATION_SERVICE_URL=http://notification-service:8004
-
-# JWT Configuration
-SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
-ALGORITHM=HS256
-
-# HRM Specific Settings
-DEFAULT_CURRENCY=USD
-DEFAULT_TIMEZONE=UTC
-MAX_LEAVE_DAYS_PER_YEAR=30
-DEFAULT_WORKING_HOURS_PER_DAY=8.0
-OVERTIME_THRESHOLD_HOURS=40.0
-OVERTIME_MULTIPLIER=1.5
-DEFAULT_TAX_RATE=0.20
-SOCIAL_SECURITY_RATE=0.062
-MEDICARE_RATE=0.0145
-```
+`docker-compose.yml` sets most of these for local development, including `MONGODB_URL`, and takes `SECRET_KEY` from `JWT_SECRET_KEY`.
 
 ## Installation
 
