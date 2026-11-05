@@ -283,11 +283,13 @@ GET /health
 
 ## Security
 
-- JWT token authentication
-- Role-based access control
-- Input validation and sanitization
-- CORS configuration
-- Rate limiting (configurable)
+What the code does today:
+
+- **No token check on requests yet.** The routers use a placeholder `get_current_user` dependency that returns a fixed user instead of reading the `Authorization` header, and the training, benefits and analytics routes have no user dependency at all. `AuthService` in `app/services/auth_service.py` can verify a token against the auth service, but no route calls it. Keep the service behind the gateway or a private network until real checks are added.
+- **CORS** allows all origins, methods and headers (`main.py`).
+- **Trusted host middleware** is added when `ENVIRONMENT=production`, but it currently allows all hosts.
+- **Input validation** comes from the Pydantic models and the `Query` limits on each route.
+- There is no rate limiting in this service.
 
 ## Monitoring
 
