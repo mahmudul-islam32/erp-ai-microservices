@@ -160,21 +160,21 @@ List endpoints accept `skip` (default 0) and `limit` (default 100, max 1000).
 
 ## Database Schema
 
-The service uses MongoDB with the following main collections:
+The service uses MongoDB (database `erp_hrm` by default) with these collections:
 
 - `employees` - Employee records
 - `payrolls` - Payroll information
 - `attendance` - Time and attendance records
-- `leaves` - Leave requests and balances
+- `leaves` - Leave requests
 - `performance_reviews` - Performance evaluation data
 - `job_postings` - Recruitment job postings
 - `applications` - Job applications
-- `interviews` - Interview scheduling
-- `trainings` - Training programs
-- `employee_trainings` - Employee training enrollments
-- `benefits` - Benefits plans
+- `training_programs` - Training programs
+- `employee_training` - Employee training enrollments
+- `benefit_plans` - Benefits plans
 - `employee_benefits` - Employee benefit enrollments
-- `hr_analytics` - HR metrics and analytics
+
+Indexes, including unique ones on employee `employee_id` and `email`, are created on startup in `app/database/connection.py`. There is no separate interviews or analytics collection; analytics are computed from the collections above.
 
 ## Configuration
 
