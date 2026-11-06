@@ -214,44 +214,35 @@ The service also exposes `GET /` (name and status) and `GET /health`. Interactiv
 
 ## 🔧 Configuration
 
-### Environment Variables
+Settings are read from the environment or a `.env` file in the service folder (`app/config.py`). Only `MONGODB_URL` is required; the service will not start without it.
 
-```bash
-# Environment
-ENVIRONMENT=development
+| Variable | Default | Notes |
+|---|---|---|
+| `MONGODB_URL` | none (required) | MongoDB connection string |
+| `DATABASE_NAME` | `sales_db` | `docker-compose.yml` overrides this to `erp_sales` |
+| `ENVIRONMENT` | `development` | |
+| `SERVICE_NAME` | `sales-service` | Shown by `/` and `/health` |
+| `SERVICE_HOST` | `0.0.0.0` | |
+| `SERVICE_PORT` | `8003` | Dockerfile and Compose expose 8003 |
+| `AUTH_SERVICE_URL` | `http://auth-service:8001` | Used to verify JWT tokens |
+| `INVENTORY_SERVICE_URL` | `http://inventory-service:8002` | Product lookup proxy |
+| `SECRET_KEY` | `your-super-secret-key-change-this-in-production` | Must match the auth service signing key |
+| `ALGORITHM` | `HS256` | |
+| `REDIS_URL` | `redis://localhost:6379` | |
+| `SMTP_SERVER` | `smtp.gmail.com` | |
+| `SMTP_PORT` | `587` | |
+| `SMTP_USERNAME` | empty | |
+| `SMTP_PASSWORD` | empty | |
+| `DEFAULT_TAX_RATE` | `0.15` | |
+| `DEFAULT_DISCOUNT_LIMIT` | `0.20` | Max discount fraction |
+| `STRIPE_SECRET_KEY` | empty | Required for Stripe intents |
+| `STRIPE_PUBLISHABLE_KEY` | empty | Returned by `/payments/stripe/config` |
+| `STRIPE_WEBHOOK_SECRET` | empty | |
+| `STRIPE_API_VERSION` | `2023-10-16` | |
+| `STRIPE_CURRENCY` | `usd` | |
+| `LOG_LEVEL` | `INFO` | |
 
-# Database
-MONGODB_URL=mongodb://localhost:27017
-DATABASE_NAME=erp_sales
-
-# Service
-SERVICE_PORT=8002
-SERVICE_HOST=0.0.0.0
-
-# External Services
-AUTH_SERVICE_URL=http://localhost:8001
-INVENTORY_SERVICE_URL=http://localhost:8003
-
-# JWT Settings
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# Email Settings
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-password
-
-# Business Settings
-DEFAULT_TAX_RATE=0.15
-DEFAULT_DISCOUNT_LIMIT=0.20
-
-# Logging
-LOG_LEVEL=INFO
-```
+In `docker-compose.yml`, `SECRET_KEY` comes from `JWT_SECRET_KEY` in the root `.env`, the same value the auth service uses.
 
 ## 📈 Business Logic
 
