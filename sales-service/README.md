@@ -33,40 +33,42 @@ A comprehensive sales management microservice built with FastAPI and MongoDB for
 ### Service Structure
 ```
 sales-service/
-├── main.py                    # FastAPI application entry point
+├── main.py
 ├── app/
-│   ├── api/                   # API route definitions
-│   │   ├── dependencies.py    # Authentication and permissions
-│   │   └── v1/               # API version 1
-│   │       ├── customers.py   # Customer endpoints
-│   │       ├── products.py    # Product endpoints
-│   │       ├── sales_orders.py # Sales order endpoints
-│   │       ├── quotes.py      # Quote endpoints
-│   │       ├── invoices.py    # Invoice endpoints
-│   │       ├── analytics.py   # Analytics endpoints
-│   │       └── reports.py     # Reporting endpoints
-│   ├── models/               # Pydantic models
-│   │   ├── customer.py       # Customer data models
-│   │   ├── product.py        # Product data models
-│   │   ├── sales_order.py    # Sales order models
-│   │   ├── quote.py          # Quote models
-│   │   └── invoice.py        # Invoice models
-│   ├── services/             # Business logic
-│   │   ├── customer_service.py    # Customer operations
-│   │   ├── product_service.py     # Product operations
-│   │   ├── sales_order_service.py # Order management
-│   │   ├── quote_service.py       # Quote operations
-│   │   ├── invoice_service.py     # Invoice operations
-│   │   ├── analytics_service.py   # Analytics calculations
-│   │   ├── reports_service.py     # Report generation
-│   │   └── external_services.py   # External API integrations
-│   ├── database/             # Database configuration
-│   │   ├── connection.py     # MongoDB connection
-│   │   └── __init__.py       # Database utilities
-│   └── config.py             # Application settings
-├── requirements.txt          # Python dependencies
-└── README.md                # This file
+│   ├── api/
+│   │   ├── dependencies.py      # JWT + permission helpers
+│   │   └── v1/
+│   │       ├── customers.py
+│   │       ├── inventory_products.py  # Read-only product proxy
+│   │       ├── sales_orders.py
+│   │       ├── invoices.py
+│   │       ├── payments.py
+│   │       ├── analytics.py
+│   │       └── reports.py
+│   ├── models/
+│   ├── services/
+│   ├── database/
+│   └── config.py
+├── scripts/
+│   └── seed_demo_data.py
+├── requirements.txt
+├── Dockerfile
+└── README.md
 ```
+
+### Database collections
+
+The service uses MongoDB with these collections (database `sales_db` by default, `erp_sales` under Compose):
+
+- `customers`
+- `sales_orders`
+- `invoices`
+- `payments`
+- `refunds`
+- `products` (legacy/local helper only; live product reads go through the inventory service)
+
+Order statuses: `draft`, `pending`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`, `returned`.
+Invoice statuses: `draft`, `sent`, `viewed`, `paid`, `partial_paid`, `overdue`, `cancelled`, `refunded`, `void`.
 
 ## 🚀 Quick Start
 
@@ -94,21 +96,31 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-4. **Start the service**:
+4. **Start the service** on port **8003** (matches the Dockerfile and Compose):
 ```bash
 # Development mode
-uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+uvicorn main:app --host 0.0.0.0 --port 8003 --reload
 
 # Production mode
-uvicorn main:app --host 0.0.0.0 --port 8002
+uvicorn main:app --host 0.0.0.0 --port 8003
+```
+
+### Demo data
+
+`scripts/seed_demo_data.py` creates sample customers, orders, invoices and payments. It is meant for local demos; do not run it against a database you want to keep.
+
+```bash
+python scripts/seed_demo_data.py
 ```
 
 ### Docker Setup
 
 ```bash
-# Build and run with Docker Compose
-docker-compose up -d sales-service
+# From the repository root
+docker compose up -d sales-service
 ```
+
+The image listens on port 8003 as a non-root user and health-checks `GET /health`.
 
 ## 📊 API Endpoints
 
@@ -247,12 +259,7 @@ In `docker-compose.yml`, `SECRET_KEY` comes from `JWT_SECRET_KEY` in the root `.
 ## 📈 Business Logic
 
 ### Order Workflow
-1. **Draft** → Customer creates order
-2. **Confirmed** → Stock reserved, order confirmed
-3. **Processing** → Order being prepared
-4. **Shipped** → Order dispatched
-5. **Delivered** → Order completed
-6. **Cancelled** → Order cancelled, stock released
+Statuses on the model: `draft` → `pending` → `confirmed` → `processing` → `shipped` → `delivered`, with `cancelled` and `returned` as terminal paths. Confirm and cancel are dedicated endpoints; other transitions go through `PATCH /{order_id}/status`.
 
 ### Invoice Workflow
 1. **Draft** → Invoice being prepared
@@ -263,16 +270,15 @@ In `docker-compose.yml`, `SECRET_KEY` comes from `JWT_SECRET_KEY` in the root `.
 
 ## 🔐 Security & Permissions
 
-### Required Permissions
-- `sales:read` - View sales data
-- `sales:create` - Create sales records
-- `sales:update` - Update sales records
-- `sales:delete` - Delete sales records
+What the code does today (`app/api/dependencies.py`):
 
-### Role-Based Access
-- **Sales Rep**: Can manage their own sales
-- **Sales Manager**: Can manage team sales
-- **Admin**: Full access to all sales data
+- Tokens are read from the `access_token` cookie first, then from an `Authorization: Bearer` header, and verified against the auth service.
+- **Admin** / **super_admin** roles bypass the permission lists below.
+- **Write** routes (`require_sales_write`) need one of `sales:create`, `sales:update`, `sales:delete`, `write` or `all`.
+- **Read** helpers accept `sales:read` / `sales:create` / `sales:update` / `sales:delete`, plus broader `read`, `write`, `all` or `*`.
+- Customer listing and lookup use `require_sales_access_exclude_customers`, which rejects role `customer`.
+- Order and payment list routes use a more flexible checker that still logs a warning when an authenticated user has no sales permission.
+- Role `customer` on order/invoice lists is auto-scoped to that customer's records by email.
 
 ## 🧪 Testing
 
@@ -347,14 +353,14 @@ The service publishes events for:
 
 ### Interactive Documentation
 When running in development mode:
-- **Swagger UI**: http://localhost:8002/docs
-- **ReDoc**: http://localhost:8002/redoc
+- **Swagger UI**: http://localhost:8003/docs
+- **ReDoc**: http://localhost:8003/redoc
 
 ### Example Requests
 
 #### Create Customer
 ```bash
-curl -X POST "http://localhost:8002/api/v1/customers" \
+curl -X POST "http://localhost:8003/api/v1/customers" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -369,7 +375,7 @@ curl -X POST "http://localhost:8002/api/v1/customers" \
 
 #### Create Sales Order
 ```bash
-curl -X POST "http://localhost:8002/api/v1/sales-orders" \
+curl -X POST "http://localhost:8003/api/v1/sales-orders" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
