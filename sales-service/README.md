@@ -8,7 +8,7 @@ A comprehensive sales management microservice built with FastAPI and MongoDB for
 - **Customer Management**: Complete CRUD operations for customer data
 - **Product Catalog**: Product management with categories, pricing, and inventory tracking
 - **Sales Orders**: Full order lifecycle management from draft to delivery
-- **Quotes**: Generate, send, and track sales quotes
+- **Payments**: Cash, card and Stripe payments with refunds
 - **Invoicing**: Automated invoice generation with payment tracking
 - **Analytics**: Real-time sales analytics and KPIs
 - **Reporting**: Comprehensive reporting system with multiple export formats
@@ -18,8 +18,8 @@ A comprehensive sales management microservice built with FastAPI and MongoDB for
 - **Payment Processing**: Payment tracking and aging reports
 - **Commission Calculation**: Automated sales commission reports
 - **Forecasting**: AI-powered sales forecasting
-- **PDF Generation**: Professional quotes and invoices
-- **Email Integration**: Automated sending of quotes and invoices
+- **PDF Generation**: Invoice PDF download
+- **Email Integration**: Send invoices to customers
 
 ## 🏗️ Architecture
 
@@ -142,15 +142,22 @@ All endpoints require JWT authentication via the Auth Service.
 - `GET /api/v1/sales-orders/number/{number}` - Get by order number
 - `POST /api/v1/sales-orders/{id}/duplicate` - Duplicate order
 
-### Quotes
-- `POST /api/v1/quotes` - Create quote
-- `GET /api/v1/quotes` - List quotes (with filters)
-- `GET /api/v1/quotes/{id}` - Get quote details
-- `PUT /api/v1/quotes/{id}` - Update quote
-- `POST /api/v1/quotes/{id}/send` - Send quote to customer
-- `POST /api/v1/quotes/{id}/accept` - Accept quote
-- `POST /api/v1/quotes/{id}/reject` - Reject quote
-- `GET /api/v1/quotes/{id}/pdf` - Download quote PDF
+### Payments
+- `POST /api/v1/payments` - Create a payment
+- `POST /api/v1/payments/cash` - Record a cash payment
+- `POST /api/v1/payments/card` - Record a card payment
+- `GET /api/v1/payments` - List payments
+- `GET /api/v1/payments/{payment_id}` - Get a payment
+- `POST /api/v1/payments/{payment_id}/refund` - Refund a payment
+- `GET /api/v1/payments/order/{order_id}/payments` - Payments for an order
+- `GET /api/v1/payments/customer/{customer_id}/payments` - Payments for a customer
+- `GET /api/v1/payments/methods/summary` - Payment methods summary (placeholder response today)
+- `GET /api/v1/payments/daily-summary` - Daily payments summary
+- `GET /api/v1/payments/stripe/config` - Stripe publishable config
+- `POST /api/v1/payments/stripe/create-intent` - Create a Stripe payment intent
+- `POST /api/v1/payments/stripe/confirm` - Confirm a Stripe payment
+- `POST /api/v1/payments/stripe/refund/{payment_id}` - Refund via Stripe
+- `POST /api/v1/payments/stripe/webhook` - Stripe webhook handler
 
 ### Invoices
 - `POST /api/v1/invoices` - Create invoice
@@ -236,13 +243,6 @@ LOG_LEVEL=INFO
 4. **Shipped** → Order dispatched
 5. **Delivered** → Order completed
 6. **Cancelled** → Order cancelled, stock released
-
-### Quote Workflow
-1. **Draft** → Quote being prepared
-2. **Sent** → Quote sent to customer
-3. **Accepted** → Convert to sales order
-4. **Rejected** → Quote declined
-5. **Expired** → Quote past expiry date
 
 ### Invoice Workflow
 1. **Draft** → Invoice being prepared
