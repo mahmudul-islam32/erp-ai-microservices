@@ -200,6 +200,18 @@ Products are not stored in this service. These routes call the inventory service
 - `GET /api/v1/reports/templates` - Get report templates
 - `POST /api/v1/reports/custom` - Generate custom report
 
+### Query parameters
+
+List endpoints take `skip` (default 0) and `limit` (default 100, max 1000) unless noted below.
+
+- **Customers**: optional `status`, `customer_type`, `search`. Search uses `limit` 1–50 (default 10).
+- **Sales orders**: optional `status`, `customer_id`, `sales_rep_id`, `start_date`, `end_date`, `search`. Customer-scoped list defaults `limit` to 50 (max 100). Users with role `customer` only see their own orders.
+- **Invoices**: optional `status`, `payment_status`, `customer_id`, `start_date`, `end_date`, `overdue_only`, `search`. Customer users are scoped to their own invoices.
+- **Payments**: optional `payment_method`, `status`, `customer_id`, `order_id`, `start_date`, `end_date`, `search`.
+- **Products from inventory**: `page` (default 1) and `limit` (default 10, max 100) instead of `skip`/`limit`, plus `search`, `categoryId`, `isActive`. Search uses `q` and `limit` (default 50, max 100).
+
+The service also exposes `GET /` (name and status) and `GET /health`. Interactive docs are at `/docs` and `/redoc` when `ENVIRONMENT=development`.
+
 ## 🔧 Configuration
 
 ### Environment Variables
