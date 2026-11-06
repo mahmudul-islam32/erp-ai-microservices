@@ -6,7 +6,7 @@ A comprehensive sales management microservice built with FastAPI and MongoDB for
 
 ### Core Sales Management
 - **Customer Management**: Complete CRUD operations for customer data
-- **Product Catalog**: Product management with categories, pricing, and inventory tracking
+- **Product Catalog**: Read-only product and category lookup via the inventory service
 - **Sales Orders**: Full order lifecycle management from draft to delivery
 - **Payments**: Cash, card and Stripe payments with refunds
 - **Invoicing**: Automated invoice generation with payment tracking
@@ -117,30 +117,35 @@ All endpoints require JWT authentication via the Auth Service.
 
 ### Customer Management
 - `POST /api/v1/customers` - Create customer
-- `GET /api/v1/customers` - List customers (with filters)
-- `GET /api/v1/customers/{id}` - Get customer details
-- `PUT /api/v1/customers/{id}` - Update customer
-- `DELETE /api/v1/customers/{id}` - Delete customer
+- `GET /api/v1/customers` - List customers
+- `GET /api/v1/customers/{customer_id}` - Get customer details
+- `GET /api/v1/customers/email/{email}` - Get customer by email
+- `PUT /api/v1/customers/{customer_id}` - Update customer
+- `DELETE /api/v1/customers/{customer_id}` - Delete customer
 - `GET /api/v1/customers/search/{query}` - Search customers
 
-### Product Management
-- `POST /api/v1/products` - Create product
-- `GET /api/v1/products` - List products (with filters)
-- `GET /api/v1/products/{id}` - Get product details
-- `PUT /api/v1/products/{id}` - Update product
-- `DELETE /api/v1/products/{id}` - Delete product
+### Products (proxied from Inventory)
+Products are not stored in this service. These routes call the inventory service and only support reads:
+
+- `GET /api/v1/products` - List products (`page`, `limit`, `search`, `categoryId`, `isActive`)
+- `GET /api/v1/products/{product_id}` - Get product by ID
 - `GET /api/v1/products/sku/{sku}` - Get product by SKU
-- `GET /api/v1/products/categories/list` - Get categories
+- `GET /api/v1/products/categories/list` - List product categories
+- `GET /api/v1/products/search` - Search products (`q`, `limit`)
 
 ### Sales Orders
 - `POST /api/v1/sales-orders` - Create sales order
-- `GET /api/v1/sales-orders` - List orders (with filters)
-- `GET /api/v1/sales-orders/{id}` - Get order details
-- `PUT /api/v1/sales-orders/{id}` - Update order
-- `POST /api/v1/sales-orders/{id}/confirm` - Confirm order
-- `POST /api/v1/sales-orders/{id}/cancel` - Cancel order
-- `GET /api/v1/sales-orders/number/{number}` - Get by order number
-- `POST /api/v1/sales-orders/{id}/duplicate` - Duplicate order
+- `GET /api/v1/sales-orders` - List orders
+- `GET /api/v1/sales-orders/{order_id}` - Get order details
+- `PUT /api/v1/sales-orders/{order_id}` - Update order
+- `DELETE /api/v1/sales-orders/{order_id}` - Delete order
+- `POST /api/v1/sales-orders/{order_id}/confirm` - Confirm order
+- `POST /api/v1/sales-orders/{order_id}/cancel` - Cancel order
+- `PATCH /api/v1/sales-orders/{order_id}/status` - Update order status
+- `POST /api/v1/sales-orders/{order_id}/payment-status` - Update payment status
+- `GET /api/v1/sales-orders/number/{order_number}` - Get by order number
+- `GET /api/v1/sales-orders/customer/{customer_id}/orders` - Orders for a customer
+- `POST /api/v1/sales-orders/{order_id}/duplicate` - Duplicate order
 
 ### Payments
 - `POST /api/v1/payments` - Create a payment
@@ -161,14 +166,16 @@ All endpoints require JWT authentication via the Auth Service.
 
 ### Invoices
 - `POST /api/v1/invoices` - Create invoice
-- `GET /api/v1/invoices` - List invoices (with filters)
-- `GET /api/v1/invoices/{id}` - Get invoice details
-- `PUT /api/v1/invoices/{id}` - Update invoice
-- `POST /api/v1/invoices/{id}/send` - Send invoice
-- `POST /api/v1/invoices/{id}/payments` - Record payment
-- `POST /api/v1/invoices/from-order/{order_id}` - Create from order
-- `GET /api/v1/invoices/{id}/pdf` - Download invoice PDF
-- `POST /api/v1/invoices/{id}/void` - Void invoice
+- `GET /api/v1/invoices` - List invoices
+- `GET /api/v1/invoices/{invoice_id}` - Get invoice details
+- `PUT /api/v1/invoices/{invoice_id}` - Update invoice
+- `POST /api/v1/invoices/{invoice_id}/send` - Send invoice
+- `POST /api/v1/invoices/{invoice_id}/payments` - Record a payment against the invoice
+- `GET /api/v1/invoices/number/{invoice_number}` - Get by invoice number
+- `POST /api/v1/invoices/from-order/{order_id}` - Create from a sales order
+- `GET /api/v1/invoices/{invoice_id}/pdf` - Download invoice PDF
+- `GET /api/v1/invoices/overdue/list` - List overdue invoices
+- `POST /api/v1/invoices/{invoice_id}/void` - Void invoice
 
 ### Analytics
 - `GET /api/v1/analytics/dashboard` - Sales dashboard
