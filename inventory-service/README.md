@@ -164,41 +164,81 @@ npm run test:e2e
 
 ### Key Endpoints
 
+All REST routes are mounted at the root of the service (there is no `/api` prefix).
+
 #### Products
-- `GET /products` - List all products with filtering
-- `POST /products` - Create new product
-- `GET /products/:id` - Get product by ID
-- `PUT /products/:id` - Update product
-- `DELETE /products/:id` - Delete product
+- `GET /products` - List products with filtering
+- `POST /products` - Create a product
+- `GET /products/stats` - Product statistics
+- `GET /products/low-stock` - Products at or below their reorder level
+- `GET /products/sku/:sku` - Get a product by SKU
+- `GET /products/:id` - Get a product by ID
+- `PUT /products/:id` - Update a product
 - `PUT /products/:id/stock` - Update stock levels
+- `DELETE /products/:id` - Delete a product
 
 #### Categories
-- `GET /categories` - List all categories
-- `POST /categories` - Create new category
-- `GET /categories/:id` - Get category by ID
-- `PUT /categories/:id` - Update category
-- `DELETE /categories/:id` - Delete category
+- `GET /categories` - List categories
+- `POST /categories` - Create a category
+- `GET /categories/tree` - Categories as a parent-child tree
+- `GET /categories/stats` - Category statistics
+- `GET /categories/root` - Top-level categories only
+- `GET /categories/code/:code` - Get a category by code
+- `GET /categories/:id` - Get a category by ID
+- `GET /categories/:id/children` - Direct children of a category
+- `PUT /categories/:id` - Update a category
+- `DELETE /categories/:id` - Delete a category
 
 #### Suppliers
-- `GET /suppliers` - List all suppliers
-- `POST /suppliers` - Create new supplier
-- `GET /suppliers/:id` - Get supplier by ID
-- `PUT /suppliers/:id` - Update supplier
-- `DELETE /suppliers/:id` - Delete supplier
+- `GET /suppliers` - List suppliers
+- `POST /suppliers` - Create a supplier
+- `GET /suppliers/stats` - Supplier statistics
+- `GET /suppliers/search` - Search suppliers
+- `GET /suppliers/location` - Suppliers by location
+- `GET /suppliers/code/:code` - Get a supplier by code
+- `GET /suppliers/:id` - Get a supplier by ID
+- `PUT /suppliers/:id` - Update a supplier
+- `DELETE /suppliers/:id` - Delete a supplier
 
 #### Warehouses
-- `GET /warehouses` - List all warehouses
-- `POST /warehouses` - Create new warehouse
-- `GET /warehouses/:id` - Get warehouse by ID
-- `PUT /warehouses/:id` - Update warehouse
-- `DELETE /warehouses/:id` - Delete warehouse
+- `GET /warehouses` - List warehouses
+- `POST /warehouses` - Create a warehouse
+- `GET /warehouses/active` - Active warehouses only
+- `GET /warehouses/stats` - Warehouse statistics
+- `GET /warehouses/search` - Search warehouses
+- `GET /warehouses/location` - Warehouses by location
+- `GET /warehouses/type/:type` - Warehouses of one type
+- `GET /warehouses/code/:code` - Get a warehouse by code
+- `GET /warehouses/:id` - Get a warehouse by ID
+- `PUT /warehouses/:id` - Update a warehouse
+- `DELETE /warehouses/:id` - Delete a warehouse
 
 #### Inventory
 - `GET /inventory` - List inventory records
+- `POST /inventory` - Create an inventory record
+- `GET /inventory/low-stock` - Records with low stock
+- `GET /inventory/out-of-stock` - Records with no stock
+- `GET /inventory/stats` - Inventory statistics
+- `GET /inventory/product/:productId` - Inventory for one product
+- `GET /inventory/warehouse/:warehouseId` - Inventory in one warehouse
+- `GET /inventory/:id` - Get an inventory record by ID
+- `PUT /inventory/:id` - Update an inventory record
+- `DELETE /inventory/:id` - Delete an inventory record
+- `POST /inventory/transactions` - Record an inventory transaction
+- `GET /inventory/transactions/history/:inventoryId` - Transaction history for one record
+- `GET /inventory/transactions/product/:productId` - Transaction history for one product
 - `POST /inventory/adjust` - Adjust inventory levels
-- `POST /inventory/transfer` - Transfer between warehouses
-- `GET /inventory/transactions` - View transaction history
-- `GET /inventory/low-stock` - Get low stock alerts
+- `POST /inventory/transfer` - Transfer stock between warehouses
+- `POST /inventory/reserve` - Reserve stock for an order
+- `POST /inventory/release` - Release reserved stock
+- `GET /inventory/verify/:productId` - Compare inventory and product stock data for a product
+- `POST /inventory/fulfill` - Reduce available stock directly
+
+#### Uploads
+- `POST /upload/image` - Upload an image file (multipart field `image`)
+- `DELETE /upload/image/:filename` - Delete an uploaded image
+
+Uploaded files are served from `/uploads/`.
 
 ## 🔐 Authentication & Authorization
 
