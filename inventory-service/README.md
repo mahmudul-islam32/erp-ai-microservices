@@ -255,7 +255,7 @@ Uploaded files are served from `/uploads/`.
 
 ### API Authentication
 
-All API endpoints require a valid JWT token:
+Requests are authenticated with a JWT from the auth service, sent either way:
 
 ```bash
 # Include in Authorization header
@@ -264,6 +264,17 @@ Authorization: Bearer <your-jwt-token>
 # Or use the cookie-based authentication
 Cookie: access_token=<your-jwt-token>
 ```
+
+The `JwtAuthGuard` checks each token by calling the auth service's `GET /api/v1/auth/me`, so the auth service must be reachable at `AUTH_SERVICE_URL`.
+
+How the guards are applied in the current code:
+
+- **GraphQL:** every resolver (products, categories, suppliers, warehouses, inventory) uses `JwtAuthGuard` and `RolesGuard`, so GraphQL requests need a token.
+- **REST `/products`:** the controller uses both guards, so every products route needs a token. `POST /products` is also limited to the admin and manager roles; the role checks on the other products routes are commented out.
+- **REST `/categories`, `/suppliers`, `/warehouses`, `/inventory`:** the guards are commented out on these controllers, so these routes currently accept requests without a token.
+- **REST `/upload`:** no guard is applied.
+
+The role table above describes the intended access model; only the checks listed here are enforced today.
 
 ## 🐳 Docker Deployment
 
