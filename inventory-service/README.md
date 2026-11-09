@@ -284,8 +284,8 @@ The role table above describes the intended access model; only the checks listed
 # Build development image
 docker build -f Dockerfile.dev -t erp-inventory-service:dev .
 
-# Run with docker-compose
-docker-compose up inventory-service
+# Run with docker compose from the repository root
+docker compose up inventory-service
 ```
 
 ### Production
@@ -295,12 +295,17 @@ docker-compose up inventory-service
 docker build -t erp-inventory-service:latest .
 
 # Run production container
-docker run -d \\
-  --name inventory-service \\
-  -p 8002:8002 \\
-  -e MONGODB_URI=mongodb://mongo:27017/erp_inventory \\
+docker run -d \
+  --name inventory-service \
+  -p 8002:8002 \
+  -e MONGODB_URI=mongodb://mongo:27017/erp_inventory \
+  -e JWT_SECRET=<same-secret-as-auth-service> \
+  -e AUTH_SERVICE_URL=http://auth-service:8001 \
+  -e NOTIFICATION_SERVICE_URL=http://notification-service:8004 \
   erp-inventory-service:latest
 ```
+
+The service and auth URLs above assume the container joins the same Docker network as the other services. Uploaded images are written to `/app/uploads` inside the container, so mount a volume there (as `docker-compose.yml` does with `inventory_uploads`) if they should survive a restart.
 
 ## 📊 Monitoring & Health Checks
 
