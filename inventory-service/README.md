@@ -264,14 +264,11 @@ Response:
   "status": "healthy",
   "service": "inventory-service",
   "version": "1.0.0",
-  "timestamp": "2025-01-01T00:00:00.000Z",
-  "database": "connected",
-  "memory": {
-    "used": "50MB",
-    "total": "100MB"
-  }
+  "timestamp": "2025-01-01T00:00:00.000Z"
 }
 ```
+
+The health route is registered in `src/main.ts` and always returns this fixed body with the current time. It does not check the MongoDB connection, so a `healthy` response only means the HTTP server is up.
 
 ## 🧪 Testing
 
