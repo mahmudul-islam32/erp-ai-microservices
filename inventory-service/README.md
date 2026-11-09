@@ -376,15 +376,19 @@ npm run test:cov
 ## 🔧 Configuration
 
 ### Environment Variables
-See `.env.example` for all available configuration options.
 
-### Key Configuration Areas
-- Database connection strings
-- JWT secrets and expiration
-- CORS settings
-- File upload limits
-- Rate limiting
-- External service URLs
+The service reads these settings (from the environment or a `.env` file in the service folder):
+
+| Variable | Default in code | Used for |
+|---|---|---|
+| `MONGODB_URI` | none, required | MongoDB connection string; the service will not start without it |
+| `PORT` | `8002` | HTTP port |
+| `JWT_SECRET` | `your-super-secret-key` | JWT strategy secret; set it to the same value as the auth service |
+| `AUTH_SERVICE_URL` | `http://auth-service:8001` | Token validation, via the auth service `GET /api/v1/auth/me` |
+| `NOTIFICATION_SERVICE_URL` | `http://notification-service:8004` | Sending stock notifications |
+| `PUBLIC_URL` | `http://localhost:8002` | Base URL used to build links to uploaded images |
+
+`.env.example` also lists settings such as `ALLOWED_ORIGINS`, `GRAPHQL_PLAYGROUND`, `REDIS_URL`, `MAX_FILE_SIZE` and the pagination and rate limit values, but the current code does not read them. CORS is set in `src/main.ts` to allow all origins, and the GraphQL playground and introspection are always enabled in `src/app.module.ts`. Note that `.env.example` points `NOTIFICATION_SERVICE_URL` at port 8005, while the notification service runs on 8004 in `docker-compose.yml`.
 
 ## 🤝 Contributing
 
