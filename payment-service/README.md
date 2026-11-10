@@ -302,13 +302,13 @@ There is no separate failed status. When a payment attempt fails, Stripe sends t
 
 The service handles the following Stripe webhook events:
 
-- `payment_intent.succeeded`: Payment completed successfully
-- `payment_intent.payment_failed`: Payment failed
-- `payment_intent.canceled`: Payment intent canceled
-- `charge.succeeded`: Charge completed successfully
-- `charge.refunded`: Refund processed
+- `payment_intent.succeeded`: updates the stored payment intent's `status` and `updated_at`
+- `payment_intent.payment_failed`: updates the stored status
+- `payment_intent.canceled`: updates the stored status
+- `charge.succeeded`: logged and stored only; the payment intent record is not changed
+- `charge.refunded`: logged and stored only; the payment intent record is not changed
 
-All webhook events are stored in the database for audit purposes.
+Every verified event, including types not listed above, is saved to the `webhook_events` collection before it is handled. Unknown types are logged as a warning and still answered with `200`, so Stripe does not keep retrying them. Webhooks do not call the sales service; marking an order as paid happens through the confirm endpoint.
 
 ## Frontend Integration
 
