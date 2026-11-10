@@ -395,7 +395,6 @@ The API returns standard HTTP status codes:
 
 - `200 OK`: Request successful
 - `400 Bad Request`: Invalid request data
-- `401 Unauthorized`: Authentication required
 - `404 Not Found`: Resource not found
 - `422 Unprocessable Entity`: Validation error
 - `500 Internal Server Error`: Server error
@@ -463,7 +462,7 @@ Interactive API documentation is available at:
 1. **Webhook Signature Verification**: All webhook requests are verified using Stripe's signature verification
 2. **Environment Variables**: Never commit `.env` files with real API keys
 3. **HTTPS**: Always use HTTPS in production
-4. **Authentication**: Consider adding authentication middleware for production use
+4. **Authentication**: The payment endpoints do not check tokens yet; the auth checks in `app/api/v1/payments.py` are commented out. The only token handling is in the confirm endpoint, which forwards the caller's `Authorization` header to the sales service. Put the service behind the gateway or add a check before exposing it publicly
 5. **Rate Limiting**: Consider implementing rate limiting for production
 
 ## Troubleshooting
