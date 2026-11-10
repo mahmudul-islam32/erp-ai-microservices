@@ -286,7 +286,7 @@ curl http://localhost:8009/api/v1/payments/config
 
 ## Payment Status Values
 
-The payment status can be one of the following:
+The `status` field is passed through from Stripe's PaymentIntent object and can be one of the following:
 
 - `requires_payment_method`: Payment intent created, waiting for payment method
 - `requires_confirmation`: Payment method attached, requires confirmation
@@ -295,7 +295,8 @@ The payment status can be one of the following:
 - `succeeded`: Payment completed successfully
 - `requires_capture`: Payment authorized, waiting for capture
 - `canceled`: Payment intent canceled
-- `payment_failed`: Payment failed
+
+There is no separate failed status. When a payment attempt fails, Stripe sends the `payment_intent.payment_failed` webhook event and the intent goes back to `requires_payment_method` so the customer can try again.
 
 ## Webhook Events
 
