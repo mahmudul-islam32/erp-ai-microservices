@@ -34,6 +34,7 @@ LOG_LEVEL=INFO
 
 # External Services
 AUTH_SERVICE_URL=http://auth-service:8001
+SALES_SERVICE_URL=http://sales-service:8003
 
 # JWT Settings
 SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
@@ -46,6 +47,8 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_API_VERSION=2023-10-16
 STRIPE_CURRENCY=usd
 ```
+
+`MONGODB_URL`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY` and `STRIPE_WEBHOOK_SECRET` have no defaults, so the service will not start without them. The other settings have defaults in `app/config.py`; `SECRET_KEY` defaults to a placeholder, so set your own. The secret key must start with `sk_test_` or `sk_live_` and the publishable key with `pk_test_` or `pk_live_`; keys that look like placeholders or are shorter than 50 characters only log a warning. `SALES_SERVICE_URL` is used by the confirm endpoint. When run through the root `docker-compose.yml`, `DATABASE_NAME` is set to `erp_payment` instead of `payment_db`.
 
 ### Getting Stripe Keys
 
@@ -84,10 +87,7 @@ STRIPE_CURRENCY=usd
    ```
 
 5. **Set up environment variables**:
-   ```bash
-   cp .env.example .env  # If you have an example file
-   # Edit .env with your actual values
-   ```
+   There is no `.env.example` in this folder, so create `.env` yourself with the variables listed in [Environment Variables](#environment-variables).
 
 6. **Run the service**:
    ```bash

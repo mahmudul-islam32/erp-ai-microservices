@@ -8,8 +8,8 @@ Create a `.env` file in the `payment-service` directory:
 
 ```bash
 cd payment-service
-cp .env.example .env
-# Edit .env with your actual Stripe keys
+touch .env
+# Add the variables below with your actual values
 ```
 
 Required environment variables:
