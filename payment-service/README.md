@@ -230,7 +230,42 @@ Handle webhook events from Stripe. This endpoint verifies the webhook signature 
 
 **Note**: This endpoint should be configured in your Stripe Dashboard. The webhook secret must match the `STRIPE_WEBHOOK_SECRET` environment variable.
 
-### 4. Get Stripe Configuration
+### 4. Confirm Payment
+
+Confirm a successful payment and mark the order as paid in the sales service.
+
+**Endpoint**: `POST /api/v1/payments/confirm`
+
+**Request Body**:
+```json
+{
+  "payment_intent_id": "pi_1234567890",
+  "order_id": "order_123"
+}
+```
+
+Both fields are required; if either is missing the service returns `400`. The service first reads the payment intent from Stripe and returns `400` unless its status is `succeeded`. It then calls the sales service at `{SALES_SERVICE_URL}/api/v1/payments/stripe/confirm`, passing on the caller's `Authorization: Bearer` header if one was sent, and returns `500` if the sales service does not answer with `200`.
+
+**Response**:
+```json
+{
+  "success": true,
+  "payment_intent_id": "pi_1234567890",
+  "order_id": "order_123",
+  "status": "succeeded",
+  "amount": 100.00
+}
+```
+
+**Example using cURL**:
+```bash
+curl -X POST http://localhost:8009/api/v1/payments/confirm \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"payment_intent_id": "pi_1234567890", "order_id": "order_123"}'
+```
+
+### 5. Get Stripe Configuration
 
 Get Stripe publishable key and currency configuration for frontend initialization.
 
