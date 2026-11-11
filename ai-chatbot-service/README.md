@@ -5,7 +5,7 @@ An intelligent AI chatbot service with NLP, sequence modeling, and deep learning
 ## Features
 
 - **Natural Language Processing (NLP)**: Intent extraction, entity recognition, query classification
-- **Deep Learning Integration**: OpenAI GPT-4/GPT-3.5-turbo for intelligent responses
+- **Deep Learning Integration**: OpenAI or Hugging Face models for intelligent responses
 - **Context-Aware Conversations**: Maintains conversation history and context
 - **ERP Data Integration**: Fetches real-time data from Sales, Inventory, Finance, and HRM services
 - **Multi-turn Conversations**: Supports ongoing conversations with memory
@@ -17,7 +17,7 @@ An intelligent AI chatbot service with NLP, sequence modeling, and deep learning
 ### Technology Stack
 
 - **FastAPI**: Modern Python web framework
-- **OpenAI API**: GPT-4/GPT-3.5-turbo for LLM capabilities
+- **OpenAI API** and **Hugging Face Inference API**: LLM providers
 - **MongoDB**: Conversation and message storage
 - **Motor**: Async MongoDB driver
 - **scikit-learn**: For NLP utilities (optional)
@@ -131,14 +131,13 @@ In `docker-compose.yml`, `JWT_SECRET_KEY` comes from the root `.env`, and `DEFAU
 
 ## LLM Provider Configuration
 
-The chatbot supports **multiple LLM providers**, including open-source models! You can choose which provider and model to use.
+The chatbot supports three providers: OpenAI, Hugging Face and a rule-based fallback. You can choose which provider and model to use. An unknown provider name, or a provider without its API key, falls back to the rule-based mode.
 
 ### Supported Providers
 
-1. **OpenAI** - Commercial, most capable (GPT-3.5, GPT-4)
-2. **Ollama** - Local open-source models (Llama 2, Mistral, etc.) - **Free!**
-3. **Hugging Face** - Open-source models via Inference API
-4. **Fallback** - Rule-based system (no API required)
+1. **OpenAI** - Commercial models such as `gpt-4o-mini` (the default)
+2. **Hugging Face** - Open-source models via the Inference API
+3. **Fallback** - Rule-based system (no API required)
 
 ### Provider Setup
 
@@ -148,7 +147,7 @@ The chatbot supports **multiple LLM providers**, including open-source models! Y
 # Required
 OPENAI_API_KEY=sk-your_openai_api_key
 DEFAULT_LLM_PROVIDER=openai
-DEFAULT_LLM_MODEL=gpt-3.5-turbo  # or gpt-4, gpt-4-turbo-preview
+DEFAULT_LLM_MODEL=gpt-4o-mini  # or another OpenAI chat model
 
 # Optional
 OPENAI_TEMPERATURE=0.7
@@ -184,7 +183,7 @@ HUGGINGFACE_BASE_URL=https://api-inference.huggingface.co
 2. Go to Settings → Access Tokens
 3. Create a new token
 
-#### 4. Fallback (Rule-Based) - **No Setup Required**
+#### 3. Fallback (Rule-Based) - **No Setup Required**
 
 ```bash
 DEFAULT_LLM_PROVIDER=fallback
@@ -198,7 +197,7 @@ You can also choose the provider/model per request:
 
 **Via API:**
 ```bash
-curl -X POST "http://localhost:8008/api/v1/ai-chatbot/conversations/{id}/messages?provider=ollama&model=llama2" \
+curl -X POST "http://localhost:8008/api/v1/ai-chatbot/conversations/{id}/messages?provider=huggingface&model=microsoft/DialoGPT-medium" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"content": "What were my sales?", "role": "user"}'
