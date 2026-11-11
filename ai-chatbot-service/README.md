@@ -27,25 +27,40 @@ An intelligent AI chatbot service with NLP, sequence modeling, and deep learning
 ```
 ai-chatbot-service/
 ├── app/
-│   ├── api/              # API routes
-│   │   ├── dependencies.py
+│   ├── api/                      # API routes
+│   │   ├── dependencies.py       # Token lookup and check against the auth service
 │   │   └── v1/
 │   │       └── chatbot.py
-│   ├── models/           # Data models
+│   ├── models/                   # Data models
 │   │   ├── conversation.py
+│   │   ├── knowledge_base.py
 │   │   └── message.py
-│   ├── services/         # Business logic
+│   ├── services/                 # Business logic
 │   │   ├── chatbot_service.py
+│   │   ├── date_extractor.py
+│   │   ├── embedding_service.py
+│   │   ├── erp_data_service.py
+│   │   ├── llm_provider_factory.py
+│   │   ├── llm_providers/        # OpenAI and Hugging Face providers
 │   │   ├── nlp_service.py
-│   │   └── erp_data_service.py
-│   ├── utils/            # Utilities
+│   │   └── rag_service.py
+│   ├── utils/
 │   │   └── nlp_utils.py
-│   ├── database/         # Database connection
+│   ├── database/                 # MongoDB connection
 │   └── config.py
+├── scripts/                      # Knowledge base helper scripts
 ├── main.py
 ├── requirements.txt
 └── Dockerfile
 ```
+
+### Helper scripts
+
+The scripts call a running service over HTTP. Each takes `--base-url` (default `CHATBOT_BASE_URL` or `http://localhost:8008`) and `--token` (falls back to the `JWT_TOKEN` environment variable).
+
+- `scripts/ingest_erp_documents.py` - Loads a set of general ERP documents into your knowledge base (its `--skip-existing` flag is accepted but not implemented yet)
+- `scripts/ingest_sample_data.py` - Loads sample documents for trying out RAG
+- `scripts/test_rag.py` - Checks `/health`, then with a token checks the knowledge base stats and runs test searches
 
 ## API Endpoints
 
