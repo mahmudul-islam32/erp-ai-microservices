@@ -90,53 +90,44 @@ ai-chatbot-service/
 
 ## Environment Variables
 
-```bash
-# Service
-SERVICE_PORT=8008
-ENVIRONMENT=development
+Settings are read from the environment or a `.env` file in the service folder. Only `MONGODB_URL` is required; the service will not start without it.
 
-# Database
-MONGODB_URL=mongodb://admin:password123@mongodb:27017/erp_ai_chatbot?authSource=admin
-DATABASE_NAME=erp_ai_chatbot
+| Variable | Default | Notes |
+|---|---|---|
+| `MONGODB_URL` | none (required) | MongoDB connection string |
+| `DATABASE_NAME` | `erp_ai_chatbot` | |
+| `SERVICE_NAME` | `AI Chatbot Service` | Shown by `/` |
+| `SERVICE_VERSION` | `1.0.0` | |
+| `SERVICE_PORT` | `8008` | |
+| `ENVIRONMENT` | `development` | |
+| `AUTH_SERVICE_URL` | `http://auth-service:8001` | Used to check every token |
+| `JWT_SECRET_KEY` | `your-super-secret-key-change-this-in-production` | |
+| `JWT_ALGORITHM` | `HS256` | |
+| `SALES_SERVICE_URL` | `http://sales-service:8003` | |
+| `INVENTORY_SERVICE_URL` | `http://inventory-service:8002` | |
+| `FINANCE_SERVICE_URL` | `http://finance-service:8006` | |
+| `HRM_SERVICE_URL` | `http://hrm-service:8007` | |
+| `DEFAULT_LLM_PROVIDER` | `openai` | `openai`, `huggingface` or `fallback` |
+| `DEFAULT_LLM_MODEL` | unset | Uses the provider's own model setting when empty |
+| `OPENAI_API_KEY` | unset | Without it the service uses fallback mode |
+| `OPENAI_MODEL` | `gpt-4o-mini` | |
+| `OPENAI_TEMPERATURE` | `0.7` | Also used for Hugging Face |
+| `OPENAI_MAX_TOKENS` | `1000` | Also used for Hugging Face |
+| `HUGGINGFACE_API_KEY` | unset | |
+| `HUGGINGFACE_MODEL` | `microsoft/DialoGPT-medium` | |
+| `HUGGINGFACE_BASE_URL` | `https://api-inference.huggingface.co` | |
+| `MAX_CONVERSATION_HISTORY` | `20` | Previous messages included in the context |
+| `CONTEXT_WINDOW_SIZE` | `4096` | |
+| `ENABLE_RAG` | `true` | |
+| `RAG_EMBEDDING_PROVIDER` | `openai` | `openai` or `sentence_transformer` |
+| `RAG_EMBEDDING_MODEL` | `text-embedding-3-small` | Use `all-MiniLM-L6-v2` with sentence transformers |
+| `RAG_TOP_K` | `5` | Chunks retrieved per question |
+| `RAG_SIMILARITY_THRESHOLD` | `0.5` | Minimum similarity, 0 to 1 |
+| `RAG_CHUNK_SIZE` | `1000` | Characters per chunk |
+| `RAG_CHUNK_OVERLAP` | `200` | Characters shared between chunks |
+| `CORS_ORIGINS` | `http://localhost:5173`, `http://localhost:3000`, `http://localhost:8080` | `main.py` also adds `*` |
 
-# Auth Service
-AUTH_SERVICE_URL=http://auth-service:8001
-JWT_SECRET_KEY=your-secret-key
-
-# External Services
-SALES_SERVICE_URL=http://sales-service:8003
-INVENTORY_SERVICE_URL=http://inventory-service:8002
-FINANCE_SERVICE_URL=http://finance-service:8006
-HRM_SERVICE_URL=http://hrm-service:8007
-
-# AI Configuration - Provider Selection
-DEFAULT_LLM_PROVIDER=openai  # Options: openai, ollama, huggingface, fallback
-DEFAULT_LLM_MODEL=  # Uses provider default if empty
-
-# OpenAI Configuration
-OPENAI_API_KEY=sk-your_openai_api_key  # Optional - leave empty for fallback
-OPENAI_MODEL=gpt-3.5-turbo  # or gpt-4, gpt-4-turbo-preview
-OPENAI_TEMPERATURE=0.7
-OPENAI_MAX_TOKENS=1000
-
-# Ollama Configuration (Local Open-Source Models)
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama2  # Options: llama2, mistral, codellama, phi, etc.
-
-# Hugging Face Configuration
-HUGGINGFACE_API_KEY=your-hf-api-key  # Optional
-HUGGINGFACE_MODEL=microsoft/DialoGPT-medium
-HUGGINGFACE_BASE_URL=https://api-inference.huggingface.co
-
-# RAG (Retrieval-Augmented Generation) Configuration
-ENABLE_RAG=true  # Enable/disable RAG
-RAG_EMBEDDING_PROVIDER=openai  # Options: openai, sentence_transformer
-RAG_EMBEDDING_MODEL=text-embedding-3-small  # OpenAI: text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 | Sentence Transformer: all-MiniLM-L6-v2
-RAG_TOP_K=5  # Number of similar chunks to retrieve
-RAG_SIMILARITY_THRESHOLD=0.7  # Minimum similarity score (0-1)
-RAG_CHUNK_SIZE=1000  # Characters per chunk
-RAG_CHUNK_OVERLAP=200  # Overlap between chunks
-```
+In `docker-compose.yml`, `JWT_SECRET_KEY` comes from the root `.env`, and `DEFAULT_LLM_MODEL` and `OPENAI_MODEL` default to `gpt-4o-mini`.
 
 ## LLM Provider Configuration
 
