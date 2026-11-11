@@ -492,10 +492,11 @@ The service will use fallback responses when no API key is configured, allowing 
 
 ## Security
 
-- JWT authentication required
-- Token validation via Auth Service
-- User isolation (users can only access their conversations)
-- Secure API key storage (environment variables)
+- Every `/api/v1/ai-chatbot` endpoint needs a token, sent as `Authorization: Bearer <token>` or in the `access_token` cookie. Without one the service returns 401.
+- The service does not decode the token itself. It calls `GET /api/v1/auth/me` on the auth service with the token and uses the returned user id, email and role. A non-200 answer gives 401, and an unreachable auth service gives 503.
+- Conversations and knowledge base documents are stored per user id, so users only see their own.
+- API keys for OpenAI and Hugging Face are read from environment variables.
+- CORS allows any origin, because `main.py` adds `*` to `CORS_ORIGINS`; restrict this before a public deployment.
 
 ## Future Enhancements
 
