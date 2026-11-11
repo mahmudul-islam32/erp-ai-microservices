@@ -65,6 +65,29 @@ ai-chatbot-service/
 
 - `POST /api/v1/ai-chatbot/chat?message={text}&conversation_id={id}` - Quick chat endpoint
 
+### Providers
+
+- `GET /api/v1/ai-chatbot/providers` - List the available LLM providers and the default one
+
+### Knowledge Base
+
+- `POST /api/v1/ai-chatbot/knowledge-base/ingest` - Split a document into chunks and store them
+- `GET /api/v1/ai-chatbot/knowledge-base/search` - Search your chunks by meaning
+- `GET /api/v1/ai-chatbot/knowledge-base/document/{source_id}` - Get all chunks of one document
+- `DELETE /api/v1/ai-chatbot/knowledge-base/document/{source_id}` - Delete a document and its chunks (404 if none were found)
+- `GET /api/v1/ai-chatbot/knowledge-base/stats` - Knowledge base statistics for the current user
+
+### Service
+
+- `GET /health` - Health check (no auth), returns `{"status": "healthy"}`
+- `GET /` - Service name, version and status
+
+### Query parameters
+
+- Conversation and message lists take `skip` (default 0) and `limit` (default 50, max 100).
+- Sending a message and quick chat take optional `provider` and `model` to override the defaults for that request.
+- Knowledge base search requires `query` and takes `limit` (default 5, max 20), `threshold` (default 0.7, 0 to 1), `source`, and `tags` as a comma-separated list.
+
 ## Environment Variables
 
 ```bash
