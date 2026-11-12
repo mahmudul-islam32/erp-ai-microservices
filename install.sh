@@ -208,7 +208,7 @@ else
 fi
 
 log_info "Waiting for Frontend..."
-if wait_for_service "Frontend" "http://localhost:5173"; then
+if wait_for_service "Frontend" "http://localhost:8080"; then
     log_success "Frontend is ready"
 else
     log_warning "Frontend may not be ready. Check logs: docker-compose logs frontend-dev"
@@ -312,7 +312,7 @@ if [ "$SERVICES_OK" = true ]; then
     log_success "Your ERP system is ready to use!"
     echo ""
     echo "📍 Access your ERP system:"
-    echo "   URL: http://localhost:5173"
+    echo "   URL: http://localhost:8080"
     echo ""
     echo "🔐 Login credentials:"
     echo "   Email: $DEFAULT_EMAIL"
@@ -335,13 +335,13 @@ if [ "$SERVICES_OK" = true ]; then
         read -p "Open ERP in browser now? (Y/n): " -n 1 -r
         echo ""
         if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-            open http://localhost:5173
+            open http://localhost:8080
         fi
     elif command -v xdg-open &> /dev/null; then
         read -p "Open ERP in browser now? (Y/n): " -n 1 -r
         echo ""
         if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-            xdg-open http://localhost:5173
+            xdg-open http://localhost:8080
         fi
     fi
 else
