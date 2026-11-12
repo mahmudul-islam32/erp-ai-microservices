@@ -564,9 +564,9 @@ echo ""
 
 echo -e "${PURPLE}═══ DOCUMENTATION ═══${NC}"
 echo ""
-echo -e "  User Manual:     ${CYAN}docs/USER_MANUAL.md${NC}"
-echo -e "  Quick Start:     ${CYAN}docs/QUICK_START.md${NC}"
-echo -e "  Interactive:     ${CYAN}documentation/index.html${NC}"
+echo -e "  User Guide:      ${CYAN}docs/USER_GUIDE.md${NC}"
+echo -e "  Installation:    ${CYAN}docs/INSTALLATION.md${NC}"
+echo -e "  Setup Guide:     ${CYAN}setup-wizard/index.html${NC}"
 echo ""
 
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
