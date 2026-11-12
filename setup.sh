@@ -97,7 +97,7 @@ fi
 # Check ports
 echo -n "Checking Required Ports... "
 ports_available=true
-for port in 5173 8001 8002 8003 27017 6379; do
+for port in 8080 8001 8002 8003 27017 6379; do
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
         echo -e "${YELLOW}⚠ Port $port in use${NC}"
         ports_available=false
