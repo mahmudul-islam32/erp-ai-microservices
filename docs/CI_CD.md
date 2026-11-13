@@ -66,6 +66,19 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
 
 The health check only covers the auth service and does not fail the job, so check the printed container status and logs after each run.
 
+## CI Checks
+
+A separate workflow, `.github/workflows/ci.yml`, runs on every pull request into main and every push to main. A newer run on the same branch cancels the older one. It has four jobs:
+
+| Job | What it does |
+|-----|--------------|
+| Secret scan | Runs Gitleaks over the full git history |
+| Auth service tests | Installs `auth-service/requirements-dev.txt` on Python 3.11 and runs `pytest` |
+| Python lint | Runs `ruff check .` with Ruff 0.1.14 |
+| Frontend typecheck and build | Runs `npm ci`, `npm run typecheck` and `npm run build` in `erp-frontend` on Node 20 |
+
+The frontend job also runs `npm run lint`, but only as advice: lint errors do not fail the job yet.
+
 ## Deployment Process
 
 ### Initial Setup
