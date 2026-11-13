@@ -17,16 +17,16 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
 
 | Secret Name | Description | Example |
 |-------------|-------------|---------|
-| `AWS_ACCESS_KEY_ID` | AWS access key for Terraform | `AKIAIOSFODNN7EXAMPLE` |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key for Terraform | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
 | `EC2_HOST` | Public IP or hostname of EC2 instance | `54.123.45.67` |
 | `EC2_SSH_KEY` | Private SSH key to access EC2 | `-----BEGIN RSA PRIVATE KEY-----\n...` |
-| `EC2_USER` | SSH username (usually `ubuntu`) | `ubuntu` |
+
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are only used by the Terraform jobs, so they are needed only if you run Terraform from the workflow.
 
 ### Optional Secrets (for enhanced functionality)
 
 | Secret Name | Description | Default |
 |-------------|-------------|---------|
+| `EC2_USER` | SSH username on the instance | `ubuntu` |
 | `VITE_AUTH_SERVICE_URL` | Frontend auth service URL | `http://localhost:8001` |
 | `VITE_INVENTORY_SERVICE_URL` | Frontend inventory service URL | `http://localhost:8002` |
 | `VITE_SALES_SERVICE_URL` | Frontend sales service URL | `http://localhost:8003` |
