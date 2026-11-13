@@ -41,8 +41,9 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
 - **Outputs**: The apply job reads the EC2 IP from `terraform output` (`elastic_ip`, falling back to `instance_public_ip`)
 
 ### 2. Build and Push
-- **Trigger**: Every push to main/master branch
+- **Trigger**: Every push to main/master branch, and every manual run
 - **Purpose**: Build Docker images and push to GitHub Container Registry
+- **Image names**: `ghcr.io/mahmudul-islam32/erp-<service>`, tagged `<branch>-<short sha>` and, on the default branch, `latest`
 - **Services Built**:
   - auth-service
   - inventory-service
@@ -50,16 +51,20 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
   - frontend (React app)
 
 ### 3. Deploy
-- **Trigger**: After successful build on main/master branch
+- **Trigger**: After a successful build, when the run is on main or master
 - **Purpose**: Deploy containers to EC2 instance
+- **Host**: The IP from a committed `terraform/terraform.tfstate` if one exists, otherwise the `EC2_HOST` secret
 - **Steps**:
-  1. Copy docker-compose.prod.yml to EC2
-  2. Login to GitHub Container Registry on EC2
-  3. Pull latest images
-  4. Stop old containers
-  5. Start new containers
-  6. Health checks
-  7. Cleanup old images
+  1. Copy docker-compose.prod.yml to `~/erp/docker-compose.yml` on EC2
+  2. Load `~/erp/.env` if it exists
+  3. Login to GitHub Container Registry on EC2
+  4. Pull latest images
+  5. Stop old containers (`docker compose down`)
+  6. Start new containers (`docker compose up -d`)
+  7. Wait 45 seconds, then poll the auth service's `/health` on port 8001 up to 5 times
+  8. Print the last 20 log lines and prune images older than 24 hours
+
+The health check only covers the auth service and does not fail the job, so check the printed container status and logs after each run.
 
 ## Deployment Process
 
