@@ -128,8 +128,10 @@ The health check only covers the auth service and does not fail the job, so chec
 1. Go to Actions tab in GitHub
 2. Select "Deploy ERP Microservices to AWS EC2"
 3. Click "Run workflow"
-4. Select branch and options
+4. Select the branch (the workflow has no other inputs)
 5. Click "Run workflow"
+
+A manual run also starts the Terraform plan job. The deploy job only runs when the selected branch is main or master.
 
 ## Troubleshooting
 
