@@ -35,9 +35,10 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
 ## Workflow Jobs
 
 ### 1. Terraform Plan/Apply (Optional)
-- **Trigger**: Manual workflow dispatch or commit with `[terraform]` in message
-- **Purpose**: Create or update AWS infrastructure
-- **Outputs**: EC2 instance IP address
+- **Plan trigger**: Manual workflow dispatch, or a push whose head commit message contains `[terraform]`
+- **Plan steps**: `terraform init`, `terraform validate` and `terraform plan`
+- **Apply trigger**: Only runs on a manual dispatch with an `apply_terraform` input set to `true`. The workflow does not declare that input yet, so the apply job does not run today; apply the infrastructure locally with `cd terraform && terraform apply`
+- **Outputs**: The apply job reads the EC2 IP from `terraform output` (`elastic_ip`, falling back to `instance_public_ip`)
 
 ### 2. Build and Push
 - **Trigger**: Every push to main/master branch
@@ -70,8 +71,8 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
    ```
 
 2. **Run Terraform (if not done)**:
-   - Trigger workflow manually with `[terraform]` flag
-   - Or run locally: `cd terraform && terraform apply`
+   - Run it locally: `cd terraform && terraform apply`
+   - A push with `[terraform]` in the commit message only runs `terraform plan`
 
 3. **Configure EC2 Environment** (optional):
    SSH into your EC2 instance and create `.env` file:
