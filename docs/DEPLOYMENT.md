@@ -48,6 +48,8 @@ Before deploying, ensure you have:
   Port 8080 (Frontend)  - 0.0.0.0/0
   ```
 
+  Ports 80 and 443 are only used once you put Nginx in front of the app (see [SSL/HTTPS Setup](#4-sslhttps-setup-recommended)). `docker-compose.prod.yml` also publishes Redis on port 6379 without a password, so do not open 6379 in the security group. Docker writes its own iptables rules for published ports, which means UFW alone does not block them; the security group is what keeps Redis private.
+
 ### 2. Create or Import SSH Key Pair
 
 ```bash
@@ -148,6 +150,7 @@ sudo ufw allow 8001/tcp
 sudo ufw allow 8002/tcp
 sudo ufw allow 8003/tcp
 sudo ufw allow 8080/tcp
+# Do not allow 6379: Redis is published on the host but has no password
 
 # Check status
 sudo ufw status
