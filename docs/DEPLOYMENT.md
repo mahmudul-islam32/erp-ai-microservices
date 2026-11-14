@@ -2,6 +2,8 @@
 
 This guide covers deploying the ERP Microservices application to production using AWS EC2 and GitHub Actions.
 
+The production stack is defined in `docker-compose.prod.yml` and runs five containers: `auth-service` (8001), `inventory-service` (8002), `sales-service` (8003), `frontend` (8080) and `redis` (6379). The other services in `docker-compose.yml` (finance, HRM, notification, chat, AI chatbot and payment) are not part of this deployment.
+
 ## 📋 Table of Contents
 
 1. [Prerequisites](#prerequisites)
@@ -171,8 +173,8 @@ Click **"New repository secret"** and add the following:
 | Secret Name | Description | Example |
 |-------------|-------------|---------|
 | `EC2_SSH_KEY` | Private SSH key content | Contents of `~/.ssh/erp-ec2-key` |
-| `EC2_HOST` | EC2 public IP or domain | `54.123.45.67` |
-| `EC2_USER` | SSH user (usually ubuntu) | `ubuntu` |
+| `EC2_HOST` | EC2 public IP or domain, used when the workflow cannot read an IP from Terraform state | `54.123.45.67` |
+| `EC2_USER` | SSH user (optional, defaults to `ubuntu`) | `ubuntu` |
 | `VITE_AUTH_SERVICE_URL` | Public auth service URL | `http://YOUR_IP:8001` |
 | `VITE_INVENTORY_SERVICE_URL` | Public inventory service URL | `http://YOUR_IP:8002` |
 | `VITE_SALES_SERVICE_URL` | Public sales service URL | `http://YOUR_IP:8003` |
@@ -253,6 +255,8 @@ The application automatically deploys when you push to `main` or `master` branch
    - Go to GitHub → Actions tab
    - Watch the workflow execution
    - Check logs if errors occur
+
+On the server, the workflow copies `docker-compose.prod.yml` to `~/erp/docker-compose.yml`, logs in to GitHub Container Registry, runs `docker compose pull`, `down` and `up -d`, and then polls `http://localhost:8001/health` on the auth service. That is why the manual commands below run plain `docker compose` inside `~/erp`. See [CI_CD.md](CI_CD.md) for the build jobs and the full list of secrets.
 
 ### Manual Deployment
 
