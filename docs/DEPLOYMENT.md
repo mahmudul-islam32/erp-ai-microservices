@@ -112,11 +112,15 @@ cd ~/erp
 nano .env
 ```
 
-**Copy contents from `env.production.example` and update:**
+**Use the repository's `.env.example` as a reference and set at least:**
 
 ```env
-# Required changes:
-MONGODB_PASSWORD=<generate-a-strong-password>
+# Required: docker-compose.prod.yml stops with an error if any of these is missing
+MONGODB_ATLAS_HOST=your-cluster.mongodb.net
+MONGODB_ATLAS_USER=your_mongodb_atlas_username
+MONGODB_ATLAS_PASSWORD=<generate-a-strong-password>
+
+# Strongly recommended
 JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
 STRIPE_SECRET_KEY=sk_test_your_key_from_dashboard_stripe_com
 STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
@@ -193,10 +197,13 @@ Paste this **entire content** as the `EC2_SSH_KEY` secret.
 
 Create `.env` file on EC2 at `~/erp/.env`:
 
+The production compose file does not start a MongoDB container. Every service connects to MongoDB Atlas through a connection string built from the three `MONGODB_ATLAS_*` values.
+
 ```env
-# MongoDB
-MONGODB_USERNAME=admin
-MONGODB_PASSWORD=<generate-a-strong-password>
+# MongoDB Atlas (required)
+MONGODB_ATLAS_HOST=your-cluster.mongodb.net
+MONGODB_ATLAS_USER=your_mongodb_atlas_username
+MONGODB_ATLAS_PASSWORD=<generate-a-strong-password>
 
 # JWT
 JWT_SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))">
@@ -219,6 +226,8 @@ NODE_ENV=production
 LOG_LEVEL=INFO
 DEBUG=false
 ```
+
+If `JWT_SECRET_KEY` is not set, the compose file falls back to a placeholder secret, so always set it in production. The deploy workflow exports `IMAGE_REGISTRY=ghcr.io`, `IMAGE_PREFIX=mahmudul-islam32/erp` and `IMAGE_TAG=latest` before it runs Docker Compose, which takes precedence over the `IMAGE_*` values in `.env`; those values only apply when you run Compose by hand.
 
 ---
 
