@@ -306,8 +306,7 @@ async def create_admin():
         password='ChangeMe123!',
         first_name='Admin',
         last_name='User',
-        role='SUPER_ADMIN',
-        is_active=True
+        role='super_admin'
     )
     
     user = await service.create_user(admin)
@@ -317,18 +316,19 @@ asyncio.run(create_admin())
 "
 ```
 
+The auth service does not create an admin account on its own. The `role` value must be one of the lowercase `UserRole` values from `auth-service/app/models/user.py`, such as `super_admin`, and the password has to pass the password rules from the security settings (by default at least 8 characters with upper case, lower case and a number).
+
 ### 2. Load Demo Data (Optional)
 
 ```bash
-# Auth demo data
+# Auth demo data (also creates admin@example.com / Admin123)
 docker compose exec auth-service python scripts/seed_demo_data.py
-
-# Inventory demo data
-docker compose exec inventory-service npm run seed:demo
 
 # Sales demo data
 docker compose exec sales-service python scripts/seed_demo_data.py
 ```
+
+The inventory seed is `npm run seed`, which runs through `ts-node`. That is a dev dependency, and the production image removes dev dependencies after the build, so run the inventory seed from a local checkout of `inventory-service` with `MONGODB_URI` pointing at your Atlas cluster instead of inside the container. Demo accounts use well-known passwords, so change or remove them on a public server.
 
 ### 3. Test the Application
 
