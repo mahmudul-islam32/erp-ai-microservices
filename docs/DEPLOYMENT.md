@@ -465,16 +465,18 @@ docker compose restart auth-service
 
 **4. MongoDB Connection Issues**
 
+Production uses MongoDB Atlas, so there is no `mongodb` container to inspect. Look at the service logs and check the Atlas side instead:
+
 ```bash
-# Check MongoDB is running
-docker compose ps mongodb
+# Connection errors show up in the service logs
+docker compose logs auth-service | grep -i mongo
 
-# Check MongoDB logs
-docker compose logs mongodb
-
-# Restart MongoDB
-docker compose restart mongodb
+# Confirm the Atlas values are present in .env
+grep MONGODB_ATLAS ~/erp/.env
 ```
+
+- Make sure the EC2 instance's public IP is on the Atlas project's IP access list.
+- Check that the Atlas database user and password match `MONGODB_ATLAS_USER` and `MONGODB_ATLAS_PASSWORD`.
 
 **5. GitHub Actions Failing**
 
@@ -506,16 +508,13 @@ docker stats
 
 ### Backup MongoDB Data
 
+The data lives in MongoDB Atlas, so use Atlas backups for your cluster tier, or run `mongodump` from any machine that has the MongoDB Database Tools installed and is allowed by the Atlas IP access list:
+
 ```bash
 # Create backup
-docker compose exec mongodb mongodump \
-  --username=admin \
-  --password=YOUR_PASSWORD \
-  --authenticationDatabase=admin \
-  --out=/backup
-
-# Copy backup from container
-docker cp erp-mongodb:/backup ./mongodb-backup-$(date +%Y%m%d)
+mongodump \
+  --uri="mongodb+srv://USER:PASSWORD@your-cluster.mongodb.net/" \
+  --out=./mongodb-backup-$(date +%Y%m%d)
 
 # Compress backup
 tar -czf mongodb-backup-$(date +%Y%m%d).tar.gz ./mongodb-backup-$(date +%Y%m%d)
@@ -524,15 +523,9 @@ tar -czf mongodb-backup-$(date +%Y%m%d).tar.gz ./mongodb-backup-$(date +%Y%m%d)
 ### Restore MongoDB Data
 
 ```bash
-# Copy backup to container
-docker cp ./mongodb-backup-YYYYMMDD erp-mongodb:/restore
-
-# Restore
-docker compose exec mongodb mongorestore \
-  --username=admin \
-  --password=YOUR_PASSWORD \
-  --authenticationDatabase=admin \
-  /restore
+mongorestore \
+  --uri="mongodb+srv://USER:PASSWORD@your-cluster.mongodb.net/" \
+  ./mongodb-backup-YYYYMMDD
 ```
 
 ### Update Application
