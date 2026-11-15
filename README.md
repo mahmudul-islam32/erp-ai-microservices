@@ -170,7 +170,7 @@ ESLint is not gated yet: a handful of unused-variable errors remain, and `no-exp
 | [Deployment](docs/DEPLOYMENT.md) | Docker Compose production deployment |
 | [AWS Deployment](docs/AWS_DEPLOYMENT.md) | EC2 + Terraform provisioning |
 | [CI/CD](docs/CI_CD.md) | GitHub Actions pipeline and required secrets |
-| [API Reference](docs/API.md) | Endpoint reference |
+| [API Reference](docs/API.md) | Payment service endpoints; every service also serves its own interactive docs at `/docs` |
 | [Payments](docs/PAYMENTS.md) | Stripe integration and webhook handling |
 | [User Guide](docs/USER_GUIDE.md) | End-user walkthrough |
 | [Scripts](scripts/README.md) | Setup, seeding, deployment and health-check scripts |
