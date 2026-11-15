@@ -97,6 +97,6 @@ Once the service is running, visit:
 ## Support
 
 - Full documentation: `README.md`
-- API documentation: `docs/PAYMENT_SERVICE_API.md`
+- API documentation: [docs/API.md](../docs/API.md)
 - Stripe documentation: https://stripe.com/docs
 
