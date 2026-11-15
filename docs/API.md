@@ -10,11 +10,13 @@ The Payment Service is a dedicated microservice for handling payment processing 
 
 ## Authentication
 
-Currently, authentication is optional but can be enabled by uncommenting the authentication checks in the API endpoints. When enabled, include the JWT token in the Authorization header:
+The payment endpoints do not check tokens yet; the auth checks in `payment-service/app/api/v1/payments.py` are commented out. The only token handling is in the confirm endpoint, which forwards the caller's `Authorization` header to the sales service:
 
 ```
 Authorization: Bearer <your-jwt-token>
 ```
+
+Keep the service behind the gateway or add a check before exposing it publicly.
 
 ## Endpoints
 
@@ -347,7 +349,6 @@ All endpoints return standard HTTP status codes:
 
 - `200 OK`: Request successful
 - `400 Bad Request`: Invalid request data or validation error
-- `401 Unauthorized`: Authentication required (if enabled)
 - `404 Not Found`: Resource not found
 - `422 Unprocessable Entity`: Validation error
 - `500 Internal Server Error`: Server error
@@ -368,7 +369,7 @@ Currently, there is no rate limiting implemented. Consider adding rate limiting 
 1. **Webhook Signature Verification**: All webhook requests are verified using Stripe's signature verification
 2. **HTTPS**: Always use HTTPS in production
 3. **Environment Variables**: Never expose API keys in client-side code
-4. **Authentication**: Consider enabling authentication for production use
+4. **Authentication**: The endpoints accept requests without a token, so do not expose port 8009 directly
 
 ## Testing
 
