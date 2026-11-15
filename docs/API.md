@@ -201,7 +201,48 @@ stripe trigger payment_intent.succeeded
 
 ---
 
-### 4. Get Stripe Configuration
+### 4. Confirm Payment
+
+Confirm a successful payment and mark the order as paid in the sales service.
+
+**Endpoint**: `POST /api/v1/payments/confirm`
+
+**Request Body**:
+```json
+{
+  "payment_intent_id": "pi_1234567890",
+  "order_id": "order_123"
+}
+```
+
+Both fields are required. The service reads the payment intent from Stripe and only continues if its status is `succeeded`. It then calls the sales service at `{SALES_SERVICE_URL}/api/v1/payments/stripe/confirm`, passing on the caller's `Authorization: Bearer` header if one was sent.
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "payment_intent_id": "pi_1234567890",
+  "order_id": "order_123",
+  "status": "succeeded",
+  "amount": 100.00
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: `payment_intent_id` or `order_id` is missing, or the payment intent's status is not `succeeded`
+- `500 Internal Server Error`: The sales service did not answer with `200`, or another error occurred
+
+**Example cURL**:
+```bash
+curl -X POST http://localhost:8009/api/v1/payments/confirm \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"payment_intent_id": "pi_1234567890", "order_id": "order_123"}'
+```
+
+---
+
+### 5. Get Stripe Configuration
 
 Get Stripe publishable key and currency configuration for frontend initialization.
 
